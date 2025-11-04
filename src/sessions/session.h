@@ -11,6 +11,8 @@
 #include "Poco/DigestStream.h"
 #include "Poco/MD5Engine.h"
 
+#include "tools/random_generator.h"
+
 
 namespace StructBX
 {
@@ -65,10 +67,6 @@ class StructBX::Sessions::Session
         }
 
         void GenerateNewSessionID_();
-
-    protected:
-        void GenerateSessionID_();
-        void GenerateMD5Hash_();
 
     private:
         std::string id_;
