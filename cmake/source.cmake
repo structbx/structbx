@@ -35,6 +35,7 @@ set(
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/columns.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/permissions.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/views.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/forms/main.cpp
     ${PROJECT_SOURCE_DIR}/src/core/core.cpp
     ${PROJECT_SOURCE_DIR}/src/core/handler_factory.cpp
     ${PROJECT_SOURCE_DIR}/src/core/server.cpp
@@ -79,6 +80,8 @@ set(
     ${PROJECT_SOURCE_DIR}/src/tools/base64_tool.cpp
     ${PROJECT_SOURCE_DIR}/src/tools/settings_manager.cpp
     ${PROJECT_SOURCE_DIR}/src/tools/id_checker.cpp
+    ${PROJECT_SOURCE_DIR}/src/tools/random_generator.cpp
+    ${PROJECT_SOURCE_DIR}/src/tools/credentials.cpp
 )
 
 # Executable
