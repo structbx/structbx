@@ -67,7 +67,6 @@ class StructBX::HTTP::Client
 
         Client(std::string uri, const std::string method);
 
-        bool get_use_ssl() const { return use_ssl_; }
         std::string get_uri() const { return uri_; }
         std::string get_method() const { return method_; }
         std::string get_username() const { return username_; }
@@ -85,7 +84,6 @@ class StructBX::HTTP::Client
         }
         ClientResponseFunction get_response_handler() const { return response_handler_; }
 
-        void set_use_ssl(bool use_ssl) { use_ssl_ = use_ssl; }
         void set_uri(std::string uri) { uri_ = uri; }
         void set_method(std::string method) { method_ = method; }
         void set_username(std::string username) { username_ = username; }
@@ -98,16 +96,14 @@ class StructBX::HTTP::Client
         void SetupSSL_(std::string rootcert);
         void AddHeader_(std::string name, std::string value);
         void AddCookie_(std::string name, std::string value);
-        void SendRequest_();
+        void SendHTTPRequest_();
+        void SendHTTPSRequest_();
 
     protected:
-        void SendNormalRequest_();
-        void SendSSLRequest_();
         void SetupHeaders_(Net::HTTPRequest& http_request);
         void SetupCookies_(Net::HTTPRequest& http_request);
 
     private:
-        bool use_ssl_;
         std::string uri_;
         std::string method_;
         std::string username_;

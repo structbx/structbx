@@ -21,15 +21,16 @@
 using namespace StructBX::HTTP;
 
 Client::Client(std::string uri, const std::string method) :
-    use_ssl_(false)
-    ,uri_(uri)
+    uri_(uri)
     ,method_(method)
     ,username_("")
     ,password_("")
     ,use_credentials_(false)
     ,ssl_context_(nullptr)
 {
-    
+    auto params = Context::Params();
+    params.verificationMode = Context::VerificationMode::VERIFY_NONE;
+    ssl_context_ = new Context(Context::Usage::TLS_CLIENT_USE, params);
 }
 
 void Client::UseCredentials_(std::string username, std::string password)
@@ -40,14 +41,12 @@ void Client::UseCredentials_(std::string username, std::string password)
 
 void Client::SetupSSL_(std::string key, std::string cert)
 {
-    use_ssl_ = true;
-    ssl_context_ = new Context(Context::CLIENT_USE, key, cert, "", Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+    ssl_context_ = new Context(Context::TLS_CLIENT_USE, key, cert, "", Context::VERIFY_NONE, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 }
 
 void Client::SetupSSL_(std::string rootcert)
 {
-    use_ssl_ = true;
-    ssl_context_ = new Context(Context::CLIENT_USE, "", "", rootcert, Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+    ssl_context_ = new Context(Context::TLS_CLIENT_USE, "", "", rootcert, Context::VERIFY_NONE, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 }
 
 void Client::AddHeader_(std::string name, std::string value)
@@ -60,13 +59,7 @@ void Client::AddCookie_(std::string name, std::string value)
     cookies_.push_back(HTTP::Cookie{name, value});
 }
 
-void Client::SendRequest_()
-{
-    if(use_ssl_) SendSSLRequest_();
-    else SendNormalRequest_();
-}
-
-void Client::SendNormalRequest_()
+void Client::SendHTTPRequest_()
 {
 	try
 	{
@@ -100,7 +93,7 @@ void Client::SendNormalRequest_()
 	}
 }
 
-void Client::SendSSLRequest_()
+void Client::SendHTTPSRequest_()
 {
 	try
 	{
@@ -154,5 +147,5 @@ void Client::SetupCookies_(Net::HTTPRequest& http_request)
     for(auto& cookie : cookies_)
         poco_cookies.add(cookie.name, cookie.value);
 
-    http_request.setCookies(http_request);
+    http_request.setCookies(poco_cookies);
 }
