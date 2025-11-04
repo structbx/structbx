@@ -304,7 +304,7 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
 
 void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("INSERT INTO tables (identifier, name, state, privacity, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
+    action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
 
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -354,7 +354,7 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("state", "", true);
-    action->AddParameter_("privacity", "", true);
+    action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
     action->AddParameter_("id_database", get_database_id(), false);
 }
@@ -485,7 +485,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables " \
-        "SET identifier = ?, name = ?, state = ?, privacity = ?, description = ? " \
+        "SET identifier = ?, name = ?, state = ?, public_form = ?, description = ? " \
         "WHERE id = ? AND id_database = ?"
     );
 
@@ -537,7 +537,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("state", "", true);
-    action->AddParameter_("privacity", "", true);
+    action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
 
     action->AddParameter_("id", "", true)
