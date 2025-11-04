@@ -75,6 +75,7 @@ class StructBX::HTTP::ResponseManager : public HTTP::Request
         void JSONResponse_(HTTP::Status status, std::string message);
         void HTMLResponse_(HTTP::Status status, std::string message);
         void CustomHTMLResponse_(HTTP::Status status, std::string html_message);
+        void CustomResponse_(HTTP::Status status, std::string message, std::string content_type);
         void FileResponse_(HTTP::Status status, std::string address);
         void FileResponse_(HTTP::Status status, std::string address, Files::FileManager& file_manager);
 
