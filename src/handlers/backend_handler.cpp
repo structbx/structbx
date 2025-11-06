@@ -124,10 +124,10 @@ void BackendHandler::SetupFunctionData_()
     {
         add_database_id_cookie_ = true;
 
-        // Get Database ID Cookie if not exists in Cookies
+        // Get Database IDENTIFIER Cookie if not exists in Cookies
         auto action = StructBX::Functions::Action("a1");
         action.set_sql_code(
-            "SELECT s.id " \
+            "SELECT s.identifier " \
             "FROM `databases` s " \
             "JOIN databases_users su ON su.id_database = s.id " \
             "WHERE su.id_naf_user = ? LIMIT 1"
