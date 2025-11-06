@@ -30,15 +30,9 @@ class StructBX::Tools::RandomGenerator
         std::string GenerateString_(size_t length, const std::string& character_set);
 
         std::mt19937 generator_;
-
-        const std::string CHARS_ALPHANUMERIC = 
-            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        
-        const std::string CHARS_NUMERIC = 
-            "0123456789";
-
-        const std::string CHARS_COMPLEX = 
-            CHARS_ALPHANUMERIC + "!@#$%^&*()-_+=[]{}|;:,.<>?/`~";
+        const std::string CHARS_ALPHANUMERIC;
+        const std::string CHARS_NUMERIC;
+        const std::string CHARS_COMPLEX;
 };
 
 #endif //STRUCTBX_TOOLS_RANDOMGENERATOR

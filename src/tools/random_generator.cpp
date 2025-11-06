@@ -3,7 +3,10 @@
 
 using namespace StructBX;
 
-Tools::RandomGenerator::RandomGenerator()
+Tools::RandomGenerator::RandomGenerator() :
+    CHARS_ALPHANUMERIC("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+    ,CHARS_NUMERIC("0123456789")
+    ,CHARS_COMPLEX(CHARS_ALPHANUMERIC + "!@#$%^&*()-_+=[]{}|;:,.<>?/`~")
 {
     generator_.seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 }
