@@ -1,5 +1,8 @@
 
 #include "controllers/tables/main.h"
+#include "functions/action.h"
+#include "tools/random_generator.h"
+#include <Poco/JSON/Object.h>
 
 using namespace StructBX::Controllers::Tables;
 
@@ -26,6 +29,7 @@ Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(funct
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Action1: Read all tables en database
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
@@ -33,26 +37,26 @@ Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     auto database_id = get_database_id();
     function->SetupCustomProcess_([database_id, action1](StructBX::Functions::Function& self)
     {
-        // Execute actions
+        // Action1: Read all tables en database
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to Read all tables en database 36i89vE0XqYr");
             return;
         }
 
         // Iterate over results
         for(auto row : *action1->get_results())
         {
-            // Get table id
-            auto id = row->ExtractField_("id");
-            if(id->IsNull_())
+            // Get table identifier
+            auto identifier = row->ExtractField_("identifier");
+            if(identifier->IsNull_())
                 continue;
 
             // Action 2: COUNT
-            auto action2 = StructBX::Functions::Action("a2");
+            auto action2 = Functions::Action("a2");
             action2.set_sql_code(
                 "SELECT COUNT(1) AS total " \
-                "FROM _structbx_database_" + database_id + "._structbx_table_" + id.get()->ToString_());
+                "FROM " + database_id + "." + identifier.get()->ToString_());
             if(!action2.Work_())
             {
                 self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error JNt2Std2sh");
@@ -64,8 +68,7 @@ Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(funct
             if(total->IsNull_())
                 continue;
 
-            row->AddField_("total", StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue(total->Int_())));
-
+            row->AddField_("total", Tools::DValue::Ptr(new Tools::DValue(total->Int_())));
         }
 
         // JSON Results
@@ -84,66 +87,49 @@ void Main::Read::A1(StructBX::Functions::Action::Ptr action)
         "SELECT " \
             "f.* " \
         "FROM tables f " \
+        "JOIN `databases` d ON f.id_database = d.id " \
         "WHERE " \
-            "id_database = ? "
+            "d.identifier = ? "
     );
-    action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
 Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
-    // Function GET /api/tables/read/id
-    StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/tables/read/id", HTTP::EnumMethods::kHTTP_GET);
-
-    auto action = function->AddAction_("a1");
-    A1(action);
-
-    get_functions()->push_back(function);
-
     // Function GET /api/tables/read/identifier
-    StructBX::Functions::Function::Ptr function2 = 
+    StructBX::Functions::Function::Ptr function1 = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action2 = function2->AddAction_("a2");
-    A2(action2);
+    // Action1: Read specific table by identifier
+    auto action1 = function1->AddAction_("a1");
+    A1(action1);
 
-    get_functions()->push_back(function2);
+    get_functions()->push_back(function1);
 }
 
 void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT * FROM tables WHERE id = ? AND id_database = ?");
-
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El id del formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Main::ReadSpecific::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code("SELECT * FROM tables WHERE identifier = ? AND id_database = ?");
+    action->set_sql_code(
+        "SELECT " \
+            "f.* " \
+        "FROM tables f " \
+        "JOIN databases d ON f.id_database = d.id " \
+        "WHERE " \
+            "f.identifier = ? " \
+            "AND d.identifier = ?"
+    );
 
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
-
+    action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
 Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -154,7 +140,17 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1: Verify that the table identifier don't exists in current database
+    // Lambda function to delete table (error case)
+    auto delete_table = [](std::string table_identifier)
+    {
+        // Delete from tables
+        StructBX::Functions::Action tmp_action("");
+        tmp_action.set_sql_code("DELETE FROM tables WHERE identifier = ?");
+        tmp_action.AddParameter_("identifier", table_identifier, false);
+        tmp_action.Work_();
+    };
+
+    // Action 1: Verify that the table name don't exists in current database
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
@@ -175,49 +171,53 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, action1, action2, action3, action3_1, action4](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3, action3_1, action4](StructBX::Functions::Function& self)
     {
-        // Execute actions
+        Tools::RandomGenerator rg;
+        auto table_identifier = rg.GenerateAlphanumericID_(20);
+        
+        // Action 1: Verify that the table name don't exists in current database
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to Verify that the table name don't exists in current database 2Orhhz7lUEbJ");
             return;
         }
+        // Action 2: Add the new table
+        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to add the new table oF4Ksu32OEYm");
             return;
         }
+
+        // Action 3: Add the ID Column to the table
+        action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
             return;
         }
+        
+        // Action 3_1: Add table permissions to current user
+        action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
         if(!action3_1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3_1->get_identifier() + ": " + action3_1->get_custom_error());
             return;
         }
 
-        // Table ID
-        int table_id = action2->get_last_insert_id();
-        if(table_id == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error MVm2IlbSnm");
-            return;
-        }
-
-        // Columns ID
+        // Column ID
         int column_id = action3->get_last_insert_id();
         if(column_id == 0)
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error lyEC9cs1tj");
+            delete_table(table_identifier);
             return;
         }
 
         // Action 4: Create the table
         action4->set_sql_code(
-            "CREATE TABLE _structbx_database_" + database_id + "._structbx_table_" + std::to_string(table_id) + " " \
+            "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
                 "_structbx_column_" + std::to_string(column_id) + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY " \
             ")"
@@ -225,11 +225,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         if(!action4->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error " + action4->get_identifier() + ": No se pudo crear la tabla");
-
-            // Delete table from table
-            StructBX::Functions::Action action5("a5");
-            action5.set_sql_code("DELETE FROM tables WHERE id = ?");
-            action5.AddParameter_("id", std::to_string(table_id), false);
+            delete_table(table_identifier);
 
             return;
         }
@@ -237,8 +233,8 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         // Create the directory to store files
         try
         {
-            auto directory = StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
-            directory += "/" + database_id + "/" + std::to_string(table_id);
+            auto directory = Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
+            directory += "/" + database_id + "/" + table_identifier;
             Poco::File file(directory);
             if(file.exists())
             {
@@ -247,7 +243,8 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             }
             if(!file.createDirectory())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la tabla");
+                delete_table(table_identifier);
                 return;
             }
 
@@ -256,12 +253,14 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
         catch(Poco::FileException& e)
         {
+            delete_table(table_identifier);
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + e.displayText());
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
             return;
         }
         catch(std::exception& e)
         {
+            delete_table(table_identifier);
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + std::string(e.what()));
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
             return;
@@ -276,24 +275,24 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
 void Main::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = ?");
+    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Un formulario con este identificador para esta base de datos ya existe");
+            self.set_custom_error("Una tabla con este nombre para esta base de datos ya existe");
             return false;
         }
 
         return true;
     });
 
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("name", "", true)
+    ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("El nombre no puede estar vacío");
             return false;
         }
         return true;
@@ -304,35 +303,9 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
 
 void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
+    action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, (SELECT id FROM `databases` WHERE identifier = ?))");
 
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        auto string_param = param->get_value()->ToString_();
-        if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
-        {
-            param->set_error("El identificador debe ser una cadena de texto");
-            return false;
-        }
-        if(string_param == "")
-        {
-            param->set_error("El identificador no puede estar vacío");
-            return false;
-        }
-        if(string_param.size() < 3)
-        {
-            param->set_error("El identificador no puede ser menor a 3 dígitos");
-            return false;
-        }
-        bool result = Tools::IDChecker().Check_(param->get_value()->ToString_());
-        if(!result)
-        {
-            param->set_error("El identificador solo puede tener a-z, A-Z, 0-9 y \"_\", sin espacios en blanco");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -369,29 +342,26 @@ void Main::Add::A3(StructBX::Functions::Action::Ptr action)
             ",? " \
             ",? " \
             ",(SELECT id FROM tables_columns_types WHERE identifier = 'int-number') " \
-            ",(SELECT id FROM tables WHERE identifier = ? and id_database = ?) "
+            ",(SELECT id FROM tables WHERE identifier = ?)"
     );
 
-    action->AddParameter_("identifier", "id", false);
+    Tools::RandomGenerator rg;
+    action->AddParameter_("identifier", rg.GenerateAlphanumericID_(20), false);
     action->AddParameter_("name", "ID", false);
     action->AddParameter_("length", "11", false);
     action->AddParameter_("required", 1, false);
-    action->AddParameter_("identifier", "", true);
-    action->AddParameter_("database_id", get_database_id(), false);
+    action->AddParameter_("table_identifier", 0, false);
 }
 
 void Main::Add::A3_1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_table, id_naf_user) " \
-        "SELECT 1, 1, 1, 1 " \
-            ",(SELECT id FROM tables WHERE identifier = ? and id_database = ?) " \
-            ",? "
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_naf_user, id_table) " \
+        "SELECT 1, 1, 1, 1, ?, (SELECT id FROM tables WHERE identifier = ?)"
     );
 
-    action->AddParameter_("identifier", "", true);
-    action->AddParameter_("database_id", get_database_id(), false);
     action->AddParameter_("user_id", get_id_user(), false);
+    action->AddParameter_("identifier", 0, false);
 }
 
 Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -417,43 +387,55 @@ Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
 void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT identifier, id_database FROM tables WHERE id = ?");
+    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("El formulario solicitado no existe");
+            self.set_custom_error("La tabla solicitada no existe");
             return false;
         }
 
         return true;
     });
 
-    action->AddParameter_("id", "", true)
+    action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
     });
+    action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
 void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id != ? AND id_database = ?");
+    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = (SELET id FROM `databases` WHERE identifier = ?)");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Un formulario con este identificador en esta base de datos ya existe");
+            self.set_custom_error("Una tabla con este nombre en esta base de datos ya existe");
             return false;
         }
 
+        return true;
+    });
+
+    action->AddParameter_("name", "", true)
+    ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El nombre no puede estar vacío");
+            return false;
+        }
         return true;
     });
 
@@ -463,17 +445,6 @@ void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("El identificador no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El id no puede estar vacío");
             return false;
         }
         return true;
@@ -485,37 +456,11 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables " \
-        "SET identifier = ?, name = ?, state = ?, public_form = ?, description = ? " \
-        "WHERE id = ? AND id_database = ?"
+        "SET name = ?, state = ?, public_form = ?, description = ? " \
+        "WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
     // Parameters and conditions
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
-        {
-            param->set_error("El identificador debe ser una cadena de texto");
-            return false;
-        }
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador no puede estar vacío");
-            return false;
-        }
-        if(param->get_value()->ToString_().size() < 3)
-        {
-            param->set_error("El identificador no puede ser menor a 3 dígitos");
-            return false;
-        }
-        bool result = Tools::IDChecker().Check_(param->get_value()->ToString_());
-        if(!result)
-        {
-            param->set_error("El identificador solo puede tener a-z, A-Z, 0-9 y \"_\", sin espacios en blanco");
-            return false;
-        }
-        return true;
-    });
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -531,7 +476,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
         }
         if(param->get_value()->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 dígitos");
+            param->set_error("El nombre no puede ser menor a 3 caracteres");
             return false;
         }
         return true;
@@ -540,18 +485,17 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
-
+    action->AddParameter_("database_id", get_database_id(), false);
 }
 
 Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -562,11 +506,11 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1: Verify tables existence
+    // Action 1: Verify table existence
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
-    // Action 2: Delete table from table
+    // Action 2: Delete table record
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
@@ -574,16 +518,15 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
     auto database_id = get_database_id();
     function->SetupCustomProcess_([database_id, action1, action2](StructBX::Functions::Function& self)
     {
-        // Execute actions
+        // Action 1: Verify tables existence
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error Verify tables existence WSDjvfkKGUSu");
             return;
         }
             
-        // Variables
-        auto id = action1->GetParameter("id");
-        if(id == action1->get_parameters().end())
+        auto identifier = self.GetParameter_("identifier");
+        if(identifier == action1->get_parameters().end())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error J5pktjAN5K");
             return;
@@ -591,7 +534,7 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
         // Action 3: Drop table
         auto action3 = self.AddAction_("a3");
-        action3->set_sql_code("DROP TABLE IF EXISTS _structbx_database_" + database_id + "._structbx_table_" + id->get()->ToString_());
+        action3->set_sql_code("DROP TABLE IF EXISTS " + database_id + "." + identifier->get()->ToString_());
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error lOuU13kOu6, asegúrese que no hayan enlaces creados hacia su formulario");
@@ -610,7 +553,7 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
         try
         {
             auto directory = StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
-            directory += "/" + database_id + "/" + id->get()->ToString_();
+            directory += "/" + database_id + "/" + identifier->get()->ToString_();
             Poco::File file(directory);
             if(file.exists())
             {
@@ -643,34 +586,35 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
 void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT identifier FROM tables WHERE id = ?");
+    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("El formulario solicitado no existe");
+            self.set_custom_error("La tabla solicitada no existe");
             return false;
         }
 
         return true;
     });
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id del formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
     });
+    action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
 void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM tables WHERE id = ? AND id_database = ?");
-    action->AddParameter_("id", "", true);
-    action->AddParameter_("id_database", get_database_id(), false);
+    action->set_sql_code("DELETE FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->AddParameter_("identifier", "", true);
+    action->AddParameter_("database_identifier", get_database_id(), false);
 }

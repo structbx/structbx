@@ -9,6 +9,7 @@
 #include "controllers/tables/columns.h"
 #include "controllers/tables/permissions.h"
 #include "controllers/tables/views.h"
+#include "tools/random_generator.h"
 
 namespace StructBX
 {
@@ -41,7 +42,6 @@ class StructBX::Controllers::Tables::Main : public Tools::FunctionData
             ReadSpecific(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
