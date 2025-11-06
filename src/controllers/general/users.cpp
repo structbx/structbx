@@ -405,7 +405,7 @@ void Users::Add::A2(StructBX::Functions::Action::Ptr action)
         param->set_value(StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue(password_encoded)));
         return true;
     });
-    action->AddParameter_("status", "activo", false);
+    action->AddParameter_("status", "active", false);
     action->AddParameter_("id_group", "", true)
     ->SetupCondition_("condition-id_group", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
