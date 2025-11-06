@@ -135,33 +135,8 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     A1(action);
 
     auto database_id = get_database_id();
-    auto id_user = get_id_user();
-    function->SetupCustomProcess_([database_id, id_user, action](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action](StructBX::Functions::Function& self)
     {
-        // Get identifier
-        auto identifier = self.GetParameter_("identifier");
-        if(identifier != self.get_parameters().end())
-        {
-            action->get_parameters().clear();
-            action->set_sql_code(
-                "SELECT s.* " \
-                "FROM `databases` s " \
-                "JOIN databases_users su ON su.id_database = s.id " \
-                "WHERE su.id_naf_user = ? AND s.identifier = ?"
-            );
-            action->AddParameter_("id_naf_user", id_user, false);
-            action->AddParameter_("identifier", identifier->get()->ToString_(), true)
-            ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-            {
-                if(param->ToString_() == "")
-                {
-                    param->set_error("El identificador de base de datos no puede estar vacío");
-                    return false;
-                }
-                return true;
-            });
-        }
-
         if(!action->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": " + action->get_custom_error());
@@ -180,7 +155,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "SELECT s.* " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ? AND s.id = ?"
+        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
     );
     action->AddParameter_("id_naf_user", get_id_user(), false);
     action->AddParameter_("id_database", get_database_id(), false);
