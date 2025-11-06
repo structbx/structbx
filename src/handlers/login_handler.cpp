@@ -64,7 +64,7 @@ void LoginHandler::StartSession_()
         get_current_function()->IdentifyParameters_(get_users_manager().get_action());
 
         // Encode password
-        auto password = get_users_manager().get_action()->GetParameter("password");
+        auto password = get_users_manager().get_action()->GetParameter_("password");
         if(password != get_users_manager().get_action()->get_parameters().end())
         {
             password->get()->SetupCondition_("condition-password", Query::ConditionType::kWarning, [](Query::Parameter::Ptr param)

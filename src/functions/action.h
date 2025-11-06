@@ -119,7 +119,8 @@ class StructBX::Functions::Action
         void set_final_query(std::string final_query) {final_query_ = final_query;}
 
         void ReplaceParamater_(Query::Parameter::Ptr parameter);
-        std::vector<Query::Parameter::Ptr>::iterator GetParameter(std::string name);
+        void SetValueToParamater_(Tools::DValue::Ptr value, std::string name);
+        std::vector<Query::Parameter::Ptr>::iterator GetParameter_(std::string name);
         Query::Parameter::Ptr AddParameter_(std::string name, std::string value_string, bool editable);
         Query::Parameter::Ptr AddParameter_(std::string name, const char* value_string, bool editable);
         Query::Parameter::Ptr AddParameter_(std::string name, int value_int, bool editable);

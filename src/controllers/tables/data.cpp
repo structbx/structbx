@@ -1278,7 +1278,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         }
 
         // ChangeInt
-        auto id = action3->GetParameter("id");
+        auto id = action3->GetParameter_("id");
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier != self.get_parameters().end() && id != self.get_parameters().end())
         {
@@ -1489,7 +1489,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
         }
 
         // ChangeInt
-        auto id = action2->GetParameter("id");
+        auto id = action2->GetParameter_("id");
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier != self.get_parameters().end() && id != self.get_parameters().end())
         {

@@ -54,8 +54,22 @@ void Action::ReplaceParamater_(Query::Parameter::Ptr parameter)
     }
 }
 
+void Action::SetValueToParamater_(Tools::DValue::Ptr value, std::string name)
+{
+    // Find if exists parameter
+    auto found_param = std::find_if(parameters_.begin(), parameters_.end(), [name](Query::Parameter::Ptr& param)
+    {
+        return param->get_name() == name;
+    });
 
-std::vector<Query::Parameter::Ptr>::iterator Action::GetParameter(std::string name)
+    // Remplace parameter value
+    if(found_param != parameters_.end())
+    {
+        found_param->get()->set_value(value);
+    }
+}
+
+std::vector<Query::Parameter::Ptr>::iterator Action::GetParameter_(std::string name)
 {
     auto found = std::find_if(parameters_.begin(), parameters_.end(), [name](Query::Parameter::Ptr param)
     {
