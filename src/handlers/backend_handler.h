@@ -9,6 +9,7 @@
 #include "controllers/general/main.h"
 #include "controllers/databases/main.h"
 #include "controllers/tables/main.h"
+#include "controllers/forms/main.h"
 
 
 namespace StructBX

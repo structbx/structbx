@@ -19,6 +19,7 @@ void BackendHandler::AddFunctions_()
     auto general = General::Main(function_data_);
     auto databases = Databases::Main(function_data_);
     auto tables = Tables::Main(function_data_);
+    auto forms = Forms::Main(function_data_);
 
     // Add all functions
     for(auto it : *function_data_.get_functions())
@@ -161,7 +162,7 @@ bool BackendHandler::VerifyActiveUser_()
     action.set_sql_code(
         "SELECT nu.id " \
         "FROM users nu " \
-        "WHERE nu.id = ? AND nu.status = 'activo'"
+        "WHERE nu.id = ? AND nu.status = 'active'"
     );
     action.AddParameter_("id_naf_user", function_data_.get_id_user(), false);
     if(action.Work_())
