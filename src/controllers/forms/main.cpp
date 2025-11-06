@@ -106,8 +106,20 @@ Main::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Func
         // Save in DB Session
         auto& session = Sessions::SessionsManager::CreateSession_(user_id, "/", 300);
 
+        // Get table id
+        auto table_identifier_param = self.GetParameter_("table_identifier");
+        if(table_identifier_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error h3K0Jq9Zp");
+            return;
+        }
+
         // HTTP Request to /api/tables/columns/read
-        HTTP::Client client("https://127.0.0.1:" + Tools::SettingsManager::GetSetting_("port", "3001") + "/api/tables/columns/read", HTTP::HTTP_GET);
+        HTTP::Client client
+        (
+            "https://127.0.0.1:" + Tools::SettingsManager::GetSetting_("port", "3001") + "/api/tables/columns/read?table-identifier=" + table_identifier_param->get()->ToString_()
+            ,HTTP::HTTP_GET
+        );
         client.AddCookie_("structbx-sid", session.get_id());
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
         {
