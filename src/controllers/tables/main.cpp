@@ -113,7 +113,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "SELECT " \
             "f.* " \
         "FROM tables f " \
-        "JOIN databases d ON f.id_database = d.id " \
+        "JOIN `databases` d ON f.id_database = d.id " \
         "WHERE " \
             "f.identifier = ? " \
             "AND d.identifier = ?"
@@ -191,7 +191,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
 
         // Action 3: Add the ID Column to the table
-        action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
+        action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
@@ -199,7 +199,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
         
         // Action 3_1: Add table permissions to current user
-        action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
+        action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!action3_1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3_1->get_identifier() + ": " + action3_1->get_custom_error());
@@ -345,8 +345,7 @@ void Main::Add::A3(StructBX::Functions::Action::Ptr action)
             ",(SELECT id FROM tables WHERE identifier = ?)"
     );
 
-    Tools::RandomGenerator rg;
-    action->AddParameter_("identifier", rg.GenerateAlphanumericID_(20), false);
+    action->AddParameter_("identifier", "id", false);
     action->AddParameter_("name", "ID", false);
     action->AddParameter_("length", "11", false);
     action->AddParameter_("required", 1, false);
@@ -361,7 +360,7 @@ void Main::Add::A3_1(StructBX::Functions::Action::Ptr action)
     );
 
     action->AddParameter_("user_id", get_id_user(), false);
-    action->AddParameter_("identifier", 0, false);
+    action->AddParameter_("table_identifier", 0, false);
 }
 
 Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -416,7 +415,7 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = (SELET id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
