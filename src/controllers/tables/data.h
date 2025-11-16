@@ -40,7 +40,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
                 ,values(values)
                 ,id_database(id_database)
             {}
-            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, StructBX::Query::Field::Ptr table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
+            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
 
             Type type;
             std::string& columns;
