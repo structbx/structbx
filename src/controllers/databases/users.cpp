@@ -26,7 +26,7 @@ Users::Read::Read(Tools::FunctionData& function_data) :
         "SELECT nu.id, nu.username, sp.created_at " \
         "FROM users nu " \
         "JOIN databases_users sp ON sp.id_naf_user = nu.id " \
-        "WHERE sp.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "WHERE sp.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND nu.type = 'default'"
     );
     action1->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -54,7 +54,7 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
         "SELECT nu.id, nu.username, sp.created_at " \
         "FROM users nu " \
         "JOIN databases_users sp ON sp.id_naf_user = nu.id " \
-        "WHERE sp.id_database = ?"
+        "WHERE sp.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND nu.type = 'default'"
     );
     action1->AddParameter_("id_database", get_database_id(), false);
 
@@ -76,7 +76,7 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
             "su.id_naf_user = nu.id AND "
             "su.id_database = (SELECT s.id FROM `databases` s JOIN databases_users su2 ON su2.id_database = s.id WHERE identifier = ? AND su2.id_naf_user = ? LIMIT 1) "
         "WHERE "
-            "su.id_naf_user IS NULL "
+            "su.id_naf_user IS NULL AND nu.type = 'default'"
     );
     action1->AddParameter_("identifier_database", "", true)
     ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -141,7 +141,6 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "DELETE su FROM databases_users su "
-        "JOIN organizations_users ou ON ou.id_naf_user = su.id_naf_user "
         "WHERE "
             "su.id_naf_user = ? "
             "AND su.id_database = ( "
