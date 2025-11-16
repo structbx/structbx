@@ -28,7 +28,8 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     action1->set_sql_code(
         "SELECT nu.id, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.id = nu.id_group "
+        "JOIN groups ng ON ng.id = nu.id_group " \
+        "WHERE nu.type = 'default'"
     );
 
     get_functions()->push_back(function);
