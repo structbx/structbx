@@ -1067,7 +1067,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
 
             // Set SQL Code to action 3
             action3->set_sql_code(
-                "INSERT INTO _structbx_database_" + id_database + "._structbx_table_" + table_identifier->get()->ToString_() + " " \
+                "INSERT INTO " + id_database + "." + table_identifier->get()->ToString_() + " " \
                 "(" + columns + ") VALUES (" + values + ") ");
 
             // Get Parameter object
@@ -1111,7 +1111,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
 
         // ChangeInt
         auto changeInt = ChangeInt();
-        changeInt.Change("", "import", table_identifier->get()->ToString_(), id_database);
+        changeInt.Change("1", "import", table_identifier->get()->ToString_(), id_database);
 
         // Send results
         auto json_result = JSON::Object::Ptr(new JSON::Object());
@@ -1440,7 +1440,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             auto action2_2 = self.AddAction_("a2_2");
             action2_2->set_sql_code(
                 "SELECT _structbx_column_" + id->ToString_() + " "
-                "FROM _structbx_database_" + id_database + "._structbx_table_" + table_identifier->get()->ToString_() + " " \
+                "FROM " + id_database + "." + table_identifier->get()->ToString_() + " " \
                 "WHERE _structbx_column_" + column_id->ToString_() + " = ?"
             );
             action2_2->AddParameter_("id", "", true)
