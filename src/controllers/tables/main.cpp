@@ -113,10 +113,8 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "SELECT " \
             "f.* " \
         "FROM tables f " \
-        "JOIN `databases` d ON f.id_database = d.id " \
         "WHERE " \
-            "f.identifier = ? " \
-            "AND d.identifier = ?"
+            "f.identifier = ? "
     );
 
     action->AddParameter_("identifier", "", true)
@@ -129,7 +127,6 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
 Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

@@ -39,7 +39,6 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
         "WHERE " \
             "f.identifier = ? " \
-            "AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
         "ORDER BY fc.position ASC"
     );
 
@@ -53,7 +52,6 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Columns::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
