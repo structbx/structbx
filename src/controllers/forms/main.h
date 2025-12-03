@@ -37,12 +37,18 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
             void A1(StructBX::Functions::Action::Ptr action);
         };
         
+        struct ReadTableSpecific : public Tools::FunctionData
+        {
+            ReadTableSpecific(Tools::FunctionData& function_data);
+        };
         struct ReadColumns : public Tools::FunctionData
         {
             ReadColumns(Tools::FunctionData& function_data);
         };
 
+
     private:
+        ReadTableSpecific struct_read_table_specific_;
         ReadColumns struct_read_columns_;
 };
 
