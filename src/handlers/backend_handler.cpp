@@ -30,14 +30,19 @@ void BackendHandler::Process_()
 {
     get_files_parameters()->set_directory_base(StructBX::Tools::SettingsManager::GetSetting_("directory_base", "/var/www"));
     
-    // Set security type
-    set_security_type(Security::SecurityType::kDisableAll);
+    // Set security type and verify open endpoints
+    AddOpenEndpoints_();
+    auto found = std::find(open_endpoints_.begin(), open_endpoints_.end(), get_requested_route()->get_route());
+    if(found == open_endpoints_.end())
+        set_security_type(Security::SecurityType::kDisableAll);
+    else
+        set_security_type(Security::SecurityType::kEnableAll);
     
     // Process the request body
     ManageRequestBody_();
 
     // Verify sessions
-    if(!VerifySession_())
+    if(!VerifySession_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Session not found.");
         return;
@@ -61,14 +66,14 @@ void BackendHandler::Process_()
         get_current_function()->AddCookie_(database_id_cookie_);
 
     // Verify permissions
-    if(!VerifyPermissions_())
+    if(!VerifyPermissions_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "The user does not have the permissions to perform this operation.");
         return;
     }
 
     // Verify if user is active
-    if(!VerifyActiveUser_())
+    if(!VerifyActiveUser_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "The user is inactive.");
         return;
@@ -76,6 +81,12 @@ void BackendHandler::Process_()
 
     // Process actions
     ProcessActions_();
+}
+
+void BackendHandler::AddOpenEndpoints_()
+{
+    open_endpoints_.push_back("/api/forms/columns/read");
+    open_endpoints_.push_back("/api/forms/tables/read/identifier");
 }
 
 void BackendHandler::ProcessActions_()

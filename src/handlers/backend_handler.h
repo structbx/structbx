@@ -32,6 +32,7 @@ class StructBX::Handlers::BackendHandler : public RootHandler
 
     protected:
         virtual void Process_() override;
+        void AddOpenEndpoints_();
         void ProcessActions_();
         void SetupFunctionData_();
         bool VerifyActiveUser_();
@@ -40,6 +41,7 @@ class StructBX::Handlers::BackendHandler : public RootHandler
         Tools::FunctionData function_data_;
         HTTP::Cookie database_id_cookie_;
         bool add_database_id_cookie_;
+        std::vector<std::string> open_endpoints_;
 };
 
 #endif // STRUCTBX_HANDLERS_BACKENDHANDLER
