@@ -20,6 +20,7 @@
 #define STRUCTBX_HTTP_CLIENT
 
 
+#include <Poco/Net/HTMLForm.h>
 #include <functional>
 #include <vector>
 #include <optional>
@@ -83,6 +84,11 @@ class StructBX::HTTP::Client
             return var;
         }
         ClientResponseFunction get_response_handler() const { return response_handler_; }
+        HTMLForm& get_form()
+        {
+            auto& var = form_;
+            return var;
+        }
 
         void set_uri(std::string uri) { uri_ = uri; }
         void set_method(std::string method) { method_ = method; }
@@ -113,6 +119,7 @@ class StructBX::HTTP::Client
         std::vector<HTTP::Cookie> cookies_;
         ClientResponseFunction response_handler_;
         Context::Ptr ssl_context_;
+        HTMLForm form_;
 };
 
 #endif // STRUCTBX_HTTP_CLIENT

@@ -17,6 +17,7 @@
 */
 
 #include "http/client.h"
+#include <Poco/Net/HTMLForm.h>
 
 using namespace StructBX::HTTP;
 
@@ -27,6 +28,7 @@ Client::Client(std::string uri, const std::string method) :
     ,password_("")
     ,use_credentials_(false)
     ,ssl_context_(nullptr)
+    ,form_(HTMLForm::ENCODING_URL)
 {
     auto params = Context::Params();
     params.verificationMode = Context::VerificationMode::VERIFY_NONE;
@@ -80,7 +82,19 @@ void Client::SendHTTPRequest_()
             credentials.authenticate(http_request, http_response);
         }
 
-        session.sendRequest(http_request);
+        if (form_.size() > 0 && (method_ == Net::HTTPRequest::HTTP_POST || method_ == Net::HTTPRequest::HTTP_PUT))
+        {
+            form_.prepareSubmit(http_request);
+            http_request.setContentLength(form_.calculateContentLength());
+
+            std::ostream& os = session.sendRequest(http_request);
+            form_.write(os);
+        }
+        else
+        {
+            session.sendRequest(http_request);
+        }
+        
         std::istream& is = session.receiveResponse(http_response);
         std::stringstream ss;
 		StreamCopier::copyStream(is, ss);
@@ -115,7 +129,19 @@ void Client::SendHTTPSRequest_()
             credentials.authenticate(http_request, http_response);
         }
 
-        session.sendRequest(http_request);
+        if (form_.size() > 0 && (method_ == Net::HTTPRequest::HTTP_POST || method_ == Net::HTTPRequest::HTTP_PUT))
+        {
+            form_.prepareSubmit(http_request);
+            http_request.setContentLength(form_.calculateContentLength());
+
+            std::ostream& os = session.sendRequest(http_request);
+            form_.write(os);
+        }
+        else
+        {
+            session.sendRequest(http_request);
+        }
+        
         std::istream& is = session.receiveResponse(http_response);
         std::stringstream ss;
 		StreamCopier::copyStream(is, ss);
