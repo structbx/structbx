@@ -45,11 +45,15 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
         {
             ReadColumns(Tools::FunctionData& function_data);
         };
-
+        struct AddData : public Tools::FunctionData
+        {
+            AddData(Tools::FunctionData& function_data);
+        };
 
     private:
         ReadTableSpecific struct_read_table_specific_;
         ReadColumns struct_read_columns_;
+        AddData struct_add_data_;
 };
 
 #endif //STRUCTBX_CONTROLLERS_FORMS_MAIN_H
