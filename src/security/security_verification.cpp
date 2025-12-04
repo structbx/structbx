@@ -13,6 +13,9 @@ bool SecurityVerification::VerifyRoutesPermissions_(Tools::Route& route, std::st
 {
     try
     {
+        if(users_manager_.get_current_user().get_type() == "system")
+            return true;
+
         auto p = permissions_manager_.FindPermission_(route, users_manager_.get_current_user().get_id(), action_type);
 
         // Permission not found
