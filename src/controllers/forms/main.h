@@ -36,6 +36,15 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct CreateSystemUser 
+        {
+            CreateSystemUser();
+            void DeleteSystemUser();
+
+            int user_id;
+            std::string  session_id;
+            bool error;
+        };
         
         struct ReadTableSpecific : public Tools::FunctionData
         {

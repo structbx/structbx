@@ -45,6 +45,52 @@ void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
+Main::CreateSystemUser::CreateSystemUser() :
+    user_id(-1)
+    ,session_id("")
+    ,error(false)
+{
+    // Generate random credentials
+    Tools::Credentials credentials;
+    credentials.GenerateRandomCredentials_(12, 16);
+    credentials.set_user("_structbx_system_" + credentials.get_user());
+
+    // Save in DB credentials
+    Functions::Action save_credentials_action("save_credentials_action");
+    save_credentials_action.set_sql_code(
+        "INSERT INTO users (username, password, status, type)"
+        "VALUES (?, ?, 'active', 'system')"
+    );
+    save_credentials_action.AddParameter_("username", credentials.get_user(), false);
+    save_credentials_action.AddParameter_("password", credentials.get_password(), false);
+
+    if(!save_credentials_action.Work_())
+    {
+        error = true;
+        return;
+    }
+    user_id = save_credentials_action.get_last_insert_id();
+    Security::PermissionsManager::LoadPermissions_();
+
+    // Save in DB Session
+    auto& session = Sessions::SessionsManager::CreateSession_(user_id, "/", 300);
+    session_id = session.get_id();
+}
+
+void Main::CreateSystemUser::DeleteSystemUser()
+{
+    Functions::Action delete_user_action("delete_user_action");
+    delete_user_action.set_sql_code(
+        "DELETE FROM users WHERE id = ?"
+    );
+    delete_user_action.AddParameter_("id", user_id, false);
+
+    if(!delete_user_action.Work_())
+    {
+        Tools::OutputLogger::Error_("Error deleting temporary user in Main::CreateSystemUser::DeleteSystemUser: xhSo4FleZp");
+    }
+}
+
 Main::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/tables/read/identifier
