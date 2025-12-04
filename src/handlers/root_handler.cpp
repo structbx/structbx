@@ -123,7 +123,7 @@ bool RootHandler::VerifySession_()
 
             // Get the session user
                 auto id_user = sessions.at(session_id).get_id_user();
-                get_users_manager().get_current_user().set_id(id_user);
+                get_users_manager().ReloadCurrentUser_(id_user);
 
             return true;
         }
@@ -169,7 +169,7 @@ void RootHandler::ManageRequestBody_()
         }
         else if(properties_.content_type == "application/x-www-form-urlencoded")
         {
-            ReadFormURLEncoded_(*request, request->stream());
+            ReadFormURLEncoded_(*request);
         }
         else if(properties_.content_type == "application/json")
         {
