@@ -217,7 +217,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -602,7 +602,7 @@ Tables::Data::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : T
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -791,7 +791,7 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
             self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "Archivo no encontrado en la tabla actual");
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -888,7 +888,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": 9e8LhYKOdu");
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -942,7 +942,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
 
 void Tables::Data::Add::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT id FROM tables WHERE identifier = ?");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -965,8 +965,6 @@ void Tables::Data::Add::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
-
 }
 
 void Tables::Data::Add::A2(StructBX::Functions::Action::Ptr action)
@@ -976,7 +974,7 @@ void Tables::Data::Add::A2(StructBX::Functions::Action::Ptr action)
         "FROM tables_columns fc " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
         "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
+        "WHERE f.identifier = ? "
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)
@@ -989,8 +987,6 @@ void Tables::Data::Add::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -1028,7 +1024,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": 05U44IYhi8D8");
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -1218,7 +1214,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": Fr5MHxX1wQ");
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
@@ -1387,7 +1383,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2_0->get_identifier() + ": PYaZ1nddvm");
             return;
         }
-        if(!fpv->Work_())
+        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;
