@@ -28,8 +28,9 @@ void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "f.public_form AS public_form " \
+            "f.public_form AS public_form, d.identifier AS database_id " \
         "FROM tables f " \
+        "JOIN `databases` d ON d.id = f.id_database " \
         "WHERE f.identifier = ?"
     );
     action->set_final(false);
@@ -290,31 +291,22 @@ Main::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionData
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SOWP342sdLDS");
             return;
         }
-        
-        // Generate random credentials
-        Tools::Credentials credentials;
-        credentials.GenerateRandomCredentials_(12, 16);
-        credentials.set_user("_structbx_local_" + credentials.get_user());
 
-        // Save in DB credentials
-        Functions::Action save_credentials_action("save_credentials_action");
-        save_credentials_action.set_sql_code(
-            "INSERT INTO users (username, password, status, id_group)"
-            "VALUES (?, ?, 'active', (SELECT id FROM groups WHERE `group` = 'admin' LIMIT 1))"
-        );
-        save_credentials_action.AddParameter_("username", credentials.get_user(), false);
-        save_credentials_action.AddParameter_("password", credentials.get_password(), false);
-
-        if(!save_credentials_action.Work_())
+        // Get Database ID
+        auto database_id = pfv->get_results()->ExtractField_(0, 1);
+        if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error DLWOI34SO3KS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
             return;
         }
-        auto user_id = save_credentials_action.get_last_insert_id();
-        Security::PermissionsManager::LoadPermissions_();
-
-        // Save in DB Session
-        auto& session = Sessions::SessionsManager::CreateSession_(user_id, "/", 300);
+        
+        // Create system user
+        CreateSystemUser system_user;
+        if(system_user.error)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error aSo4F1Dq4p1");
+            return;
+        }
 
         // Get table id
         auto table_identifier_param = self.GetParameter_("table-identifier");
@@ -330,7 +322,13 @@ Main::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionData
             "https://127.0.0.1:" + Tools::SettingsManager::GetSetting_("port", "3001") + "/api/tables/data/add"
             ,HTTP::HTTP_POST
         );
-        client.AddCookie_("structbx-sid", session.get_id());
+
+        // Add Cookies
+        client.AddCookie_("structbx-sid", system_user.session_id);
+        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
+        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+
+        // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
         {
             self.CustomResponse_(HTTP::Status::kHTTP_OK, response.str(), "application/json");
@@ -345,17 +343,8 @@ Main::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionData
         // Send
         client.SendHTTPSRequest_();
 
-        // Delete temporary user
-        Functions::Action delete_user_action("delete_user_action");
-        delete_user_action.set_sql_code(
-            "DELETE FROM users WHERE id = ?"
-        );
-        delete_user_action.AddParameter_("id", user_id, false);
-
-        if(!delete_user_action.Work_())
-        {
-            Tools::OutputLogger::Error_("Error deleting temporary user in ReadColumns: FS34SDGLW90");
-        }
+        // Delete system user
+        system_user.DeleteSystemUser();
     });
 
     get_functions()->push_back(function);
