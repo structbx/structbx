@@ -65,7 +65,7 @@ class StructBX::HTTP::Body : public Tools::ManageJSON
         }
 
         void ReadFormMultipart_(Net::HTTPServerRequest& request);
-        void ReadFormURLEncoded_(Net::HTTPServerRequest& request, std::istream& stream);
+        void ReadFormURLEncoded_(Net::HTTPServerRequest& request);
         void ReadJSON_(std::istream& stream);
         void ReadFromURI_(std::string& uri);
 

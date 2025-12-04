@@ -34,16 +34,14 @@ void Body::ReadFormMultipart_(Net::HTTPServerRequest& request)
     body_type_ = Type::kFormMultipart;
 }
 
-void Body::ReadFormURLEncoded_(Net::HTTPServerRequest& request, std::istream& stream)
+void Body::ReadFormURLEncoded_(Net::HTTPServerRequest& request)
 {
-    std::string body_uri;
-    StreamCopier::copyToString(stream, body_uri);
-
-    if(body_uri.empty())
-        return;
-
-    body_uri = request.getHost() + "?" + body_uri;
-    ReadFromURI_(body_uri);
+    form_ = std::make_shared<Net::HTMLForm>(request, request.stream());
+    for (const auto& field : *form_)
+    {
+        auto pair = std::pair<std::string, std::string>(field.first, field.second);
+        query_parameters_.push_back(pair);
+    }
     body_type_ = Type::kFormURLEncoded;
 }
 
