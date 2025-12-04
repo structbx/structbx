@@ -87,6 +87,7 @@ void BackendHandler::AddOpenEndpoints_()
 {
     open_endpoints_.push_back("/api/forms/columns/read");
     open_endpoints_.push_back("/api/forms/tables/read/identifier");
+    open_endpoints_.push_back("/api/forms/tables/data/add");
 }
 
 void BackendHandler::ProcessActions_()
@@ -103,13 +104,7 @@ void BackendHandler::ProcessActions_()
     get_current_function()->set_data(get_data());
 
     // Set current user
-    auto id = get_users_manager().get_current_user().get_id();
-    auto username = get_users_manager().get_current_user().get_username();
-    auto id_group = get_users_manager().get_current_user().get_id_group();
-
-    get_current_function()->get_current_user().set_id(id);
-    get_current_function()->get_current_user().set_username(username);
-    get_current_function()->get_current_user().set_id_group(id_group);
+    get_current_function()->set_current_user(get_users_manager().get_current_user());
 
     // Process current function
     get_current_function()->Process_(get_http_server_request(), get_http_server_response());
@@ -133,10 +128,14 @@ void BackendHandler::SetupFunctionData_()
     }
     else
     {
+        // Verify if is system user
+        if(get_users_manager().get_current_user().get_type() == "system")
+            return;
+
         add_database_id_cookie_ = true;
 
         // Get Database IDENTIFIER Cookie if not exists in Cookies
-        auto action = StructBX::Functions::Action("a1");
+        auto action = StructBX::Functions::Action("get_database_for_cookie");
         action.set_sql_code(
             "SELECT s.identifier " \
             "FROM `databases` s " \
@@ -168,19 +167,8 @@ void BackendHandler::SetupFunctionData_()
 
 bool BackendHandler::VerifyActiveUser_()
 {
-    // Action to check if user is active
-    auto action = StructBX::Functions::Action("a1");
-    action.set_sql_code(
-        "SELECT nu.id " \
-        "FROM users nu " \
-        "WHERE nu.id = ? AND nu.status = 'active'"
-    );
-    action.AddParameter_("id_naf_user", function_data_.get_id_user(), false);
-    if(action.Work_())
-    {
-        if(action.get_results()->size() != 1)
-            return false;
-    }
-
-    return true;
+    if (get_users_manager().get_current_user().get_status() == "active")
+        return true;
+    else
+        return false;
 }
