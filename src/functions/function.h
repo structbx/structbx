@@ -99,6 +99,7 @@ class StructBX::Functions::Function : public HTTP::ResponseManager
         void set_json_array(JSON::Array::Ptr json_array) { json_array_ = json_array; }
         void set_json_object(JSON::Object::Ptr json_object) { json_object_ = json_object; }
         void set_data(JSON::Array::Ptr data) { data_ = data; }
+        void set_current_user(Security::User user) { current_user_ = user; }
 
         std::vector<Query::Parameter::Ptr>::iterator  GetParameter_(std::string name);
         Action::Ptr AddAction_(std::string identifier);
