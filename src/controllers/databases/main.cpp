@@ -345,12 +345,13 @@ Main::Change::Change(Tools::FunctionData& function_data) :
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action->get_custom_error());
             return;
         }
-        auto result = action->get_json_result();
+        auto first = action->get_results()->begin();
 
         // Set Database ID Cookie to the client
-        auto database_identifier = action->get_results()->First_();
-        if(!database_identifier->IsNull_())
+        if(first != action->get_results()->end() && !first->get()->ExtractField_("identifier")->IsNull_())
         {
+            auto database_identifier = first->get()->ExtractField_("identifier");
+
             // Set Cookie Database ID
             auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_identifier->ToString_());
             Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
@@ -363,7 +364,7 @@ Main::Change::Change(Tools::FunctionData& function_data) :
             response->addCookie(cookie);
             
             // Send results
-            self.CompoundResponse_(HTTP::Status::kHTTP_OK, result);
+            self.CompoundResponse_(HTTP::Status::kHTTP_OK, action->get_json_result());
         }
         else
             self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "El usuario no est&aacute; en alguna base de datos.");
@@ -375,7 +376,7 @@ Main::Change::Change(Tools::FunctionData& function_data) :
 void Main::Change::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.id, s.name, s.state, s.logo, s.description, s.created_at " \
+        "SELECT s.id, s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
         "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
