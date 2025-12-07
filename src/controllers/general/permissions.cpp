@@ -6,6 +6,7 @@ using namespace StructBX::Controllers::General;
 Permissions::Permissions(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,struct_read_(function_data)
+    ,struct_read_current_(function_data)
     ,struct_read_out_group_(function_data)
     ,struct_add_(function_data)
     ,struct_delete_(function_data)
@@ -44,6 +45,29 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+}
+
+Permissions::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/general/permissions/current/read
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/general/permissions/current/read", HTTP::EnumMethods::kHTTP_GET);
+    
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    get_functions()->push_back(function);
+}
+
+void Permissions::ReadCurrent::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT ng.* "
+        "FROM permissions ng "
+        "JOIN users u ON u.id_group = ng.id_group "
+        "WHERE u.id = ? "
+    );
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 Permissions::ReadOutGroup::ReadOutGroup(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
