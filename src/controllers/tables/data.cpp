@@ -250,9 +250,30 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             {
                 has_link = true;
 
+                // Get table link identifier
+                auto action1_1 = self.AddAction_("a1_1");
+                action1_1->set_sql_code("SELECT identifier FROM tables WHERE id = ?");
+                action1_1->AddParameter_("id", link_to->Int_(), false);
+                if(!action1_1->Work_())
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error p2j1bX1t3E");
+                    return;
+                }
+                if(action1_1->get_results()->size() < 1)
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error aKX1v3bT9C");
+                    return;
+                }
+                auto table_link = action1_1->get_results()->begin()->get()->ExtractField_("identifier");
+                if(table_link->IsNull_())
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error qJ6oW3X8Zn");
+                    return;
+                }
+
                 // Get table columns (link)
                 auto action1_2 = self.AddAction_("a1_2");
-                action1_2->set_sql_code("SELECT * FROM tables_columns WHERE id_table = ?");
+                action1_2->set_sql_code("SELECT * FROM tables_columns WHERE id_table = ? ORDER BY position ASC");
                 action1_2->AddParameter_("id", link_to->Int_(), false);
                 if(!action1_2->Work_())
                 {
@@ -266,22 +287,22 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 }
 
                 // Get ID from first and second column
-                auto column2 = action1_2->get_results()->begin();
-                auto column2_id = column2->get()->ExtractField_("id");
-                column2++;
-                auto column2_visualization = column2->get()->ExtractField_("id");
-                if(column2_id->IsNull_())
+                auto join_it = action1_2->get_results()->begin();
+                auto join_column1 = join_it->get()->ExtractField_("id");
+                join_it++;
+                auto join_column2 = join_it->get()->ExtractField_("id");
+                if(join_column1->IsNull_() || join_column2->IsNull_())
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error NmYoq56SDN");
                     return;
                 }
 
                 // Setup column link
-                column = "_" + link_to->ToString_() + "._structbx_column_" + column2_visualization->ToString_() + " AS '" + name->ToString_() + "'";
+                column = "_" + table_link->ToString_() + "._structbx_column_" + join_column2->ToString_() + " AS '" + name->ToString_() + "'";
 
                 // Setup new join
-                joins += " LEFT JOIN " + id_database + "." + link_to->ToString_() +
-                " AS _" + link_to->ToString_() + " ON _" + link_to->ToString_() + "._structbx_column_" + column2_id->ToString_() + 
+                joins += " LEFT JOIN " + id_database + "." + table_link->ToString_() +
+                " AS _" + table_link->ToString_() + " ON _" + table_link->ToString_() + "._structbx_column_" + join_column1->ToString_() + 
                 " = _" + table_identifier->get()->ToString_() + "._structbx_column_" + id->ToString_();
             }
 
@@ -310,7 +331,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 condition_query = " WHERE " + conditions_decoded;
             }
         }
-
+        
         // Get order
         auto order = self.GetParameter_("order");
         std::string order_query = "";
