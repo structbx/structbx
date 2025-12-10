@@ -1,8 +1,5 @@
 
 #include "controllers/tables/data.h"
-#include "query/parameter.h"
-#include "tools/output_logger.h"
-#include <Poco/JSON/Object.h>
 
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
@@ -11,7 +8,6 @@ Tables::Data::Data(Tools::FunctionData& function_data) :
     FunctionData(function_data)
     ,struct_read_(function_data)
     ,struct_read_change_int_(function_data)
-    ,struct_read_specific_(function_data)
     ,struct_read_file_(function_data)
     ,struct_add_(function_data)
     ,struct_import_(function_data)
@@ -231,6 +227,14 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             return;
         }
 
+        // Get table column ID
+        auto column_id = action1_0->get_results()->begin()->get()->ExtractField_("column_id");
+        if(column_id->IsNull_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRLmX91b3Z5E");
+            return;
+        }
+
         // Get columns
         std::string columns = "";
         std::string joins = "";
@@ -332,6 +336,25 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             }
         }
         
+        // Set record ID condition if specified
+        auto record_id = self.GetParameter_("id");
+        if(record_id != self.get_parameters().end() && record_id->get()->ToString_() != "")
+        {
+            if(conditions != self.get_parameters().end())
+            {
+                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + "._structbx_column_" + column_id->ToString_() + " = " + record_id->get()->ToString_();
+                if(condition_query == "")
+                    condition_query = " WHERE " + record_id_condition;
+                else
+                    condition_query += " AND " + record_id_condition;
+            }
+            else
+            {
+                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + "._structbx_column_" + column_id->ToString_() + " = " + record_id->get()->ToString_();
+                condition_query = " WHERE " + record_id_condition;
+            }
+        }
+
         // Get order
         auto order = self.GetParameter_("order");
         std::string order_query = "";
@@ -581,208 +604,6 @@ void Tables::Data::ReadChangeInt::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("id_database", get_database_id(), false);
-}
-
-Tables::Data::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
-{
-    // Function GET /api/tables/data/read/id
-    StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/tables/data/read/id", HTTP::EnumMethods::kHTTP_GET);
-
-    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
-
-    // Action 1_0: Get table id
-    auto action1_0 = function->AddAction_("a1_0");
-    A1(action1_0);
-
-    // Action 1: Get table columns
-    auto action1 = function->AddAction_("a1");
-    A2(action1);
-
-    // Action 2: Get Table data
-    auto action2 = function->AddAction_("a2");
-    A3(action2);
-
-    // Table permissions verifications
-    auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsRead struct_verify_permissions_read(function_data);
-    struct_verify_permissions_read.A1(fpv);
-
-    // Setup Custom Process
-    auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1_0,action1, action2, fpv](StructBX::Functions::Function& self)
-    {
-        // Execute actions
-        if(!action1_0->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1_0->get_identifier() + ": " + action1_0->get_custom_error());
-            return;
-        }
-        if(!action1->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
-            return;
-        }
-        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
-            return;
-        }
-
-        // Get table IDENTIFIER
-        auto table_identifier = self.GetParameter_("table-identifier");
-        if(table_identifier == self.get_parameters().end())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error a7osd3q1f1I");
-            return;
-        }
-
-        // Get Column ID
-        auto column_id = action1_0->get_results()->front()->ExtractField_("column_id");
-        if(column_id->IsNull_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 7UL6KqIryh");
-            return;
-        }
-
-        // Get columns
-        std::string columns = "";
-        for(auto it : *action1->get_results())
-        {
-            Query::Field::Ptr id = it.get()->ExtractField_("id");
-            Query::Field::Ptr name = it.get()->ExtractField_("name");
-            if(id->IsNull_() || name->IsNull_())
-                continue;
-
-            if(columns == "")
-                columns = "_structbx_column_" + id->ToString_() + " AS '" + name->ToString_() + "'";
-            else
-                columns += ", _structbx_column_" + id->ToString_() + " AS '" + name->ToString_() + "'";
-        }
-
-        // Verify if columns is empty
-        if(columns == "")
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No existen columnas en la tabla");
-            return;
-        }
-
-        // SQL Code
-        std::string sql_code = 
-            "SELECT " + columns + " " \
-            "FROM " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "WHERE _structbx_column_" + column_id->ToString_() + " = ?";
-
-        // Get conditions
-        auto conditions = self.GetParameter_("conditions");
-        if(conditions != self.get_parameters().end())
-        {
-            if(conditions->get()->ToString_() != "")
-            {
-                std::string conditions_decoded =  StructBX::Tools::Base64Tool().Decode_(conditions->get()->ToString_());
-                sql_code += " AND " + conditions_decoded;
-            }
-        }
-
-        // Get order
-        auto order = self.GetParameter_("order");
-        if(order != self.get_parameters().end())
-        {
-            if(order->get()->ToString_() != "")
-            {
-                std::string order_decoded =  StructBX::Tools::Base64Tool().Decode_(order->get()->ToString_());
-                sql_code += " ORDER BY " + order_decoded;
-            }
-        }
-
-        // Action 2: Get Table data
-        action2->set_sql_code(sql_code);
-
-        // Identify parameters and work
-        self.IdentifyParameters_(action2);
-        if(!action2->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error 3FqSnoQ4ru");
-            return;
-        }
-
-        // Results
-        auto json_result1 = action1->get_json_result();
-        auto json_result2 = action2->get_json_result();
-        json_result2->set("status", action2->get_status());
-        json_result2->set("message", action2->get_message());
-        json_result2->set("columns_meta", json_result1);
-
-        // Send results
-        self.CompoundResponse_(HTTP::Status::kHTTP_OK, json_result2);
-    });
-
-    get_functions()->push_back(function);
-}
-
-void Tables::Data::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT f.id, fc.id AS column_id " \
-        "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.id " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
-    );
-    action->set_final(false);
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Tables::Data::ReadSpecific::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT " \
-            "fc.*, fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
-            ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
-            ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
-        "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-        "ORDER BY fc.position ASC"
-    );
-    action->set_final(false);
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Tables::Data::ReadSpecific::A3(StructBX::Functions::Action::Ptr action)
-{
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El id no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
 }
 
 Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
