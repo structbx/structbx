@@ -216,7 +216,13 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         action4->set_sql_code(
             "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
-                "_structbx_column_" + std::to_string(column_id) + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY " \
+                "_structbx_column_" + std::to_string(column_id) + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
+                "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
+                "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
+                "_structbx_column_user_owner INT NULL, " \
+                "INDEX (_structbx_column_created_at) USING BTREE, " \
+                "INDEX (_structbx_column_updated_at) USING BTREE, " \
+                "INDEX (_structbx_column_user_owner) USING BTREE " \
             ")"
         );
         if(!action4->Work_())
