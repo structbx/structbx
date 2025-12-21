@@ -6,6 +6,7 @@ using namespace StructBX::Controllers::Tables;
 Permissions::Permissions(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,struct_read_(function_data)
+    ,struct_tables_(function_data)
     ,struct_read_specific_(function_data)
     ,struct_read_users_out_(function_data)
     ,struct_add_(function_data)
@@ -47,6 +48,32 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("id_database", get_database_id(), false);
+}
+
+Permissions::Tables::Tables(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/permissions/tables/read
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/tables/read", HTTP::EnumMethods::kHTTP_GET);
+
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    get_functions()->push_back(function);
+}
+
+void Permissions::Tables::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT f.identifier AS table_identifier " \
+        "FROM tables f " \
+        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN users nu ON nu.id = fp.id_naf_user "
+        "WHERE fp.read = 1 AND fp.id_naf_user = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+    );
+
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
