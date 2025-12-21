@@ -108,6 +108,12 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct VerifyPermissionsJustOwner : public Tools::FunctionData
+        {
+            VerifyPermissionsJustOwner(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+        };
         struct Read : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);

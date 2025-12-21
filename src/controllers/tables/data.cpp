@@ -1,5 +1,6 @@
 
 #include "controllers/tables/data.h"
+#include <string>
 
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
@@ -177,6 +178,36 @@ void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr 
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
+Tables::Data::VerifyPermissionsJustOwner::VerifyPermissionsJustOwner(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    
+}
+
+void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT fp.just_owner AS just_owner " \
+        "FROM tables f " \
+        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "WHERE f.identifier = ? " \
+            "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
+            "AND fp.id_naf_user = ?"
+    );
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de tabla no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+
+    action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
+}
+
 Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/data/read
@@ -198,9 +229,12 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     VerifyPermissionsRead struct_verify_permissions_read(function_data);
     struct_verify_permissions_read.A1(fpv);
 
+    auto just_owner = function->AddAction_("just_owner");
+    VerifyPermissionsJustOwner(function_data).A1(just_owner);
+
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1_0, action1, fpv](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, action1_0, action1, fpv, just_owner](StructBX::Functions::Function& self)
     {
         // Execute actions
         if(!action1_0->Work_())
@@ -353,6 +387,31 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + "._structbx_column_" + column_id->ToString_() + " = " + record_id->get()->ToString_();
                 condition_query = " WHERE " + record_id_condition;
             }
+        }
+
+        // Setup just owner
+        if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + just_owner->get_identifier() + ": " + fpv->get_custom_error());
+            return;
+        }
+        // Get just_owner value
+        int is_just_owner = 0;
+        if(just_owner->get_results()->size() > 0)
+        {
+            auto just_owner_field = just_owner->get_results()->begin()->get()->ExtractField_("just_owner");
+            if(!just_owner_field->IsNull_())
+            {
+                is_just_owner = just_owner_field->Int_();
+            }
+        }
+        if(is_just_owner == 1)
+        {
+            std::string just_owner_condition = "_" + table_identifier->get()->ToString_() + "._structbx_column_user_owner = " + std::to_string(self.get_current_user().get_id());
+            if(condition_query == "")
+                condition_query = " WHERE " + just_owner_condition;
+            else
+                condition_query += " AND " + just_owner_condition;
         }
 
         // Get order
@@ -760,7 +819,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         // Set SQL Code to action 3
         action3->set_sql_code(
             "INSERT INTO " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "(" + columns + ") VALUES (" + values + ") ");
+            "(" + columns + ", _structbx_column_user_owner) VALUES (" + values + ", " + std::to_string(self.get_current_user().get_id()) + ") ");
 
         // Execute action 3
         self.IdentifyParameters_(action3);
@@ -1041,9 +1100,12 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
     auto fpv = function->AddAction_("fpv");
     VerifyPermissionsModify(function_data).A1(fpv);
 
+    auto just_owner = function->AddAction_("just_owner");
+    VerifyPermissionsJustOwner(function_data).A1(just_owner);
+
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1, action2, action3, fpv](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, action1, action2, action3, fpv, just_owner](StructBX::Functions::Function& self)
     {
         // Execute actions
         if(!action1->Work_())
@@ -1107,6 +1169,28 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         action3->set_sql_code(
             "UPDATE " + id_database + "." + table_identifier->get()->ToString_() + " " \
             "SET " + columns + " WHERE _structbx_column_" + column_id->ToString_() + " = ?");
+
+        // Setup just owner
+        if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + just_owner->get_identifier() + ": " + fpv->get_custom_error());
+            return;
+        }
+        // Get just_owner value
+        int is_just_owner = 0;
+        if(just_owner->get_results()->size() > 0)
+        {
+            auto just_owner_field = just_owner->get_results()->begin()->get()->ExtractField_("just_owner");
+            if(!just_owner_field->IsNull_())
+            {
+                is_just_owner = just_owner_field->Int_();
+            }
+        }
+        if(is_just_owner == 1)
+        {
+            std::string just_owner_condition = "_structbx_column_user_owner = " + std::to_string(self.get_current_user().get_id());
+            action3->set_sql_code(action3->get_sql_code() + " AND " + just_owner_condition);
+        }
 
         // Execute action 3
         self.IdentifyParameters_(action3);
