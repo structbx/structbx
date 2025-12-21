@@ -148,9 +148,9 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
 void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_naf_user, id_table) "
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_naf_user, id_table) "
         "SELECT "
-            "?, ?, ?, ? "
+            "?, ?, ?, ?, ? "
             ",(SELECT id_naf_user FROM databases_users WHERE id_naf_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
             ",(SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
@@ -183,6 +183,15 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("delete", "", true)
     ->SetupCondition_("condition-delete", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() != "0" && param->ToString_() != "1")
+        {
+            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
+        }
+        return true;
+    });
+    action->AddParameter_("just_owner", "", true)
+    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() != "0" && param->ToString_() != "1")
         {
@@ -223,7 +232,7 @@ Permissions::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functio
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "UPDATE tables_permissions "
-        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ? "
+        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ?, `just_owner` = ? "
         "WHERE "
             "id = ? "
             "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
@@ -263,6 +272,15 @@ void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("delete", "", true)
     ->SetupCondition_("condition-delete", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() != "0" && param->ToString_() != "1")
+        {
+            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
+        }
+        return true;
+    });
+    action->AddParameter_("just_owner", "", true)
+    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() != "0" && param->ToString_() != "1")
         {
