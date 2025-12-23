@@ -413,6 +413,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             else
                 condition_query += " AND " + just_owner_condition;
         }
+        // Setup color header
+        columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
 
         // Get order
         auto order = self.GetParameter_("order");
@@ -816,10 +818,22 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
             return;
         }
 
+        // Get color header parameter
+        auto color_header_param = self.GetParameter_("_structbx_column_colorHeader");
+        std::string color_header = "";
+        if(color_header_param != self.get_parameters().end())
+        {
+            color_header = color_header_param->get()->ToString_();
+        }
+        action3->AddParameter_("user_id", self.get_current_user().get_id(), false);
+        action3->AddParameter_("color_header", color_header, false);
+
         // Set SQL Code to action 3
         action3->set_sql_code(
             "INSERT INTO " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "(" + columns + ", _structbx_column_user_owner) VALUES (" + values + ", " + std::to_string(self.get_current_user().get_id()) + ") ");
+            "(" + columns + ", _structbx_column_user_owner, _structbx_column_colorHeader) " \
+            " VALUES (" + values + ", ?, ?) "
+        );
 
         // Execute action 3
         self.IdentifyParameters_(action3);
@@ -1153,6 +1167,15 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             return;
         }
 
+        // Get color header parameter
+        auto color_header_param = self.GetParameter_("_structbx_column_colorHeader");
+        std::string color_header = "";
+        if(color_header_param != self.get_parameters().end())
+        {
+            color_header = color_header_param->get()->ToString_();
+        }
+        action3->AddParameter_("color_header", color_header, false);
+
         // Action3: Add id parameter
         action3->AddParameter_("id", "", true)
         ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -1168,7 +1191,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         // Set SQL Code to action 3
         action3->set_sql_code(
             "UPDATE " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "SET " + columns + " WHERE _structbx_column_" + column_id->ToString_() + " = ?");
+            "SET " + columns + ", _structbx_column_colorHeader = ? WHERE _structbx_column_" + column_id->ToString_() + " = ?");
 
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
