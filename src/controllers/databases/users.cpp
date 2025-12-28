@@ -101,13 +101,30 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/add", HTTP::EnumMethods::kHTTP_POST);
     
     auto action1 = function->AddAction_("a1");
+    auto action2 = function->AddAction_("a2");
+    A1(action1);
+    A2(action2);
+
     action1->set_sql_code(
         "INSERT INTO databases_users (id_database, id_naf_user) "
         "SELECT "
             "(SELECT id FROM `databases` WHERE identifier = ?) "
             ",? "
     );
-    action1->AddParameter_("identifier_database", "", true)
+    action2->set_sql_code(
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_table, id_naf_user) "
+        "SELECT "
+            "0, 0, 0, 0, 0, t.id, ? "
+        "FROM tables t " \
+        "WHERE t.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
+    );
+
+    get_functions()->push_back(function);
+}
+
+void Users::Add::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->AddParameter_("identifier_database", "", true)
     ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
@@ -117,7 +134,7 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         }
         return true;
     });
-    action1->AddParameter_("id_user", "", true)
+    action->AddParameter_("id_user", "", true)
     ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
@@ -127,8 +144,30 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         }
         return true;
     });
+}
 
-    get_functions()->push_back(function);
+void Users::Add::A2(StructBX::Functions::Action::Ptr action)
+{
+    action->AddParameter_("id_user", "", true)
+    ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() == "")
+        {
+            param->set_error("El id de usuario no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("identifier_database", "", true)
+    ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() == "")
+        {
+            param->set_error("El identificador de base de datos no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
 }
 
 Users::Delete::Delete(Tools::FunctionData& function_data) :
@@ -139,6 +178,10 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/delete", HTTP::EnumMethods::kHTTP_DEL);
     
     auto action1 = function->AddAction_("a1");
+    auto action2 = function->AddAction_("a2");
+    A1(action1);
+    A2(action2);
+
     action1->set_sql_code(
         "DELETE su FROM databases_users su "
         "WHERE "
@@ -148,17 +191,31 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
                 "FROM `databases` s JOIN databases_users su ON su.id_database = s.id "
                 "WHERE s.identifier = ? AND su.id_naf_user = ? LIMIT 1)"
     );
-    action1->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action2->set_sql_code(
+        "DELETE tp FROM tables_permissions tp "
+        "JOIN tables t ON tp.id_table = t.id "
+        "WHERE id_naf_user = ? AND t.id_database = ( "
+            "SELECT s.id "
+            "FROM `databases` s JOIN databases_users su ON su.id_database = s.id "
+            "WHERE s.identifier = ? AND su.id_naf_user = ? LIMIT 1)"
+    );
+
+    get_functions()->push_back(function);
+}
+
+void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->AddParameter_("id", "", true)
+    ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de usuario no puede estar vacío");
+            param->set_error("El id de usuario a eliminar no puede estar vacío");
             return false;
         }
         return true;
     });
-    action1->AddParameter_("database_identifier", "", true)
+    action->AddParameter_("database_identifier", "", true)
     ->SetupCondition_("condition-database_identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
@@ -168,7 +225,31 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
         }
         return true;
     });
-    action1->AddParameter_("id_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 
-    get_functions()->push_back(function);
+}
+
+void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
+{
+    action->AddParameter_("id", "", true)
+    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El id de usuario a eliminar no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("database_identifier", "", true)
+    ->SetupCondition_("condition-database_identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de base de datos no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("id_user", get_id_user(), false);
 }
