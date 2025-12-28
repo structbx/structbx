@@ -314,7 +314,7 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
         "SELECT fc.id " \
         "FROM tables_columns fc " \
         "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE fc.name = ? AND f.identifier = ? AND id_database = ?"
+        "WHERE fc.name = ? AND f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)" \
     );
 
     action->SetupCondition_("verify-column-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
@@ -613,7 +613,7 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         "UPDATE tables_columns SET " \
             "name = ?, length = ?, required = ? " \
             ",default_value = ?, description = ?, id_column_type = ?, link_to = ?, position = ? " \
-        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ? LIMIT 1)"
+        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ? ) LIMIT 1)"
     );
 
     action->AddParameter_("name", "", true)
@@ -767,7 +767,7 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
 
         // Action 2: Delete columns
         action2->set_sql_code(
-            "ALTER TABLE " + database_id + "._structbx_table_" + table_identifier->get()->ToString_() + " " +
+            "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
             "DROP COLUMN IF EXISTS _structbx_column_" + column_id->ToString_());
         if(!action2->Work_())
         {
@@ -873,7 +873,6 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     }
 
     // Get parameters
-    auto identifier = self.GetParameter_("identifier");
     auto name = self.GetParameter_("name");
     auto length = self.GetParameter_("length");
     auto required = self.GetParameter_("required");
@@ -881,7 +880,7 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     auto id_column_type = self.GetParameter_("id_column_type");
     auto table_identifier = self.GetParameter_("table-identifier");
     if(
-        identifier == end || name == end || length == end || required == end ||
+        name == end || length == end || required == end ||
         default_value == end || id_column_type == end || table_identifier == end
     )
         return false;
@@ -902,15 +901,36 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
         variables.required = "NOT NULL";
         variables.cascade_key_condition = "ON DELETE CASCADE ON UPDATE CASCADE";
     }
+    else
+    {
+        variables.required = "NULL";
+    }
 
     // Default setup
     if(default_value->get()->ToString_() != "")
         variables.default_value = "DEFAULT " + default_value->get()->ToString_();
+    else
+    {
+        if(variables.required == "NULL")
+            variables.default_value = "DEFAULT NULL";
+        else
+            variables.default_value = "";
+    }
 
     // Link to
     if(!link_to->get()->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kEmpty) && link_to->get()->ToString_() != "")
         variables.link_to = link_to->get()->ToString_();
 
+    // Verify if column type is selection and link_to is empty
+    if(
+        (column_type_id == "9") &&
+        (
+            variables.link_to == "" 
+            || link_to->get()->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kEmpty)
+        )
+    )
+        return false;
+    
     return true;
 }
 
