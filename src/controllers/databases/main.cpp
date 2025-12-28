@@ -158,7 +158,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
     );
     action->AddParameter_("id_naf_user", get_id_user(), false);
-    action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("identifier", get_database_id(), true);
 }
 
 Main::Add::Add(Tools::FunctionData& function_data) :
