@@ -223,7 +223,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
                 "_structbx_column_colorHeader VARCHAR(100) DEFAULT NULL, " \
                 "INDEX (_structbx_column_created_at) USING BTREE, " \
                 "INDEX (_structbx_column_updated_at) USING BTREE, " \
-                "INDEX (_structbx_column_user_owner) USING BTREE " \
+                "INDEX (_structbx_column_user_owner) USING BTREE, " \
                 "INDEX (_structbx_column_colorHeader) USING BTREE " \
             ")"
         );

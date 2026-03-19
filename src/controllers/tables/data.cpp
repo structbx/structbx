@@ -392,7 +392,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 }
 
                 // Setup column link
-                column = "_" + table_link->ToString_() + "._structbx_column_" + join_column2->ToString_() + " AS '" + name->ToString_() + "'";
+                column = "_" + table_link->ToString_() + "._structbx_column_" + join_column2->ToString_() + " AS '" + name->ToString_() + "'" +
+                    ", _" + table_link->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + id->ToString_() + "_colorHeader'";
 
                 // Setup new join
                 joins += " LEFT JOIN " + id_database + "." + table_link->ToString_() +
