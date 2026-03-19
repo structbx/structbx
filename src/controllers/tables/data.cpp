@@ -58,6 +58,47 @@ void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr ac
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
+Tables::Data::VerifyPermissionsReadFromLink::VerifyPermissionsReadFromLink(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+
+}
+
+void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT f.id " \
+        "FROM tables f " \
+        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "WHERE f.identifier = ? " \
+            "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
+            "AND fp.id_naf_user = ? " \
+            "AND (SELECT COUNT(1) FROM tables_columns fc WHERE fc.link_to = f.id) > 0"
+    );
+    action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
+    {
+        if(action.get_results()->size() < 1)
+        {
+            action.set_custom_error("No posee los permisos");
+            return false;
+        }
+
+        return true;
+    });
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de formulario no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+
+    action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
+}
+
 Tables::Data::VerifyPermissionsAdd::VerifyPermissionsAdd(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     
@@ -226,15 +267,17 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsRead struct_verify_permissions_read(function_data);
-    struct_verify_permissions_read.A1(fpv);
+    VerifyPermissionsRead(function_data).A1(fpv);
+
+    auto fpv2 = function->AddAction_("fpv2");
+    VerifyPermissionsReadFromLink(function_data).A1(fpv2);
 
     auto just_owner = function->AddAction_("just_owner");
     VerifyPermissionsJustOwner(function_data).A1(just_owner);
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1_0, action1, fpv, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, action1_0, action1, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
     {
         // Execute actions
         if(!action1_0->Work_())
@@ -247,7 +290,20 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
-        if(!fpv->Work_() && self.get_current_user().get_type() != "system")
+
+        // Get from/link parameter
+        auto from = self.GetParameter_("from");
+
+        // Verify permissions
+        if(from != self.get_parameters().end() && from->get()->ToString_() == "link")
+        {
+            if(!fpv2->Work_() && self.get_current_user().get_type() != "system")
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv2->get_identifier() + ": " + fpv2->get_custom_error());
+                return;
+            }
+        }
+        else if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
             return;

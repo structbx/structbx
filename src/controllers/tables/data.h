@@ -90,6 +90,12 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct VerifyPermissionsReadFromLink : public Tools::FunctionData
+        {
+            VerifyPermissionsReadFromLink(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+        };
         struct VerifyPermissionsAdd : public Tools::FunctionData
         {
             VerifyPermissionsAdd(Tools::FunctionData& function_data);
