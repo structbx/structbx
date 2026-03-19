@@ -122,19 +122,26 @@ void BackendHandler::SetupFunctionData_()
     auto cookie_database_id = cookies.find(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"));
 
     // Set Database ID if exists in Cookies
+    add_database_id_cookie_ = false;
     if(cookie_database_id != cookies.end())
     {
         auto database_id_decoded = StructBX::Tools::Base64Tool().Decode_(cookie_database_id->second);
-        function_data_.set_database_id(database_id_decoded);
+        if(database_id_decoded.empty())
+            add_database_id_cookie_ = true;
+        else
+            function_data_.set_database_id(database_id_decoded);
+
     }
-    else
+
+    // Verify if is system user
+    if(get_users_manager().get_current_user().get_type() == "system")
     {
-        // Verify if is system user
-        if(get_users_manager().get_current_user().get_type() == "system")
-            return;
+        add_database_id_cookie_ = false;
+        return;
+    }
 
-        add_database_id_cookie_ = true;
-
+    if(add_database_id_cookie_)
+    {
         // Get Database IDENTIFIER Cookie if not exists in Cookies
         auto action = StructBX::Functions::Action("get_database_for_cookie");
         action.set_sql_code(
