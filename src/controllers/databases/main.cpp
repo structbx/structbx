@@ -35,7 +35,7 @@ Main::Read::Read(Tools::FunctionData& function_data) :
         // Execute actions
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": " + action->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERR0UO7DD9YJ6");
             return;
         }
 
@@ -56,7 +56,7 @@ Main::Read::Read(Tools::FunctionData& function_data) :
             );
             if(!action2.Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error KXkg8nuaNB");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR9TT3QC0QRG");
                 return;
             }
 
@@ -139,7 +139,7 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     {
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": " + action->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERROWYA84SAXC");
             return;
         }
         
