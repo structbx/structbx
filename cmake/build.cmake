@@ -15,7 +15,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Compiler options
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -fstandalone-debug")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -fstandalone-debug")
+else()
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
