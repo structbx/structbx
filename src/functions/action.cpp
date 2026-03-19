@@ -11,7 +11,7 @@ Action::Action(std::string identifier) :
     ,identifier_(identifier)
     ,status_("OK.")
     ,message_("OK.")
-    ,custom_error_("Error in Action")
+    ,custom_error_("ERRZHCFLA0VS6")
     ,last_insert_id_(0)
     ,final_(true)
     ,error_(false)
