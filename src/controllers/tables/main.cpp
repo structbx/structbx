@@ -111,7 +111,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "f.* " \
+            "f.identifier, f.name, f.public_form, f.description " \
         "FROM tables f " \
         "WHERE " \
             "f.identifier = ? "
