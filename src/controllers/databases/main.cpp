@@ -115,7 +115,7 @@ Main::Read::Read(Tools::FunctionData& function_data) :
 void Main::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.* " \
+        "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
         "WHERE su.id_naf_user = ?"
@@ -152,7 +152,7 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
 void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.* " \
+        "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
         "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
