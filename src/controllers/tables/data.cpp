@@ -293,10 +293,12 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
         // Get from/link parameter
         auto from = self.GetParameter_("from");
+        bool from_link = false;
 
         // Verify permissions
         if(from != self.get_parameters().end() && from->get()->ToString_() == "link")
         {
+            from_link = true;
             if(!fpv2->Work_() && self.get_current_user().get_type() != "system")
             {
                 self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv2->get_identifier() + ": " + fpv2->get_custom_error());
@@ -329,8 +331,14 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         std::string columns = "";
         std::string joins = "";
         bool has_link = false;
+        int count = 0; // Simple counter to know if it's the first column or not for the query
         for(auto it : *action1->get_results())
         {
+            // If the request is from link, only get the first and second columns
+            if(from_link && count > 1)
+                break;
+            count++;
+
             Query::Field::Ptr id = it.get()->ExtractField_("id");
             Query::Field::Ptr name = it.get()->ExtractField_("name");
             Query::Field::Ptr link_to = it.get()->ExtractField_("link_to");
@@ -654,7 +662,8 @@ void Tables::Data::Read::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "fc.*, fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
+            "fc.id, fc.identifier, fc.name, fc.position, fc.length, fc.required, fc.default_value, fc.description, link_to " \
+            ",fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
             ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
         "FROM tables_columns fc " \
