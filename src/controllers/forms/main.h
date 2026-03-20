@@ -36,6 +36,12 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct VerifyTableState : public Tools::FunctionData
+        {
+            VerifyTableState(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+        };
         struct CreateSystemUser 
         {
             CreateSystemUser();
@@ -50,6 +56,10 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
         {
             ReadTableSpecific(Tools::FunctionData& function_data);
         };
+        struct ReadTableData : public Tools::FunctionData
+        {
+            ReadTableData(Tools::FunctionData& function_data);
+        };
         struct ReadColumns : public Tools::FunctionData
         {
             ReadColumns(Tools::FunctionData& function_data);
@@ -61,6 +71,7 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
 
     private:
         ReadTableSpecific struct_read_table_specific_;
+        ReadTableData struct_read_table_data_;
         ReadColumns struct_read_columns_;
         AddData struct_add_data_;
 };
