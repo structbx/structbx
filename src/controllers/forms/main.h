@@ -36,9 +36,9 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
-        struct VerifyTableState : public Tools::FunctionData
+        struct VerifyLinkTableIsInMain : public Tools::FunctionData
         {
-            VerifyTableState(Tools::FunctionData& function_data);
+            VerifyLinkTableIsInMain(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
         };

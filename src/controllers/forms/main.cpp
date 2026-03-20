@@ -47,21 +47,32 @@ void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::VerifyTableState::VerifyTableState(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Main::VerifyLinkTableIsInMain::VerifyLinkTableIsInMain(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
 
 }
 
-void Main::VerifyTableState::A1(StructBX::Functions::Action::Ptr action)
+void Main::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "f.state AS state, d.identifier AS database_id " \
-        "FROM tables f " \
-        "JOIN `databases` d ON d.id = f.id_database " \
-        "WHERE f.identifier = ?"
+            "f.identifier, fc.link_to " \
+        "FROM tables_columns fc " \
+        "JOIN tables f ON f.id = fc.id_table " \
+        "WHERE f.identifier = ? AND fc.link_to = (SELECT id FROM tables WHERE identifier = ?) " \
+        "AND f.public_form = 1"
     );
     action->set_final(false);
+    action->AddParameter_("main-table-identifier", "", true)
+    ->SetupCondition_("condition-main-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de tabla principal no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
     action->AddParameter_("table-identifier", "", true)
     ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -212,6 +223,11 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Verify if link table is in main table
+    auto vltim = function->AddAction_("vltim");
+    VerifyLinkTableIsInMain struct_verify_link_table_is_in_main(function_data);
+    struct_verify_link_table_is_in_main.A1(vltim);
+
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
@@ -219,12 +235,23 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     // Setup custom process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, pfv](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, pfv, vltim](StructBX::Functions::Function& self)
     {
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error 5u2UPHVRHkF6");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 5u2UPHVRHkF6");
+            return;
+        }
+        // vltim verification
+        if(!vltim->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 8qFiCgyBRE6G");
+            return;
+        }
+        if(vltim->get_results()->size() == 0)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error vMKUEWq6UnT2");
             return;
         }
         
