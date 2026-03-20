@@ -87,6 +87,7 @@ void BackendHandler::AddOpenEndpoints_()
 {
     open_endpoints_.push_back("/api/forms/columns/read");
     open_endpoints_.push_back("/api/forms/tables/read/identifier");
+    open_endpoints_.push_back("/api/forms/tables/data/read");
     open_endpoints_.push_back("/api/forms/tables/data/add");
     open_endpoints_.push_back("/api/general/permissions/current/read");
 }
