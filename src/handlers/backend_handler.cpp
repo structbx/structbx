@@ -131,8 +131,9 @@ void BackendHandler::SetupFunctionData_()
             add_database_id_cookie_ = true;
         else
             function_data_.set_database_id(database_id_decoded);
-
     }
+    else
+        add_database_id_cookie_ = true;
 
     // Verify if is system user
     if(get_users_manager().get_current_user().get_type() == "system")
