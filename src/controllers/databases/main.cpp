@@ -64,28 +64,36 @@ Main::Read::Read(Tools::FunctionData& function_data) :
             auto directory = StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
             directory += "/" + identifier->ToString_();
             float directory_size = 0;
-            DirectoryIterator it(directory);
-            DirectoryIterator end;
-            while (it != end)
-            {
-                if(it->isDirectory())
-                {
-                    directory_size += it->getSize();
-                    DirectoryIterator it2(it.path());
-                    while (it2 != end)
-                    {
-                        directory_size += it2->getSize();
-                        ++it2;
-                    }
-                }
-                else
-                {
-                    directory_size += it->getSize();
-                }
 
-                ++it;
+            // Verify if directory exists
+            Poco::File file(directory);
+            if(file.exists() && file.isDirectory())
+            {
+                DirectoryIterator it(directory);
+                DirectoryIterator end;
+                while (it != end)
+                {
+                    if(it->isDirectory())
+                    {
+                        directory_size += it->getSize();
+                        DirectoryIterator it2(it.path());
+                        while (it2 != end)
+                        {
+                            directory_size += it2->getSize();
+                            ++it2;
+                        }
+                    }
+                    else
+                        directory_size += it->getSize();
+
+                    ++it;
+                }
+                directory_size = directory_size / 1024.f / 1024.f;
             }
-            directory_size = directory_size / 1024.f / 1024.f;
+            else
+            {
+                StructBX::Tools::OutputLogger::Error_("Directory " + directory + " does not exist for database " + identifier->ToString_());
+            }
 
             // Get results
             auto size = action2.get_results()->First_();
