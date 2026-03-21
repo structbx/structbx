@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Iniciar sesión - StructBX</title>
+        <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+
+        <!-- CSS files -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/assets/css/login.css">
+        <!-- /CSS files -->
+
+        <!-- JS Libraries -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://josefelixrc7.github.io/wtools/wtools.js"></script>
+        <!-- /JS Libraries -->
+    </head>
+    <body>
+        <div id="component_login" class="login-container">
+            <div class="row g-0">
+                <!-- Login Form -->
+                <div class="col-lg-6">
+                    <div class="login-left">
+                        <div class="login-header">
+                            <h2>Bienvenido de nuevo</h2>
+                            <p>Inicia sesión para acceder a tu plataforma de gestión de bases de datos</p>
+                        </div>
+                        
+                        <form class="needs-validation" novalidate>
+                            <div class="notifications mb-3"></div>
+                            
+                            <div class="mb-3">
+                                <label for="user" class="form-label">Correo electrónico</label>
+                                <input type="email" class="form-control" id="user" name="username" placeholder="nombre@ejemplo.com" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa un correo electrónico válido.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                                    <button type="button" class="toggle-password" id="togglePassword">
+                                        <i class="far fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa tu contraseña.
+                                </div>
+                            </div>
+                            
+                            <!--<div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Recordar mis datos
+                                </label>
+                            </div>-->
+                            
+                            <button class="w-100 btn btn-login text-white" type="submit">Iniciar sesión</button>
+                            
+                            <!--<div class="login-links">
+                                <a href="/recover/">¿Olvidaste tu contraseña?</a>
+                                <p class="mt-3">¿No tienes cuenta? <a href="/signin/">Regístrate aquí</a></p>
+                            </div>-->
+                            
+                            <!--<div class="social-login">
+                                <p>O inicia sesión con</p>
+                                <div class="social-buttons">
+                                    <a href="#" class="social-btn">
+                                        <i class="fab fa-google"></i>
+                                    </a>
+                                    <a href="#" class="social-btn">
+                                        <i class="fab fa-github"></i>
+                                    </a>
+                                    <a href="#" class="social-btn">
+                                        <i class="fab fa-microsoft"></i>
+                                    </a>
+                                </div>
+                            </div>-->
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Login Sidebar -->
+                <div class="col-lg-6">
+                    <div class="login-right">
+                        <div>
+                            <div class="brand-logo">
+                                <img src="/assets/images/logo-w.png" alt="StructBX Logo" width="40px">
+                            </div>
+                            
+                            <div class="feature-card">
+                                <i class="fas fa-database"></i>
+                                <h4>Gestión de Bases de Datos</h4>
+                                <p>Crea y administra tus bases de datos de forma intuitiva</p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <i class="fas fa-table"></i>
+                                <h4>Tablas Relacionadas</h4>
+                                <p>Establece relaciones entre tablas fácilmente</p>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <i class="fas fa-eye"></i>
+                                <h4>Vistas Personalizadas</h4>
+                                <p>Crea vistas con filtros predefinidos para un acceso rápido</p>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <p>¿Aún no conoces StructBX? <a href="https://structbx.com" class="text-white fw-bold">Descubre más</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wait animation -->
+        <div id="wait_animation_page">
+        </div>
+        <!-- /Wait animation -->
+
+        <!-- Javascript -->
+            <!-- General -->
+            <script src="/assets/js/main.js"></script>
+
+            <!-- Classes -->
+            <script src="/assets/js/classes/tools.js"></script>
+            <script src="/assets/js/classes/table_elements.js"></script>
+            <script src="/assets/js/classes/response_manager.js"></script>
+
+            <!-- Elements -->
+            <script src="/assets/js/elements/headers.js"></script>
+            <script src="/assets/js/elements/footers.js"></script>
+            <script src="/assets/js/elements/sidebars.js"></script>
+
+            <!-- Events -->
+            <script src="/assets/js/events/login/login_general.js"></script>
+
+        <!-- Javascript -->
+
+        <script>
+            $(document).ready(function()
+            {
+                // Toggle password visibility
+                $('#togglePassword').click(function()
+                {
+                    const passwordInput = $('#password');
+                    const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+                    passwordInput.attr('type', type);
+                    
+                    // Toggle eye icon
+                    $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+                });
+                
+                // Add focus effects to form inputs
+                $('.form-control').focus(function()
+                {
+                    $(this).parent().addClass('focused');
+                })
+                .blur(function()
+                {
+                    if ($(this).val() === '')
+                    {
+                        $(this).parent().removeClass('focused');
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
