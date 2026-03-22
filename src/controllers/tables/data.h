@@ -40,7 +40,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
                 ,values(values)
                 ,id_database(id_database)
             {}
-            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, StructBX::Query::Field::Ptr table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
+            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
 
             Type type;
             std::string& columns;
@@ -90,6 +90,12 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct VerifyPermissionsReadFromLink : public Tools::FunctionData
+        {
+            VerifyPermissionsReadFromLink(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+        };
         struct VerifyPermissionsAdd : public Tools::FunctionData
         {
             VerifyPermissionsAdd(Tools::FunctionData& function_data);
@@ -108,6 +114,12 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
+        struct VerifyPermissionsJustOwner : public Tools::FunctionData
+        {
+            VerifyPermissionsJustOwner(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+        };
         struct Read : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
@@ -120,14 +132,6 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             ReadChangeInt(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
-        };
-        struct ReadSpecific : public Tools::FunctionData
-        {
-            ReadSpecific(Tools::FunctionData& function_data);
-
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
         };
         struct ReadFile : public Tools::FunctionData
         {
@@ -168,7 +172,6 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
     private:
         Read struct_read_;
         ReadChangeInt struct_read_change_int_;
-        ReadSpecific struct_read_specific_;
         ReadFile struct_read_file_;
         Add struct_add_;
         Import struct_import_;

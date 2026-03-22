@@ -6,6 +6,7 @@
 #include <list>
 
 #include "functions/function.h"
+#include "security/user.h"
 #include "tools/dvalue.h"
 #include "tools/hmac_tool.h"
 #include "tools/base64_tool.h"
@@ -37,6 +38,7 @@ class StructBX::Tools::FunctionData
             id_user_(function_data.get_id_user())
             ,database_id_(function_data.get_database_id())
             ,functions_(function_data.get_functions())
+            ,current_user_(function_data.get_current_user())
         {
             
         }
@@ -48,15 +50,22 @@ class StructBX::Tools::FunctionData
             auto& var = functions_;
             return var;
         }
+        Security::User& get_current_user()
+        {
+            auto& var = current_user_;
+            return var;
+        }
 
         void set_id_user(int id_user){ id_user_ = id_user; }
         void set_database_id(std::string database_id){ database_id_ = database_id; }
         void set_functions(FunctionsList functions){ functions_ = functions; }
+        void set_current_user(Security::User current_user){ current_user_ = current_user; }
 
     private:
         int id_user_;
         std::string database_id_;
         FunctionsList functions_;
+        Security::User current_user_;
 };
 
 #endif //STRUCTBX_TOOLS_FUNCTIONDATA

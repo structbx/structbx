@@ -1,0 +1,84 @@
+
+:root {
+    --primary: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
+    --primary-dark: linear-gradient(135deg, #49475f 0%, #302f2e 100%) !important;
+    --dark: #212529;
+    --light: #f3f3f3;
+    --gradient: linear-gradient(135deg, #302f2e 0%, #49475f 100%);
+    --text-color: #333333;
+    --border-color: #b4b4b4;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    --bs-body-font-size: .8rem !important;
+}
+
+#header_main{
+    z-index: 1050;
+    background: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
+}
+
+#menu_main{
+    z-index: 1049;
+}
+
+#notifications{
+    z-index: 1051;
+}
+
+#component_data_read td{
+    cursor: pointer;
+}
+
+/* Cards */
+.card-table-item {
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-table-item:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
+    border-color: #0d6efd; /* Color primario de Bootstrap al pasar el mouse */
+}
+
+.card-table-item a {
+    color: inherit; 
+    text-decoration: none;
+    display: block;
+}
+
+.card-table-item h5 {
+    font-weight: 600;
+    color: #333;
+}
+
+.card-table-item .text-muted.small {
+    font-size: 0.85em;
+    color: #6c757d !important;
+}
+
+.card-table-item .border-primary {
+    border-color: #0d6efd !important;
+}
+
+.card-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #eeeeee !important;
+    padding: 10px 15px;
+}
+
+.card-table-item .badge {
+    font-size: 0.75em;
+    font-weight: 400;
+    padding: 0.4em 0.7em;
+}
+
+.fa-fw {
+    width: 1.25em;
+    text-align: center;
+}

@@ -40,10 +40,14 @@ class StructBX::Controllers::Databases::Users : public Tools::FunctionData
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
+            void A1(StructBX::Functions::Action::Ptr action);
+            void A2(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
+            void A1(StructBX::Functions::Action::Ptr action);
+            void A2(StructBX::Functions::Action::Ptr action);
         };
 
     private:

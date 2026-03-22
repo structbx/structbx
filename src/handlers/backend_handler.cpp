@@ -19,6 +19,7 @@ void BackendHandler::AddFunctions_()
     auto general = General::Main(function_data_);
     auto databases = Databases::Main(function_data_);
     auto tables = Tables::Main(function_data_);
+    auto forms = Forms::Main(function_data_);
 
     // Add all functions
     for(auto it : *function_data_.get_functions())
@@ -29,14 +30,19 @@ void BackendHandler::Process_()
 {
     get_files_parameters()->set_directory_base(StructBX::Tools::SettingsManager::GetSetting_("directory_base", "/var/www"));
     
-    // Set security type
-    set_security_type(Security::SecurityType::kDisableAll);
+    // Set security type and verify open endpoints
+    AddOpenEndpoints_();
+    auto found = std::find(open_endpoints_.begin(), open_endpoints_.end(), get_requested_route()->get_route());
+    if(found == open_endpoints_.end())
+        set_security_type(Security::SecurityType::kDisableAll);
+    else
+        set_security_type(Security::SecurityType::kEnableAll);
     
     // Process the request body
     ManageRequestBody_();
 
     // Verify sessions
-    if(!VerifySession_())
+    if(!VerifySession_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Session not found.");
         return;
@@ -60,14 +66,14 @@ void BackendHandler::Process_()
         get_current_function()->AddCookie_(database_id_cookie_);
 
     // Verify permissions
-    if(!VerifyPermissions_())
+    if(!VerifyPermissions_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "The user does not have the permissions to perform this operation.");
         return;
     }
 
     // Verify if user is active
-    if(!VerifyActiveUser_())
+    if(!VerifyActiveUser_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
         JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "The user is inactive.");
         return;
@@ -75,6 +81,15 @@ void BackendHandler::Process_()
 
     // Process actions
     ProcessActions_();
+}
+
+void BackendHandler::AddOpenEndpoints_()
+{
+    open_endpoints_.push_back("/api/forms/columns/read");
+    open_endpoints_.push_back("/api/forms/tables/read/identifier");
+    open_endpoints_.push_back("/api/forms/tables/data/read");
+    open_endpoints_.push_back("/api/forms/tables/data/add");
+    open_endpoints_.push_back("/api/general/permissions/current/read");
 }
 
 void BackendHandler::ProcessActions_()
@@ -91,13 +106,7 @@ void BackendHandler::ProcessActions_()
     get_current_function()->set_data(get_data());
 
     // Set current user
-    auto id = get_users_manager().get_current_user().get_id();
-    auto username = get_users_manager().get_current_user().get_username();
-    auto id_group = get_users_manager().get_current_user().get_id_group();
-
-    get_current_function()->get_current_user().set_id(id);
-    get_current_function()->get_current_user().set_username(username);
-    get_current_function()->get_current_user().set_id_group(id_group);
+    get_current_function()->set_current_user(get_users_manager().get_current_user());
 
     // Process current function
     get_current_function()->Process_(get_http_server_request(), get_http_server_response());
@@ -114,19 +123,31 @@ void BackendHandler::SetupFunctionData_()
     auto cookie_database_id = cookies.find(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"));
 
     // Set Database ID if exists in Cookies
+    add_database_id_cookie_ = false;
     if(cookie_database_id != cookies.end())
     {
         auto database_id_decoded = StructBX::Tools::Base64Tool().Decode_(cookie_database_id->second);
-        function_data_.set_database_id(database_id_decoded);
+        if(database_id_decoded.empty())
+            add_database_id_cookie_ = true;
+        else
+            function_data_.set_database_id(database_id_decoded);
     }
     else
-    {
         add_database_id_cookie_ = true;
 
-        // Get Database ID Cookie if not exists in Cookies
-        auto action = StructBX::Functions::Action("a1");
+    // Verify if is system user
+    if(get_users_manager().get_current_user().get_type() == "system")
+    {
+        add_database_id_cookie_ = false;
+        return;
+    }
+
+    if(add_database_id_cookie_)
+    {
+        // Get Database IDENTIFIER Cookie if not exists in Cookies
+        auto action = StructBX::Functions::Action("get_database_for_cookie");
         action.set_sql_code(
-            "SELECT s.id " \
+            "SELECT s.identifier " \
             "FROM `databases` s " \
             "JOIN databases_users su ON su.id_database = s.id " \
             "WHERE su.id_naf_user = ? LIMIT 1"
@@ -156,19 +177,8 @@ void BackendHandler::SetupFunctionData_()
 
 bool BackendHandler::VerifyActiveUser_()
 {
-    // Action to check if user is active
-    auto action = StructBX::Functions::Action("a1");
-    action.set_sql_code(
-        "SELECT nu.id " \
-        "FROM users nu " \
-        "WHERE nu.id = ? AND nu.status = 'activo'"
-    );
-    action.AddParameter_("id_naf_user", function_data_.get_id_user(), false);
-    if(action.Work_())
-    {
-        if(action.get_results()->size() != 1)
-            return false;
-    }
-
-    return true;
+    if (get_users_manager().get_current_user().get_status() == "active")
+        return true;
+    else
+        return false;
 }

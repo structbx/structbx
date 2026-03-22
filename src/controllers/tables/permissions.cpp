@@ -6,6 +6,7 @@ using namespace StructBX::Controllers::Tables;
 Permissions::Permissions(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,struct_read_(function_data)
+    ,struct_tables_(function_data)
     ,struct_read_specific_(function_data)
     ,struct_read_users_out_(function_data)
     ,struct_add_(function_data)
@@ -34,7 +35,7 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "JOIN users nu ON nu.id = fp.id_naf_user "
-        "WHERE f.identifier = ? AND f.id_database = ?"
+        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
     action->AddParameter_("table-identifier", "", true)
@@ -47,6 +48,32 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("id_database", get_database_id(), false);
+}
+
+Permissions::Tables::Tables(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/permissions/tables/read
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/tables/read", HTTP::EnumMethods::kHTTP_GET);
+
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    get_functions()->push_back(function);
+}
+
+void Permissions::Tables::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT f.identifier AS table_identifier " \
+        "FROM tables f " \
+        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN users nu ON nu.id = fp.id_naf_user "
+        "WHERE fp.read = 1 AND fp.id_naf_user = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+    );
+
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
@@ -69,7 +96,7 @@ void Permissions::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "JOIN users nu ON nu.id = fp.id_naf_user "
-        "WHERE fp.id = ? AND f.identifier = ? AND f.id_database = ?"
+        "WHERE fp.id = ? AND f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
     action->AddParameter_("id", "", true)
@@ -112,11 +139,12 @@ void Permissions::ReadUsersOut::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT nu.id, nu.username "
         "FROM users nu "
+        "JOIN databases_users du ON du.id_naf_user = nu.id "
         "LEFT JOIN tables_permissions su ON "
             "su.id_naf_user = nu.id AND "
-            "su.id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ?) "
+            "su.id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
         "WHERE "
-            "su.id_naf_user IS NULL "
+            "su.id_naf_user IS NULL AND nu.type = 'default'"
     );
 
     action->AddParameter_("table-identifier", "", true)
@@ -124,7 +152,7 @@ void Permissions::ReadUsersOut::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("El identificador de la tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -147,11 +175,11 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
 void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_naf_user, id_table) "
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_naf_user, id_table) "
         "SELECT "
-            "?, ?, ?, ? "
-            ",(SELECT id_naf_user FROM databases_users WHERE id_naf_user = ? AND id_database = ?) "
-            ",(SELECT id FROM tables WHERE identifier = ? AND id_database = ?) "
+            "?, ?, ?, ?, ? "
+            ",(SELECT id_naf_user FROM databases_users WHERE id_naf_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
+            ",(SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
     action->AddParameter_("read", "", true)
     ->SetupCondition_("condition-read", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -189,6 +217,15 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("just_owner", "", true)
+    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() != "0" && param->ToString_() != "1")
+        {
+            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
+        }
+        return true;
+    });
     action->AddParameter_("id_user", "", true)
     ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -205,7 +242,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -222,10 +259,10 @@ Permissions::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functio
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "UPDATE tables_permissions "
-        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ? "
+        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ?, `just_owner` = ? "
         "WHERE "
             "id = ? "
-            "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ?) "
+            "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
     A1(action1);
     get_functions()->push_back(function);
@@ -269,6 +306,15 @@ void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("just_owner", "", true)
+    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() != "0" && param->ToString_() != "1")
+        {
+            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
+        }
+        return true;
+    });
     action->AddParameter_("id", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -284,7 +330,7 @@ void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -301,7 +347,7 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "DELETE FROM tables_permissions " \
-        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ?)"
+        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?))"
     );
     A1(action1);
 
@@ -315,7 +361,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id del permiso de formulario no puede estar vacío");
+            param->set_error("El id del permiso de la tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -325,7 +371,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("El identificador de la tabla no puede estar vacío");
             return false;
         }
         return true;

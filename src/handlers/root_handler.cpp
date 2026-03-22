@@ -27,12 +27,12 @@ void RootHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& 
             
             if(!get_http_server_request().has_value())
             {
-                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "HTTP Request is Null.");
+                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR6DFQAA39KM");
                 return;
             }
             if(!get_http_server_response().has_value())
             {
-                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "HTTP Response is Null.");
+                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRIUQP6TYJX0");
                 return;
             }
 
@@ -53,37 +53,37 @@ void RootHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& 
     catch(MySQL::MySQLException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error with the database or query. " + error.displayText());
+        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERR88HIP2LOOW");
     }
     catch(RuntimeException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. " + error.displayText());
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR43K5648DTY");
     }
     catch(JSON::JSONException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. " + error.displayText());
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRUS8M0H0OQ0");
     }
     catch(std::out_of_range& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. " + std::string(error.what()));
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRABLTCEEY6W");
     }
     catch(std::runtime_error& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. " + std::string(error.what()));
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRDPHNRZNA26");
     }
     catch(std::exception& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. " + std::string(error.what()));
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRJBW4NHLNDZ");
     }
     catch(...)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): No handled exception.");
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Internal server error. No handled exception." );
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR3XGWKEIEDE" );
     }
 }
 
@@ -123,7 +123,7 @@ bool RootHandler::VerifySession_()
 
             // Get the session user
                 auto id_user = sessions.at(session_id).get_id_user();
-                get_users_manager().get_current_user().set_id(id_user);
+                get_users_manager().ReloadCurrentUser_(id_user);
 
             return true;
         }
@@ -169,7 +169,7 @@ void RootHandler::ManageRequestBody_()
         }
         else if(properties_.content_type == "application/x-www-form-urlencoded")
         {
-            ReadFormURLEncoded_(*request, request->stream());
+            ReadFormURLEncoded_(*request);
         }
         else if(properties_.content_type == "application/json")
         {

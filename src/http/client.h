@@ -20,6 +20,7 @@
 #define STRUCTBX_HTTP_CLIENT
 
 
+#include <Poco/Net/HTMLForm.h>
 #include <functional>
 #include <vector>
 #include <optional>
@@ -67,7 +68,6 @@ class StructBX::HTTP::Client
 
         Client(std::string uri, const std::string method);
 
-        bool get_use_ssl() const { return use_ssl_; }
         std::string get_uri() const { return uri_; }
         std::string get_method() const { return method_; }
         std::string get_username() const { return username_; }
@@ -84,8 +84,12 @@ class StructBX::HTTP::Client
             return var;
         }
         ClientResponseFunction get_response_handler() const { return response_handler_; }
+        HTMLForm& get_form()
+        {
+            auto& var = form_;
+            return var;
+        }
 
-        void set_use_ssl(bool use_ssl) { use_ssl_ = use_ssl; }
         void set_uri(std::string uri) { uri_ = uri; }
         void set_method(std::string method) { method_ = method; }
         void set_username(std::string username) { username_ = username; }
@@ -98,16 +102,14 @@ class StructBX::HTTP::Client
         void SetupSSL_(std::string rootcert);
         void AddHeader_(std::string name, std::string value);
         void AddCookie_(std::string name, std::string value);
-        void SendRequest_();
+        void SendHTTPRequest_();
+        void SendHTTPSRequest_();
 
     protected:
-        void SendNormalRequest_();
-        void SendSSLRequest_();
         void SetupHeaders_(Net::HTTPRequest& http_request);
         void SetupCookies_(Net::HTTPRequest& http_request);
 
     private:
-        bool use_ssl_;
         std::string uri_;
         std::string method_;
         std::string username_;
@@ -117,6 +119,7 @@ class StructBX::HTTP::Client
         std::vector<HTTP::Cookie> cookies_;
         ClientResponseFunction response_handler_;
         Context::Ptr ssl_context_;
+        HTMLForm form_;
 };
 
 #endif // STRUCTBX_HTTP_CLIENT

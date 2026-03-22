@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "structbx-server (Debug)",
             "program": "${workspaceFolder}/build/Debug/structbx-server",
-            "args": ["--config", "${workspaceFolder}/build/Debug/properties.yaml"],
+            "args": ["--config", "${workspaceFolder}/build/Debug/config-files/properties.yaml"],
             "cwd": "${workspaceFolder}/build/Debug"
         }
     ]

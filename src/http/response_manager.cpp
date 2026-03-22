@@ -89,6 +89,18 @@ void ResponseManager::CustomHTMLResponse_(HTTP::Status status, std::string html_
     out << html_message;
 }
 
+void ResponseManager::CustomResponse_(HTTP::Status status, std::string message, std::string content_type)
+{
+    SetupHeaders_();
+    SetupCookies_();
+    get_http_server_response().value()->setStatus(responses_.find(status)->second.http_status);
+    get_http_server_response().value()->setContentType(content_type);
+    get_http_server_response().value()->setContentLength(message.length());
+
+    std::ostream& out = get_http_server_response().value()->send();
+    out << message;
+}
+
 void ResponseManager::FileResponse_(HTTP::Status status, std::string address)
 {
     SetupHeaders_();

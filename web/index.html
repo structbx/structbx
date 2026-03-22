@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>StructBX</title>
+        <link rel="icon" type="image/png" href="assets/images/favicon.png">
+
+        <!-- CSS files -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+        <!-- /CSS files -->
+
+        <!-- JS Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"  crossorigin="anonymous"></script>
+        <script src="https://josefelixrc7.github.io/wtools/wtools.js"></script>
+        <!-- /JS Libraries -->
+        
+    </head>
+    <body id="structbx" class="position-relative">
+        <div id="wait_animation_page"></div>
+        <script>
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            window.location.href = "start/"
+        </script>
+    </body>
+</html>

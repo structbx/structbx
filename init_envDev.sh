@@ -2,11 +2,16 @@
 
 BASEDIR="$PWD"
 
-mkdir -p "$BASEDIR/build/Debug/DockerVolume" && \
-cd "$BASEDIR/build/Debug" && \
-conan install ../../ --output-folder=./ --build=missing && \
-cd "$BASEDIR" && \
-cp conf/properties.yaml.template build/Debug/properties.yaml && \
-cp conf/properties.yaml.template build/Debug/DockerVolume/properties.yaml && \
-cp conf/cert.pem.template build/Debug/cert.pem && \
-cp conf/key.pem.template build/Debug/DockerVolume/key.pem
+# Create build directories
+mkdir -p "$BASEDIR/build/Debug"
+
+# Verify if exists build directories
+if [ ! -d "$BASEDIR/build/Debug" ]; then
+    echo "Error: Failed to create build/Debug directory."
+    exit 1
+fi
+
+# install dependencies with conan
+cd "$BASEDIR/build/Debug"
+conan install ../../ --output-folder=./ --build=missing
+cd "$BASEDIR"

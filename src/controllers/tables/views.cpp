@@ -34,7 +34,7 @@ void Views::Read::A1(StructBX::Functions::Action::Ptr action)
         "FROM views v " \
         "JOIN tables f ON f.id = v.id_table " \
         "WHERE " \
-            "f.id_database = ? AND f.identifier = ? "
+            "f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND f.identifier = ? "
     );
 
     action->AddParameter_("id_database", get_database_id(), false);
@@ -71,7 +71,7 @@ void Views::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "FROM views v " \
         "JOIN tables f ON f.id = v.id_table " \
         "WHERE " \
-            "f.id_database = ? AND f.identifier = ? AND v.id = ?"
+            "f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND f.identifier = ? AND v.id = ?"
     );
 
     action->AddParameter_("id_database", get_database_id(), false);
@@ -81,7 +81,7 @@ void Views::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -116,7 +116,7 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
         "INSERT INTO views (name, conditions, `order`, id_table) "
         "SELECT "
             "?, ?, ? "
-            ",(SELECT id FROM tables WHERE identifier = ? AND id_database = ?) "
+            ",(SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -135,7 +135,7 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -155,7 +155,7 @@ Views::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(
         "SET name = ?, conditions = ?, `order` = ? "
         "WHERE "
             "id = ? "
-            "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ?) "
+            "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
     A1(action1);
     get_functions()->push_back(function);
@@ -207,7 +207,7 @@ Views::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "DELETE FROM views " \
-        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = ?)"
+        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?))"
     );
     A1(action1);
 
@@ -231,7 +231,7 @@ void Views::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;

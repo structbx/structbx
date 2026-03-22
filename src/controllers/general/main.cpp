@@ -114,8 +114,13 @@ Main::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) :
         Files::FileManager file_manager;
         file_manager.set_directory_base(Tools::SettingsManager::GetSetting_("directory_base", "/var/www/structbx-web"));
         file_manager.set_operation_type(Files::OperationType::kDownload);
-        file_manager.get_files().push_back(file_manager.CreateTempFile_("/assets/images/logo-150x150.png"));
-
+        // Get logo color parameter
+        auto logo_color_param = self.GetParameter_("logo-color");
+        if(logo_color_param != self.get_parameters().end() && logo_color_param->get()->ToString_() == "white")
+            file_manager.get_files().push_back(file_manager.CreateTempFile_("/assets/images/logo-w.png"));
+        else
+            file_manager.get_files().push_back(file_manager.CreateTempFile_("/assets/images/logo.png"));
+        
         if(file_manager.CheckFiles_())
         {
             auto response = self.get_http_server_response().value();

@@ -35,16 +35,16 @@ Main::Read::Read(Tools::FunctionData& function_data) :
         // Execute actions
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": " + action->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERR0UO7DD9YJ6");
             return;
         }
 
         // Iterate over results
         for(auto row : *action->get_results())
         {
-            // Get table id
-            auto id = row->ExtractField_("id");
-            if(id->IsNull_())
+            // Get database identifier
+            auto identifier = row->ExtractField_("identifier");
+            if(identifier->IsNull_())
                 continue;
 
             // Action 2: Size
@@ -52,40 +52,48 @@ Main::Read::Read(Tools::FunctionData& function_data) :
             action2.set_sql_code(
                 "SELECT ROUND(SUM((DATA_LENGTH + INDEX_LENGTH)) / 1024 / 1024, 2) AS 'size' " \
                 "FROM information_schema.TABLES " \
-                "WHERE TABLE_SCHEMA = '_structbx_database_" + id->ToString_() + "'"
+                "WHERE TABLE_SCHEMA = '" + identifier->ToString_() + "'"
             );
             if(!action2.Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error KXkg8nuaNB");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR9TT3QC0QRG");
                 return;
             }
 
             // Size of database directory
             auto directory = StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
-            directory += "/" + id->ToString_();
+            directory += "/" + identifier->ToString_();
             float directory_size = 0;
-            DirectoryIterator it(directory);
-            DirectoryIterator end;
-            while (it != end)
-            {
-                if(it->isDirectory())
-                {
-                    directory_size += it->getSize();
-                    DirectoryIterator it2(it.path());
-                    while (it2 != end)
-                    {
-                        directory_size += it2->getSize();
-                        ++it2;
-                    }
-                }
-                else
-                {
-                    directory_size += it->getSize();
-                }
 
-                ++it;
+            // Verify if directory exists
+            Poco::File file(directory);
+            if(file.exists() && file.isDirectory())
+            {
+                DirectoryIterator it(directory);
+                DirectoryIterator end;
+                while (it != end)
+                {
+                    if(it->isDirectory())
+                    {
+                        directory_size += it->getSize();
+                        DirectoryIterator it2(it.path());
+                        while (it2 != end)
+                        {
+                            directory_size += it2->getSize();
+                            ++it2;
+                        }
+                    }
+                    else
+                        directory_size += it->getSize();
+
+                    ++it;
+                }
+                directory_size = directory_size / 1024.f / 1024.f;
             }
-            directory_size = directory_size / 1024.f / 1024.f;
+            else
+            {
+                StructBX::Tools::OutputLogger::Error_("Directory " + directory + " does not exist for database " + identifier->ToString_());
+            }
 
             // Get results
             auto size = action2.get_results()->First_();
@@ -115,7 +123,7 @@ Main::Read::Read(Tools::FunctionData& function_data) :
 void Main::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.* " \
+        "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
         "WHERE su.id_naf_user = ?"
@@ -135,36 +143,11 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     A1(action);
 
     auto database_id = get_database_id();
-    auto id_user = get_id_user();
-    function->SetupCustomProcess_([database_id, id_user, action](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action](StructBX::Functions::Function& self)
     {
-        // Get identifier
-        auto identifier = self.GetParameter_("identifier");
-        if(identifier != self.get_parameters().end())
-        {
-            action->get_parameters().clear();
-            action->set_sql_code(
-                "SELECT s.* " \
-                "FROM `databases` s " \
-                "JOIN databases_users su ON su.id_database = s.id " \
-                "WHERE su.id_naf_user = ? AND s.identifier = ?"
-            );
-            action->AddParameter_("id_naf_user", id_user, false);
-            action->AddParameter_("identifier", identifier->get()->ToString_(), true)
-            ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-            {
-                if(param->ToString_() == "")
-                {
-                    param->set_error("El identificador de base de datos no puede estar vacío");
-                    return false;
-                }
-                return true;
-            });
-        }
-
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": " + action->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERROWYA84SAXC");
             return;
         }
         
@@ -177,13 +160,13 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
 void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.* " \
+        "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ? AND s.id = ?"
+        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
     );
     action->AddParameter_("id_naf_user", get_id_user(), false);
-    action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("identifier", get_database_id(), true);
 }
 
 Main::Add::Add(Tools::FunctionData& function_data) :
@@ -194,6 +177,16 @@ Main::Add::Add(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/add", HTTP::EnumMethods::kHTTP_POST);
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Lambda function to delete database (error case)
+    auto delete_database = [](const std::string& database_identifier)
+    {
+        // Delete database from table
+        StructBX::Functions::Action action("action_delete_database");
+        action.set_sql_code("DELETE FROM `databases` WHERE identifier = ?");
+        action.AddParameter_("identifier", database_identifier, false);
+        action.Work_();
+    };
 
     // Action1: Verify database if exists
     auto action1 = function->AddAction_("a1");
@@ -211,43 +204,39 @@ Main::Add::Add(Tools::FunctionData& function_data) :
     auto action4 = function->AddAction_("a4");
 
     // Setup Custom Process
-    function->SetupCustomProcess_([action1, action2, action3, action4](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([delete_database, action1, action2, action3, action4](StructBX::Functions::Function& self)
     {
-        // Execute actions
+        Tools::RandomGenerator rg;
+        auto database_identifier = rg.GenerateAlphanumericID_(20);
+        
+        // Action1: Verify database if exists
+        action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
+        // Action2: Add database
+        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
             return;
         }
+        // Action3: Add current user to the new database
+        action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
             return;
         }
 
-        // Get database ID
-        auto database_id = action2->get_last_insert_id();
-        if(database_id == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error bq0fyWtqeP");
-            return;
-        }
-
         // Create database
-        action4->set_sql_code("CREATE DATABASE _structbx_database_" + std::to_string(database_id));
+        action4->set_sql_code("CREATE DATABASE " + database_identifier);
         if(!action4->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error " + action4->get_identifier() + ": No se pudo crear la DB de base de datos");
-
-            // Delete database from table
-            StructBX::Functions::Action action5("a5");
-            action5.set_sql_code("DELETE FROM `databases` WHERE id = ?");
-            action5.AddParameter_("id", std::to_string(database_id), false);
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error " + action4->get_identifier() + ": No se pudo crear la base de datos");
+            delete_database(database_identifier);
 
             return;
         }
@@ -256,7 +245,7 @@ Main::Add::Add(Tools::FunctionData& function_data) :
         try
         {
             auto directory = StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded");
-            directory += "/" + std::to_string(database_id);
+            directory += "/" + database_identifier;
             Poco::File file(directory);
             if(file.exists())
             {
@@ -266,6 +255,7 @@ Main::Add::Add(Tools::FunctionData& function_data) :
             if(!file.createDirectory())
             {
                 self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+                delete_database(database_identifier);
                 return;
             }
 
@@ -276,12 +266,14 @@ Main::Add::Add(Tools::FunctionData& function_data) :
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/main.cpp on Add::Add(): " + e.displayText());
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+            delete_database(database_identifier);
             return;
         }
         catch(std::exception& e)
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + std::string(e.what()));
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+            delete_database(database_identifier);
             return;
         }
     });
@@ -303,44 +295,15 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("identifier", StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue()), true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de base de datos no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("identifier", "", false);
 }
 
 void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO `databases` (identifier, name, description) VALUES (?, ?, ?)"
+        "INSERT IGNORE INTO `databases` (identifier, name, description) VALUES (?, ?, ?)"
     );
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de la base de datos no puede estar vacío");
-            return false;
-        }
-        if(param->ToString_().size() <= 3)
-        {
-            param->set_error("El identificador debe tener más de 3 caracteres");
-            return false;
-        }
-        bool result = Tools::IDChecker().Check_(param->get_value()->ToString_());
-        if(!result)
-        {
-            param->set_error("El identificador solo puede tener a-z, A-Z, 0-9 y \"_\", sin espacios en blanco");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -366,7 +329,7 @@ void Main::Add::A3(StructBX::Functions::Action::Ptr action)
         "SELECT ?, s.id FROM `databases` s WHERE identifier = ?"
     );
     action->AddParameter_("id_naf_user", get_id_user(), false);
-    action->AddParameter_("identifier", "", true);
+    action->AddParameter_("identifier", "", false);
 }
 
 Main::Change::Change(Tools::FunctionData& function_data) :
@@ -378,33 +341,27 @@ Main::Change::Change(Tools::FunctionData& function_data) :
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Action1: Database info
     auto action = function->AddAction_("a1");
     A1(action);
 
-    function->SetupCustomProcess_([&](StructBX::Functions::Function& self)
-    {
-        // Search first action
-        auto action = *self.get_actions().begin();
-        if(self.get_actions().begin() == self.get_actions().end())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No actions found.");
-            return;
-        }
-        
-        // Execute action
+    function->SetupCustomProcess_([action](StructBX::Functions::Function& self)
+    {   
+        // Action1: Database info
         if(!action->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action->get_custom_error());
             return;
         }
-        auto result = action->get_json_result();
+        auto first = action->get_results()->begin();
 
         // Set Database ID Cookie to the client
-        auto field = action->get_results()->First_();
-        if(!field->IsNull_())
+        if(first != action->get_results()->end() && !first->get()->ExtractField_("identifier")->IsNull_())
         {
+            auto database_identifier = first->get()->ExtractField_("identifier");
+
             // Set Cookie Database ID
-            auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(field->ToString_());
+            auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_identifier->ToString_());
             Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
             cookie.setPath("/");
             cookie.setSameSite(Net::HTTPCookie::SAME_SITE_STRICT);
@@ -415,10 +372,10 @@ Main::Change::Change(Tools::FunctionData& function_data) :
             response->addCookie(cookie);
             
             // Send results
-            self.CompoundResponse_(HTTP::Status::kHTTP_OK, result);
+            self.CompoundResponse_(HTTP::Status::kHTTP_OK, action->get_json_result());
         }
         else
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "El usuario no est&aacute; en alg&uacute;na base de datos.");
+            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "El usuario no est&aacute; en alguna base de datos.");
     });
 
     get_functions()->push_back(function);
@@ -427,10 +384,10 @@ Main::Change::Change(Tools::FunctionData& function_data) :
 void Main::Change::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.id, s.name, s.state, s.logo, s.description, s.created_at " \
+        "SELECT s.id, s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ? AND s.id = ?"
+        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
     );
     action->AddParameter_("id_naf_user", get_id_user(), false);
     action->AddParameter_("id_database", StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue()), true)
@@ -492,15 +449,26 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM `databases` WHERE identifier = ? AND id != ?");
-    action->SetupCondition_("verify-database-identifier", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    action->set_sql_code("SELECT id FROM `databases` WHERE name = ? AND identifier != ?");
+    action->SetupCondition_("verify-database-name", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Una base de datos con este identificador ya existe");
+            self.set_custom_error("Una base de datos con este nombre ya existe");
             return false;
         }
 
+        return true;
+    });
+
+    action->AddParameter_("name", "", true)
+    ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El name no puede estar vacío");
+            return false;
+        }
         return true;
     });
 
@@ -510,17 +478,6 @@ void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("El identificador no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El id no puede estar vacío");
             return false;
         }
         return true;
@@ -532,36 +489,10 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
-        "SET s.identifier = ?, s.name = ?, s.description = ? " \
-        "WHERE su.id_naf_user = ? AND s.id = ?"
+        "SET s.name = ?, s.description = ? " \
+        "WHERE su.id_naf_user = ? AND s.identifier = ?"
     );
 
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
-        {
-            param->set_error("El identificador debe ser una cadena de texto");
-            return false;
-        }
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador no puede estar vacío");
-            return false;
-        }
-        if(param->ToString_().size() < 3)
-        {
-            param->set_error("El identificador no puede ser menor a 3 dígitos");
-            return false;
-        }
-        bool result = Tools::IDChecker().Check_(param->get_value()->ToString_());
-        if(!result)
-        {
-            param->set_error("El identificador solo puede tener a-z, A-Z, 0-9 y \"_\", sin espacios en blanco");
-            return false;
-        }
-        return true;
-    });
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -584,12 +515,12 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("description", "", true);
     action->AddParameter_("id_naf_user", get_id_user(), false);
-    action->AddParameter_("id", "", true)
+    action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id no puede estar vacío");
+            param->set_error("El identificador no puede estar vacío");
             return false;
         }
         return true;
@@ -646,16 +577,16 @@ void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
         "UPDATE `databases` s " \
         "JOIN databases_users su ON su.id_database = s.id " \
         "SET s.state = 'DELETED' " \
-        "WHERE su.id_naf_user = ? AND s.id = ?"
+        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
     action->AddParameter_("id_naf_user", get_id_user(), false);
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de base de datos no puede estar vacío");
+            param->set_error("El identificador de base de datos no puede estar vacío");
             return false;
         }
         return true;
@@ -664,14 +595,14 @@ void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
 
 void Main::Delete::A3(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM databases_users WHERE id_database = ?");
+    action->set_sql_code("DELETE FROM databases_users WHERE id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de base de datos no puede estar vacío");
+            param->set_error("El identificador de base de datos no puede estar vacío");
             return false;
         }
         return true;

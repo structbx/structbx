@@ -9,6 +9,7 @@
 
 #include "tools/base_action.h"
 #include "controllers/databases/users.h"
+#include "tools/random_generator.h"
 
 namespace StructBX
 {

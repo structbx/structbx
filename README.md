@@ -35,15 +35,31 @@ apt-get update && apt-get install -y \
 - Download the source code
 
 ```shell
-git clone https://github.com/structbx/structbx-server.git
+git clone https://github.com/structbx/structbx.git
+cd structbx
 ```
 
 - Build and install
 
 ```shell
 mkdir build && cd build
-cmake ../ -DCMAKE_BUILD_TYPE=Release && cmake --build .
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
+cmake --build . --parallel $(nproc)
 cmake --build . --target install
+```
+
+## Using Docker
+
+- Docker pull
+
+```shell
+docker pull ghcr.io/structbx/structbx:latest
+```
+
+- Docker run
+
+```shell
+docker run -t --name structbx-server-docker -p 3001:3001 --init -d structbx:latest
 ```
 
 ## Documentation
@@ -53,7 +69,6 @@ cmake --build . --target install
 ## Contact
 
 - **Github**: [@structbx](https://github.com/structbx/)
-- **Web**: [StructBX](https://structbx.github.io/)
 
 ## License
 
