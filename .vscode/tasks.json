@@ -19,7 +19,7 @@
         ,{
             "label": "Create Docker Container"
             ,"type": "shell"
-            ,"command": "docker run -t -v ${workspaceFolder}/build/Debug/DockerVolume:/etc/structbx -v ${workspaceFolder}/build/Debug/structbx-web-uploaded:/var/www/structbx-web-uploaded --name test-structbx -p 3001:3001 --init --rm structbx:latest"
+            ,"command": "docker run -t -v ${workspaceFolder}/build/Debug/docker-volume:/etc/structbx -v ${workspaceFolder}/build/Debug/structbx-web-uploaded:/var/www/structbx-web-uploaded --name test-structbx -p 3001:3001 --init --rm structbx:latest"
         }
         ,{
             "label": "Install"
