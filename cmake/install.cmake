@@ -14,3 +14,9 @@ install(
         "${CONFIG_OUTPUT_DIR}/key.pem"
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/structbx
 )
+
+# Install web files
+install(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/web/"
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/structbx-web
+)
