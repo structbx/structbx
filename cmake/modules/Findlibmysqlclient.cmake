@@ -70,11 +70,11 @@ find_library(libmysqlclient_LIBRARIES
 
 # Verify if exists directories
 if(libmysqlclient_INCLUDE_DIRS_RELEASE AND libmysqlclient_LIBRARIES)
-	message(STATUS "libmysqlclient Include dir: ${libmysqlclient_INCLUDE_DIRS_RELEASE}")
-	message(STATUS "libmysqlclient client libraries: ${libmysqlclient_LIBRARIES}")
+	message(STATUS "[StructBX] libmysqlclient Include dir: ${libmysqlclient_INCLUDE_DIRS_RELEASE}")
+	message(STATUS "[StructBX] libmysqlclient client libraries: ${libmysqlclient_LIBRARIES}")
 elseif(MySQL_FIND_REQUIRED)
 	if(NOT libmysqlclient_FOUND)
-		message(STATUS "Cannot find libmysqlclient_LIBRARIES. Include dir: ${libmysqlclient_INCLUDE_DIRS_RELEASE}  library dir: ${libmysqlclient_LIBRARIES}")
+		message(STATUS "[StructBX] Cannot find libmysqlclient_LIBRARIES. Include dir: ${libmysqlclient_INCLUDE_DIRS_RELEASE}  library dir: ${libmysqlclient_LIBRARIES}")
 	endif()
 endif()
 
