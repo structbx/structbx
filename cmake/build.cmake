@@ -32,3 +32,43 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 # Setting up header
 set(HEADER ${PROJECT_SOURCE_DIR}/src)
 list(APPEND HEADER ${PROJECT_BINARY_DIR})
+
+# Variables for build directories and config files
+set(PROJECT_PWD "${CMAKE_SOURCE_DIR}")
+set(CONFIG_OUTPUT_DIR "${CMAKE_BINARY_DIR}/config-files")
+set(DOCKER_VOLUME_DIR "${CMAKE_BINARY_DIR}/docker-volume")
+set(UPLOADED_FILES_DIR "${CMAKE_BINARY_DIR}/structbx-web-uploaded")
+
+# Create config directories
+file(MAKE_DIRECTORY "${CONFIG_OUTPUT_DIR}")
+file(MAKE_DIRECTORY "${DOCKER_VOLUME_DIR}")
+file(MAKE_DIRECTORY "${UPLOADED_FILES_DIR}")
+
+# Configure properties.yaml file (development)
+if(NOT EXISTS "${CONFIG_OUTPUT_DIR}/properties.yaml")
+    message(STATUS "Generating initial configuration file...")
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/conf/properties-dev.yaml.template"
+        "${CONFIG_OUTPUT_DIR}/properties.yaml"
+    )
+else()
+    message(STATUS "properties.yaml exists. Skipping generation.")
+endif()
+
+# Configure properties.yaml file (Docker)
+if(NOT EXISTS "${DOCKER_VOLUME_DIR}/properties.yaml")
+    message(STATUS "Generating initial configuration file...")
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/conf/properties.yaml.template"
+        "${DOCKER_VOLUME_DIR}/properties.yaml"
+        COPYONLY
+    )
+else()
+    message(STATUS "properties.yaml exists. Skipping generation.")
+endif()
+
+# Configure key and cert files
+configure_file("${PROJECT_SOURCE_DIR}/conf/cert.pem.template" "${CONFIG_OUTPUT_DIR}/cert.pem" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/conf/cert.pem.template" "${DOCKER_VOLUME_DIR}/cert.pem" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/conf/key.pem.template" "${CONFIG_OUTPUT_DIR}/key.pem" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/conf/key.pem.template" "${DOCKER_VOLUME_DIR}/key.pem" COPYONLY)

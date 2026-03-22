@@ -34,13 +34,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create necessary directories
-RUN mkdir -p /etc/structbx /var/www/structbx-web /var/www/structbx-web-uploaded /var/log/structbx /var/lib/structbx
-
-# Clone and prepare web interface
-RUN git clone https://github.com/structbx/structbx-web.git /var/www/structbx-web
+RUN mkdir -p /etc/structbx /var/lib/structbx /usr/share/structbx-web /var/www/structbx-web-uploaded /var/log/structbx
 
 # Copy built application from build stage
 COPY --from=build /usr/bin/structbx-server /usr/bin/
+
+# Copy web directory
+COPY --from=build /usr/share/structbx-web /usr/share/structbx-web
 
 # Copy configuration files if they exist in source
 COPY --from=build /etc/structbx/properties.yaml /etc/structbx/properties.yaml
