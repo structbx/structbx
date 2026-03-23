@@ -1,7 +1,7 @@
 # Build security
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 	message(
-		FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
+		FATAL_ERROR "[StructBX] In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
 	)
 endif()
 
@@ -46,25 +46,25 @@ file(MAKE_DIRECTORY "${UPLOADED_FILES_DIR}")
 
 # Configure properties.yaml file (development)
 if(NOT EXISTS "${CONFIG_OUTPUT_DIR}/properties.yaml")
-    message(STATUS "Generating initial configuration file...")
+    message(STATUS "[StructBX] Generating initialconfig-files/properties.yaml file...")
     configure_file(
         "${PROJECT_SOURCE_DIR}/conf/properties-dev.yaml.template"
         "${CONFIG_OUTPUT_DIR}/properties.yaml"
     )
 else()
-    message(STATUS "properties.yaml exists. Skipping generation.")
+    message(STATUS "[StructBX] config-files/properties.yaml exists. Skipping generation.")
 endif()
 
 # Configure properties.yaml file (Docker)
 if(NOT EXISTS "${DOCKER_VOLUME_DIR}/properties.yaml")
-    message(STATUS "Generating initial configuration file...")
+    message(STATUS "[StructBX] Generating docker-volume/properties.yaml file...")
     configure_file(
         "${PROJECT_SOURCE_DIR}/conf/properties.yaml.template"
         "${DOCKER_VOLUME_DIR}/properties.yaml"
         COPYONLY
     )
 else()
-    message(STATUS "properties.yaml exists. Skipping generation.")
+    message(STATUS "[StructBX] docker-volume/properties.yaml exists. Skipping generation.")
 endif()
 
 # Configure key and cert files
