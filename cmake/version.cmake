@@ -1,19 +1,17 @@
 
-# Automatic versioning logic
-execute_process(
-    COMMAND git describe --tags --always --dirty
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_VERSION
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+# Read current version
+file(READ ${CMAKE_SOURCE_DIR}/version.txt CURRENT_VERSION)
+set(VERSION ${CURRENT_VERSION})
 
-# If git command fails, set a default version
-if(NOT GIT_VERSION)
-    set(GIT_VERSION "v0.0.0-unknown")
-endif()
+# Extract
+string(REGEX MATCH "v([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ ${VERSION})
 
-message(STATUS "[StructBX] Compilation version: ${GIT_VERSION}")
+set(${PROJECT_NAME}_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(${PROJECT_NAME}_VERSION_MINOR ${CMAKE_MATCH_2})
+set(${PROJECT_NAME}_VERSION_PATCH ${CMAKE_MATCH_3})
 
-# Create a header file with this variable
-configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.cmake structbxConfig.h)
+# Setting up variables
+set(PACKAGE_VERSION "${VERSION}")
+set(PACKAGE_VERSION_COMPLETE "${VERSION}")
+
+message(STATUS "Package version: ${PACKAGE_VERSION}")

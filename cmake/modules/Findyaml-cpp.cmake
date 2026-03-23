@@ -28,11 +28,11 @@ find_library(yaml-cpp_LIBRARIES
 
 # Verify if exists dirs
 if(yaml-cpp_INCLUDE_DIRS AND yaml-cpp_LIBRARIES)
-  message(STATUS "[StructBX] yaml-cpp Include dir: ${yaml-cpp_INCLUDE_DIRS}")
-  message(STATUS "[StructBX] yaml-cpp client libraries: ${yaml-cpp_LIBRARIES}")
+  message(STATUS "yaml-cpp Include dir: ${yaml-cpp_INCLUDE_DIRS}")
+  message(STATUS "yaml-cpp client libraries: ${yaml-cpp_LIBRARIES}")
 elseif(yaml-cpp_FIND_REQUIRED)
 	if(NOT yaml-cpp_FOUND)
-		message(FATAL_ERROR "[StructBX] Cannot find yaml-cpp. Include dir: ${yaml-cpp_INCLUDE_DIRS}  library dir: ${yaml-cpp_LIBRARIES_DIR}")
+		message(FATAL_ERROR "Cannot find yaml-cpp. Include dir: ${yaml-cpp_INCLUDE_DIRS}  library dir: ${yaml-cpp_LIBRARIES_DIR}")
 	endif()
 endif()
 
