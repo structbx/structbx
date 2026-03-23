@@ -37,7 +37,7 @@ void RootHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& 
             }
 
         // Add Server header
-            AddHeader_("server", "structbx/" + std::string(PACKAGE_VERSION_COMPLETE));
+            AddHeader_("server", "structbx/" + std::string(STRUCTBX_VERSION));
 
         // Set requested route
             std::vector<std::string> segments;
