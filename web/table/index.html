@@ -58,6 +58,7 @@
                             <!-- /Breadcrumbs -->
                             <!-- Buttons -->
                             <section class="d-flex">
+                                <!-- View Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -80,11 +81,32 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- Columns Options -->
+                                <div class="p-2 bd-highlight">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-columns"></i>
+                                        </button>
+                                        <div class="dropdown-menu" style="z-index:1050;min-width: 400px;">
+                                            <div id="component_data_columns">
+                                                <div class="notifications"></div>
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                    <i class="fas fa-plus me-2"></i>
+                                                    Nueva columna
+                                                </div>
+                                                <hr class="dropdown-divider">
+                                                <div class="contents"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Add Options -->
                                 <div class="p-2">
                                     <button class="btn btn-sm btn-dark-shadow data_add">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
+                                <!-- Filters Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
                                         <a class="btn btn-sm btn-dark-shadow data_filter">
@@ -92,6 +114,7 @@
                                         </a>
                                     </div>
                                 </div>
+                                <!-- More Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
                                         <button
@@ -605,6 +628,7 @@
             <script src="/assets/js/classes/response_manager.js"></script>
             <script src="/assets/js/classes/filter_type.js"></script>
             <script src="/assets/js/classes/csv_reader.js"></script>
+            <script src="/assets/js/classes/component.js"></script>
 
             <!-- Elements -->
             <script src="/assets/js/elements/headers.js"></script>
@@ -620,6 +644,7 @@
             <script src="/assets/js/events/table/filters.js"></script>
             <script src="/assets/js/events/table/views.js"></script>
             <script src="/assets/js/events/table/table_dimensions.js"></script>
+            <script src="/assets/js/events/table/columns.js"></script>
 
         <!-- Javascript -->
     </body>
