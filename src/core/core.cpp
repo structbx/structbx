@@ -7,8 +7,6 @@ StructBX::Core::Core::Core(bool use_ssl) :
     use_ssl_(use_ssl)
     ,handler_factory_(new HandlerFactory())
 {
-    Tools::OutputLogger::Log_("Starting StructBX server (version " + std::string(STRUCTBX_VERSION) + ")");
-
     if(use_ssl_)
         Net::initializeSSL();
 

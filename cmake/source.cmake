@@ -1,4 +1,7 @@
 
+# Config file
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.cmake structbxConfig.h)
+
 # Dependencies
 set(LIB_DEPENDECIES
     Poco::Foundation
