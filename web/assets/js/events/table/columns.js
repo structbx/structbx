@@ -1,117 +1,6 @@
-$(function()
+/*$(function()
 {
 
-    // SELECT options
-    const options_required = new wtools.SelectOptions
-    ([
-        new wtools.OptionValue("0", "No", true)
-        ,new wtools.OptionValue("1", "S&iacute;")
-    ]);
-    options_required.Build_('#component_columns_add select[name="required"]');
-    options_required.Build_('#component_columns_modify select[name="required"]');
-
-    let options_column_type = new wtools.SelectOptions();
-    const options_column_type_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/columns/types/read").Exec_((response_data) =>
-    {
-        try
-        {
-            let tmp_options = [];
-            for(let row of response_data.body.data)
-                tmp_options.push(new wtools.OptionValue(row.id, row.name));
-
-            options.options = tmp_options;
-            options.Build_('#component_columns_add select[name="id_column_type"]');
-            options.Build_('#component_columns_modify select[name="id_column_type"]');
-            callback();
-        }
-        catch(error)
-        {
-            new wtools.Notification('WARNING').Show_('No se pudo acceder a los tipos de columnas.');
-            new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tipos de columnas.');
-            new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tipos de columnas.');
-        }
-    });
-    options_column_type_init(options_column_type, () => {})
-
-    let options_link_to = new wtools.SelectOptions();
-    const options_link_to_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/read").Exec_((response_data) =>
-    {
-        try
-        {
-            let tmp_options = [];
-            tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
-            for(let row of response_data.body.data)
-                tmp_options.push(new wtools.OptionValue(row.id, row.name));
-
-            options.options = tmp_options;
-            options.Build_('#component_columns_add select[name="link_to"]');
-            options.Build_('#component_columns_modify select[name="link_to"]');
-            callback();
-        }
-        catch(error)
-        {
-            new wtools.Notification('WARNING').Show_('No se pudo acceder a los tabla a enlazar.');
-            new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
-            new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
-        }
-    });
-    options_link_to_init(options_link_to, () => {})
-
-    // Read columns
-    const columns_read = () =>
-    {
-        // Wait animation
-        let wait = new wtools.ElementState('#component_columns_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
-
-        // Get Form identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-        if(table_identifier == undefined)
-            return;
-
-        // Request
-        new wtools.Request(server_config.current.api + `/tables/columns/read?table-identifier=${table_identifier}`).Exec_((response_data) =>
-        {
-            // Clean
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $('#component_columns_read table tbody').html('');
-
-            // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'Columnas: Leer');
-            if(!result.Verify_())
-                return;
-
-            // Handle zero results
-            if(response_data.body.data.length < 1)
-            {
-                new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_('Sin resultados.');
-                return;
-            }
-
-            // Results elements creator
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $('#component_columns_read table tbody').html('');
-            new wtools.UIElementsCreator('#component_columns_read table tbody', response_data.body.data).Build_((row) =>
-            {
-                let elements = [
-                    `<td scope="row">${row.name}</td>`
-                    ,`<td scope="row">${row.column_type_name}</td>`
-                    ,`<td scope="row">${row.position}</td>`
-                    ,`<td scope="row">${row.length}</td>`
-                    ,`<td scope="row">${options_required.ValueToOption_(row.required)}</td>`
-                    ,`<td scope="row">${row.default_value}</td>`
-                    ,`<td scope="row">${row.link_to_table_name}</td>`
-                    ,`<td scope="row">${row.description}</td>`
-                    ,`<td scope="row">${row.created_at}</td>`
-                ];
-
-                return new wtools.UIElementsPackage(`<tr column-id="${row.id}"></tr>`, elements).Pack_();
-            });
-        });
-    };
-    columns_read();
-    
     // Setup avanced values
     const SetupAvancedValues = (target) =>
     {
@@ -406,5 +295,121 @@ $(function()
             columns_read();
         });
     });
+    
+});*/
+
+$(function()
+{
+
+    // SELECT options
+    const options_required = new wtools.SelectOptions
+    ([
+        new wtools.OptionValue("0", "No", true)
+        ,new wtools.OptionValue("1", "S&iacute;")
+    ]);
+    options_required.Build_('#component_columns_add select[name="required"]');
+    options_required.Build_('#component_columns_modify select[name="required"]');
+
+    let options_column_type = new wtools.SelectOptions();
+    const options_column_type_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/columns/types/read").Exec_((response_data) =>
+    {
+        try
+        {
+            let tmp_options = [];
+            for(let row of response_data.body.data)
+                tmp_options.push(new wtools.OptionValue(row.id, row.name));
+
+            options.options = tmp_options;
+            options.Build_('#component_columns_add select[name="id_column_type"]');
+            options.Build_('#component_columns_modify select[name="id_column_type"]');
+            callback();
+        }
+        catch(error)
+        {
+            new wtools.Notification('WARNING').Show_('No se pudo acceder a los tipos de columnas.');
+            new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tipos de columnas.');
+            new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tipos de columnas.');
+        }
+    });
+    options_column_type_init(options_column_type, () => {})
+
+    let options_link_to = new wtools.SelectOptions();
+    const options_link_to_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/read").Exec_((response_data) =>
+    {
+        try
+        {
+            let tmp_options = [];
+            tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
+            for(let row of response_data.body.data)
+                tmp_options.push(new wtools.OptionValue(row.id, row.name));
+
+            options.options = tmp_options;
+            options.Build_('#component_columns_add select[name="link_to"]');
+            options.Build_('#component_columns_modify select[name="link_to"]');
+            callback();
+        }
+        catch(error)
+        {
+            new wtools.Notification('WARNING').Show_('No se pudo acceder a los tabla a enlazar.');
+            new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
+            new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
+        }
+    });
+    options_link_to_init(options_link_to, () => {})
+
+    // Read columns
+    const columns_read = (target = new Component('')) =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState(target.notifications, false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Get Form identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+            return;
+
+        // Request
+        new wtools.Request(server_config.current.api + `/tables/columns/read?table-identifier=${table_identifier}`).Exec_((response_data) =>
+        {
+            // Clean
+            wait.Off_();
+            $(target.notifications).html('');
+            $(`${target.identifier} .contents`).html('');
+
+            // Manage response
+            const result = new ResponseManager(response_data, target.notifications, 'Columnas: Leer');
+            if(!result.Verify_())
+                return;
+
+            // Handle zero results
+            if(response_data.body.data.length < 1)
+            {
+                new wtools.Notification('SUCCESS', 0, target.notifications).Show_('Sin resultados.');
+                return;
+            }
+
+            // Results elements creator
+            wait.Off_();
+            $(target.notifications).html('');
+            $(`${target.identifier} .contents`).html('');
+
+            new wtools.UIElementsCreator(`${target.identifier} .contents`, response_data.body.data).Build_((row) =>
+            {
+                let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
+
+                return `
+                    <div class="p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                        <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" column-id="${row.id}" href="#">
+                            ${table_icon}${row.name}
+                        </a>
+                        <div class="py-2 pe-4 btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-secondary modify" column-id="${row.id}" column-name="${row.name}"><i class="fas fa-pen"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    };
+    columns_read(new Component('#component_data_columns', ComponentTypes.MODAL));
     
 });
