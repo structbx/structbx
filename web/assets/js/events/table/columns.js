@@ -57,61 +57,6 @@ $(function()
     });
     options_link_to_init(options_link_to, () => {})
 
-    // Read columns
-    const columns_read = () =>
-    {
-        // Wait animation
-        let wait = new wtools.ElementState('#component_columns_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
-
-        // Get Form identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-        if(table_identifier == undefined)
-            return;
-
-        // Request
-        new wtools.Request(server_config.current.api + `/tables/columns/read?table-identifier=${table_identifier}`).Exec_((response_data) =>
-        {
-            // Clean
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $('#component_columns_read table tbody').html('');
-
-            // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'Columnas: Leer');
-            if(!result.Verify_())
-                return;
-
-            // Handle zero results
-            if(response_data.body.data.length < 1)
-            {
-                new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_('Sin resultados.');
-                return;
-            }
-
-            // Results elements creator
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $('#component_columns_read table tbody').html('');
-            new wtools.UIElementsCreator('#component_columns_read table tbody', response_data.body.data).Build_((row) =>
-            {
-                let elements = [
-                    `<td scope="row">${row.name}</td>`
-                    ,`<td scope="row">${row.column_type_name}</td>`
-                    ,`<td scope="row">${row.position}</td>`
-                    ,`<td scope="row">${row.length}</td>`
-                    ,`<td scope="row">${options_required.ValueToOption_(row.required)}</td>`
-                    ,`<td scope="row">${row.default_value}</td>`
-                    ,`<td scope="row">${row.link_to_table_name}</td>`
-                    ,`<td scope="row">${row.description}</td>`
-                    ,`<td scope="row">${row.created_at}</td>`
-                ];
-
-                return new wtools.UIElementsPackage(`<tr column-id="${row.id}"></tr>`, elements).Pack_();
-            });
-        });
-    };
-    columns_read();
-    
     // Setup avanced values
     const SetupAvancedValues = (target) =>
     {
@@ -147,18 +92,74 @@ $(function()
         }
     }
 
-    // Setup Avanced values in Add
-    $('#component_columns_add form select[name="id_column_type"]').change((e) =>
-    {
-        SetupAvancedValues('#component_columns_add');
-    });
+    // Components
+    var component_columns_read = new Component('#component_columns_read', ComponentTypes.BLOCK)
+    var component_columns_add = new Component('#component_columns_add', ComponentTypes.MODAL)
+    var component_columns_modify = new Component('#component_columns_modify', ComponentTypes.MODAL)
+    var component_columns_delete = new Component('#component_columns_delete', ComponentTypes.MODAL)
 
+    // Read columns
+    const columns_read = () =>
+    {
+        let target = component_columns_read;
+        // Wait animation
+        let wait = new wtools.ElementState(target.notifications, false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Get Form identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+            return;
+
+        // Request
+        new wtools.Request(server_config.current.api + `/tables/columns/read?table-identifier=${table_identifier}`).Exec_((response_data) =>
+        {
+            // Clean
+            wait.Off_();
+            $(target.notifications).html('');
+            $(`${target.identifier} .contents`).html('');
+
+            // Manage response
+            const result = new ResponseManager(response_data, target.notifications, 'Columnas: Leer');
+            if(!result.Verify_())
+                return;
+
+            // Handle zero results
+            if(response_data.body.data.length < 1)
+            {
+                new wtools.Notification('SUCCESS', 0, target.notifications).Show_('Sin resultados.');
+                return;
+            }
+
+            // Results elements creator
+            wait.Off_();
+            $(target.notifications).html('');
+            $(`${target.identifier} .contents`).html('');
+
+            new wtools.UIElementsCreator(`${target.identifier} .contents`, response_data.body.data).Build_((row) =>
+            {
+                let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
+
+                return `
+                    <div class="p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                        <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" column-id="${row.id}" href="#">
+                            ${table_icon}${row.name}
+                        </a>
+                        <!--<div class="py-1 pe-4 btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-dark-shadow modify" column-id="${row.id}" column-name="${row.name}"><i class="fas fa-pen"></i></button>
+                        </div>-->
+                    </div>
+                `;
+            });
+        });
+    };
+    columns_read();
+   
     // Click on Add Button
     const read_table_columns_add = () =>
     {
         const add = () =>
         {
-            $('#component_columns_add .notifications').html('');
+            component_columns_add.ClearNotifications_();
             $('#component_columns_add form select[name="id_column_type"]').val("1");
             $('#component_columns_add form select[name="required"]').val("0");
             $('#component_columns_add form input[name="length"]').val("100");
@@ -224,13 +225,20 @@ $(function()
 
             new wtools.Notification('SUCCESS').Show_('Columna creada exitosamente.');
             $('#component_columns_add').modal('hide');
-            columns_read();
             $('#component_columns_add form input[name="name"]').val("Nueva columna");
+            columns_read();
+            $(`#component_sidebar_tables_tabs .tab-scroller .tab[id="${table_identifier}"]`).click();
         });
     });
 
+    // Setup Avanced values in Add
+    $('#component_columns_add form select[name="id_column_type"]').change((e) =>
+    {
+        SetupAvancedValues('#component_columns_add');
+    });
+
     // Read column to modify
-    $(document).on("click", '#component_columns_read table tbody tr', (e) =>
+    $(document).on("click", '#component_columns_read a', (e) =>
     {
         const read_modify = () => 
         {
@@ -249,7 +257,7 @@ $(function()
             }
 
             // Get ID
-            let id = $(e.currentTarget).attr('column-id');
+            let id = $(e.target).attr('column-id');
             if(id == undefined)
             {
                 wait.Off_();
@@ -346,6 +354,7 @@ $(function()
             new wtools.Notification('SUCCESS').Show_('Columna modificada exitosamente.');
             $('#component_columns_modify').modal('hide');
             columns_read();
+            $(`#component_sidebar_tables_tabs .tab-scroller .tab[id="${table_identifier}"]`).click();
         });
     });
     
@@ -404,6 +413,7 @@ $(function()
             $('#component_columns_delete').modal('hide');
             $('#component_columns_modify').modal('hide');
             columns_read();
+            $(`#component_sidebar_tables_tabs .tab-scroller .tab[id="${table_identifier}"]`).click();
         });
     });
     

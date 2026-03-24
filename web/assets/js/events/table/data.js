@@ -102,7 +102,7 @@ class Data
         // header <td> row
         const header_row = (row, column) =>
         {
-            let header = row[column];
+            let header = `<span class="row-header">${row[column]}</span>`;
             if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
             {
                 header = getHeaderColor(row["_structbx_column_colorHeader"], row[column]);

@@ -161,21 +161,6 @@ $(function ()
 
     });
     
-    // Go to Columns settings
-    $(document).on('click', '.go_columns', (e) =>
-    {
-        e.preventDefault();
-
-        // Get Form identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-        if(table_identifier == undefined)
-            return;
-
-        new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-        document.location.href = `/table/columns?identifier=${table_identifier}`;
-
-    });
-
     // Go to Form Settings
     $(document).on('click', '.go_settings', (e) =>
     {

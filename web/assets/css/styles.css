@@ -39,6 +39,15 @@
     padding-left: 10px;
 }
 
+.text-small{
+    font-size: .875em !important;
+}
+
+.row-header{
+    color: #3366ff !important;
+    font-weight: 600 !important;
+}
+
 /* --- Buttons and forms --- */
 
 .btn{
