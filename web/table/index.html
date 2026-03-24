@@ -90,7 +90,7 @@
                                         <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="fas fa-columns"></i>
                                         </button>
-                                        <div class="dropdown-menu text-small" style="z-index:1050;min-width: 350px;">
+                                        <div class="dropdown-menu text-small" style="z-index:1050;min-width: 300px;">
                                             <div id="component_columns_read">
                                                 <div class="notifications"></div>
                                                 <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
@@ -242,6 +242,131 @@
                             </div>
                         </div>
                         <!-- /Columns: Add -->
+
+                        <!-- Columns: Modify -->
+                        <div id="component_columns_modify" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_columns_modify_label" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form class="modal-content" novalidate>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="component_columns_modify_label">
+                                            <i class="fas fa-pen me-2"></i>Modificar columna
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <div class="notifications"></div>
+                                        <input type="hidden" name="id" required>
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">Nombre de columna</th>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="name" value="Nueva columna" required>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Tipo</th>
+                                                    <td>
+                                                        <select class="form-select" name="id_column_type">
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Posici&oacute;n</th>
+                                                    <td>
+                                                        <input type="number" class="form-control" name="position" required>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Descripcion</th>
+                                                    <td>
+                                                        <textarea class="form-control" name="description"></textarea>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="my-2">
+                                            <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
+                                                Avanzado
+                                            </a>
+                                        </div>
+                                        <div class="collapse" id="component_columns_add_avanced">
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">Obligatorio</th>
+                                                        <td>
+                                                            <select class="form-select" name="required">
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Longitud</th>
+                                                        <td>
+                                                            <input type="text" class="form-control" name="length">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Valor por defecto</th>
+                                                        <td>
+                                                            <input type="text" class="form-control" name="default_value">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Enlazar a</th>
+                                                        <td>
+                                                            <select class="form-select" name="link_to">
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="delete btn btn-danger me-auto">
+                                            <i class="fas fa-times me-2"></i>Borrar columna
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-pen me-2"></i>Modificar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- /Columns: Modify -->
+
+                        <!-- Columns: Delete -->
+                        <div class="modal right-side-modal fade" id="component_columns_delete" tabindex="-1" aria-labelledby="component_columns_delete_label" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form class="modal-content" novalidate>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="component_columns_delete_label">
+                                            <i class="fas fa-times me-2"></i>Borrar columna
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="notifications"></div>
+                                        <input type="hidden" name="id" required>
+                                        <p>Seguro desea eliminar la columna ID <strong class="name"></strong></p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancelar</button>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-times me-2"></i>Borrar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- /Columns: Delete -->
 
                         <!-- Data: Reload button -->
                          <button id="component_data_reload" class="d-none"></button>
