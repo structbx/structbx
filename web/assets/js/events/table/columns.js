@@ -42,82 +42,6 @@
         SetupAvancedValues('#component_columns_add');
     });
 
-    // Click on Add Button
-    const read_table_columns_add = () =>
-    {
-        const add = () =>
-        {
-            $('#component_columns_add .notifications').html('');
-            $('#component_columns_add form select[name="id_column_type"]').val("1");
-            $('#component_columns_add form select[name="required"]').val("0");
-            $('#component_columns_add form input[name="length"]').val("100");
-            $('#component_columns_add form select[name="link_to"]').val("");
-            $('#component_columns_add form select[name="link_to"]').prop('disabled', true);
-            $('#component_columns_add').modal('show');
-        }
-        options_column_type_init(options_column_type, add);
-    }
-
-    $('#component_columns_read .add').click(() => read_table_columns_add());
-    $('a.column_add').click(() => read_table_columns_add());
-
-    // Add Column
-    $('#component_columns_add form').submit((e) =>
-    {
-        e.preventDefault();
-
-        // Wait animation
-        let wait = new wtools.ElementState('#component_columns_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
-
-        // Form check
-        const check = new wtools.FormChecker(e.target).Check_();
-        if(!check)
-        {
-            $('#component_columns_add .notifications').html('');
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_columns_add .notifications').Show_('Hay campos inv&aacute;lidos.');
-            return;
-        }
-
-        // Get Form identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-
-        if(table_identifier == undefined)
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
-            return;
-        }
-
-        // Data collection
-        const data = new FormData($('#component_columns_add form')[0]);
-        data.append('table-identifier', table_identifier);
-
-        // Verify if column type is selection then link_to is required
-        if(data.get('id_column_type') == "9" && (data.get('link_to') == null || data.get('link_to') == ""))
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_columns_add .notifications').Show_('Debe especificar la tabla a enlazar.');
-            return;
-        }
-
-        // Request
-        new wtools.Request(server_config.current.api + "/tables/columns/add", "POST", data, false).Exec_((response_data) =>
-        {
-            wait.Off_();
-
-            // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_add .notifications', 'Columnas: A&ntilde;adir');
-            if(!result.Verify_())
-                return;
-
-            new wtools.Notification('SUCCESS').Show_('Columna creada exitosamente.');
-            $('#component_columns_add').modal('hide');
-            columns_read();
-            $('#component_columns_add form input[name="name"]').val("Nueva columna");
-        });
-    });
-
     // Read column to modify
     $(document).on("click", '#component_columns_read table tbody tr', (e) =>
     {
@@ -402,14 +326,90 @@ $(function()
                         <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" column-id="${row.id}" href="#">
                             ${table_icon}${row.name}
                         </a>
-                        <div class="py-2 pe-4 btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-secondary modify" column-id="${row.id}" column-name="${row.name}"><i class="fas fa-pen"></i></button>
+                        <div class="py-1 pe-4 btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-dark-shadow modify" column-id="${row.id}" column-name="${row.name}"><i class="fas fa-pen"></i></button>
                         </div>
                     </div>
                 `;
             });
         });
     };
-    columns_read(new Component('#component_data_columns', ComponentTypes.MODAL));
-    
+    columns_read(new Component('#component_columns_read', ComponentTypes.MODAL));
+   
+    // Click on Add Button
+    const read_table_columns_add = () =>
+    {
+        const add = () =>
+        {
+            $('#component_columns_add .notifications').html('');
+            $('#component_columns_add form select[name="id_column_type"]').val("1");
+            $('#component_columns_add form select[name="required"]').val("0");
+            $('#component_columns_add form input[name="length"]').val("100");
+            $('#component_columns_add form select[name="link_to"]').val("");
+            $('#component_columns_add form select[name="link_to"]').prop('disabled', true);
+            $('#component_columns_add').modal('show');
+        }
+        options_column_type_init(options_column_type, add);
+    }
+
+    $('#component_columns_read .add').click(() => read_table_columns_add());
+    $('a.column_add').click(() => read_table_columns_add());
+
+    // Add Column
+    $('#component_columns_add form').submit((e) =>
+    {
+        e.preventDefault();
+
+        // Wait animation
+        let wait = new wtools.ElementState('#component_columns_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check)
+        {
+            $('#component_columns_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_columns_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Get Form identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+
+        if(table_identifier == undefined)
+        {
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        // Data collection
+        const data = new FormData($('#component_columns_add form')[0]);
+        data.append('table-identifier', table_identifier);
+
+        // Verify if column type is selection then link_to is required
+        if(data.get('id_column_type') == "9" && (data.get('link_to') == null || data.get('link_to') == ""))
+        {
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_columns_add .notifications').Show_('Debe especificar la tabla a enlazar.');
+            return;
+        }
+
+        // Request
+        new wtools.Request(server_config.current.api + "/tables/columns/add", "POST", data, false).Exec_((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_columns_add .notifications', 'Columnas: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Columna creada exitosamente.');
+            $('#component_columns_add').modal('hide');
+            columns_read(new Component('#component_columns_read', ComponentTypes.MODAL));
+            $('#component_columns_add form input[name="name"]').val("Nueva columna");
+        });
+    });
+
 });
