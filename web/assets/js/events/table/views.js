@@ -1,33 +1,12 @@
 class Views
 {
-    
-    GetOutOfView_()
-    {
-        // Get table identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-        if(table_identifier == undefined)
-            return;
-
-        // Build URL params
-        const url = new URL(window.location.href);
-        url.searchParams.delete('conditions');
-        url.searchParams.delete('order');
-        url.searchParams.delete('view');
-        history.pushState({}, '', url.toString());
-
-        // Reload data
-        $('#component_data_reload').click();
-        $('.table_view').text('');
-        $('#component_data_views .out-view').addClass('d-none');
-    }
-
     ReadActiveView_()
     {
         // Get view id
-        const view_id = wtools.GetUrlSearchParam('view');
-        if(view_id == undefined)
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
         {
-            $('.table_view').text('');
+            $('.table_view_name').text('');
             return;
         }
 
@@ -40,7 +19,7 @@ class Views
         }
 
         // Request
-        new wtools.Request(server_config.current.api + `/tables/views/read/id?id=${view_id}&table-identifier=${table_identifier}`).Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/tables/views/read/identifier?identifier=${view_identifier}&table-identifier=${table_identifier}`).Exec_((response_data) =>
         {
             // Manage response
             const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
@@ -56,7 +35,7 @@ class Views
 
             // Set the current view
             const row = response_data.body.data[0];
-            $('.table_view').text(` (${row.name})`);
+            $('.table_view_name').text(`${row.name}`);
             $('#component_data_views .out-view').removeClass('d-none');
         });
     };
@@ -96,12 +75,12 @@ class Views
             {
                 return `
                     <div class="p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" view-id="${row.id}" href="#">
+                        <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" view-identifier="${row.identifier}" href="#">
                             ${row.name}
                         </a>
                         <div class="py-2 pe-4 btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-secondary modify" view-id="${row.id}" view-name="${row.name}"><i class="fas fa-pen"></i></button>
-                            <button type="button" class="btn btn-sm btn-secondary delete" view-id="${row.id}" view-name="${row.name}"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-secondary modify" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-pen"></i></button>
+                            <button type="button" class="btn btn-sm btn-secondary delete" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `;
@@ -112,8 +91,8 @@ class Views
     SelectView_(e)
     {
         // Get view id
-        const view_id = $(e.currentTarget).attr('view-id');
-        if(view_id == undefined)
+        const view_identifier = $(e.currentTarget).attr('view-identifier');
+        if(view_identifier == undefined)
         {
             new wtools.Notification('ERROR').Show_('No se encontr&oacute; la vista.');
             return;
@@ -128,7 +107,7 @@ class Views
         }
 
         // Request
-        new wtools.Request(server_config.current.api + `/tables/views/read/id?id=${view_id}&table-identifier=${table_identifier}`).Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/tables/views/read/identifier?identifier=${view_identifier}&table-identifier=${table_identifier}`).Exec_((response_data) =>
         {
             // Manage response
             const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
@@ -146,9 +125,7 @@ class Views
             // Build URL params
             const url = new URL(window.location.href);
             url.searchParams.set('identifier', table_identifier);
-            url.searchParams.set('conditions', row.conditions);
-            url.searchParams.set('order', row.order);
-            url.searchParams.set('view', row.id);
+            url.searchParams.set('v', row.identifier);
             history.pushState({}, '', url.toString());
 
             // Reload data
@@ -185,26 +162,8 @@ class Views
         }
 
         // Data collection
-        let conditions = wtools.GetUrlSearchParam('conditions');
-        let order = wtools.GetUrlSearchParam('order');
         const data = new FormData($('#component_data_views_add form')[0]);
-        data.append('conditions', conditions);
-        data.append('order', order);
         data.append('table-identifier', table_identifier);
-
-        // Verify that there is almost conditions or order
-        if(conditions == "" && order == "")
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_data_views_add .notifications').Show_('Debe establecer al menos condiciones u orden en los filtros.');
-            return;
-        }
-        if(conditions == undefined && order == undefined)
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_data_views_add .notifications').Show_('Debe establecer al menos condiciones u orden en los filtros.');
-            return;
-        }
 
         // Request
         new wtools.Request(server_config.current.api + "/tables/views/add", "POST", data, false).Exec_((response_data) =>
@@ -250,26 +209,7 @@ class Views
         }
 
         // Data collection
-        let conditions = wtools.GetUrlSearchParam('conditions');
-        let order = wtools.GetUrlSearchParam('order');
         const data = new FormData($('#component_data_views_modify form')[0]);
-        data.append('conditions', conditions);
-        data.append('order', order);
-        data.append('table-identifier', table_identifier);
-
-        // Verify that there is almost conditions or order
-        if(conditions == "" && order == "")
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_data_views_modify .notifications').Show_('Debe establecer al menos condiciones u orden en los filtros.');
-            return;
-        }
-        if(conditions == undefined && order == undefined)
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_data_views_modify .notifications').Show_('Debe establecer al menos condiciones u orden en los filtros.');
-            return;
-        }
     
         // Request
         new wtools.Request(server_config.current.api + "/tables/views/modify", "PUT", data, false).Exec_((response_data) =>
@@ -312,9 +252,9 @@ class Views
         }
 
         // Request
-        const current_view = wtools.GetUrlSearchParam('view');
-        const view_id = $('#component_data_views_delete input[name="id"]').val();
-        new wtools.Request(server_config.current.api + `/tables/views/delete?id=${view_id}&table-identifier=${table_identifier}`, "DEL").Exec_((response_data) =>
+        const current_view = wtools.GetUrlSearchParam('v');
+        const view_identifier = $('#component_data_views_delete input[name="identifier"]').val();
+        new wtools.Request(server_config.current.api + `/tables/views/delete?identifier=${view_identifier}`, "DEL").Exec_((response_data) =>
         {
             wait.Off_();
 
@@ -326,8 +266,8 @@ class Views
             new wtools.Notification('SUCCESS').Show_('Vista eliminada exitosamente.');
             $('#component_data_views_delete').modal('hide');
             this.Read_();
-            if(current_view == view_id)
-                this.GetOutOfView_();
+            //if(current_view == view_identifier)
+                //this.GetOutOfView_();
         });
     }
 }
@@ -336,9 +276,6 @@ var viewsObject = new Views();
 
 $(function()
 {
-    // Out of the views
-    $('#component_data_views .out-view').click(() => viewsObject.GetOutOfView_());
-
     // Read current view
     viewsObject.ReadActiveView_();
 
@@ -368,15 +305,15 @@ $(function()
     // Modify a view
     $(document).on('click', '#component_data_views .contents .modify', (e) => 
     {
-        const view_id = $(e.currentTarget).attr('view-id');
+        const view_identifier = $(e.currentTarget).attr('view-identifier');
         const view_name = $(e.currentTarget).attr('view-name');
-        if(view_id == undefined || view_name == undefined)
+        if(view_identifier == undefined || view_name == undefined)
         {
             new wtools.Notification('WARNING').Show_('No se encontr&oacute; la vista.');
             return;
         }
         $('#component_data_views_modify input[name="name"]').val(view_name);
-        $('#component_data_views_modify input[name="id"]').val(view_id);
+        $('#component_data_views_modify input[name="identifier"]').val(view_identifier);
         $('#component_data_views_modify').modal('show');
     });
 
@@ -390,15 +327,15 @@ $(function()
     // Delete a view
     $(document).on('click', '#component_data_views .contents .delete', (e) => 
     {
-        const view_id = $(e.currentTarget).attr('view-id');
+        const view_identifier = $(e.currentTarget).attr('view-identifier');
         const view_name = $(e.currentTarget).attr('view-name');
-        if(view_id == undefined || view_name == undefined)
+        if(view_identifier == undefined || view_name == undefined)
         {
             new wtools.Notification('WARNING').Show_('No se encontr&oacute; la vista.');
             return;
         }
         $('#component_data_views_delete .name').text(view_name);
-        $('#component_data_views_delete input[name="id"]').val(view_id);
+        $('#component_data_views_delete input[name="identifier"]').val(view_identifier);
         $('#component_data_views_delete').modal('show');
     });
 
