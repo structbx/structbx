@@ -5,6 +5,7 @@
 #include "functions/action.h"
 
 #include "tools/function_data.h"
+#include "tools/random_generator.h"
 
 namespace StructBX
 {
