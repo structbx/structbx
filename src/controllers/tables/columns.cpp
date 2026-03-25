@@ -21,9 +21,66 @@ Columns::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fu
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Action 1: Get table id
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1](StructBX::Functions::Function& self)
+    {
+        // Get table IDENTIFIER
+        auto table_identifier = self.GetParameter_("table-identifier");
+        if(table_identifier == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "aNTa9tFRblfl");
+            return;
+        }
+
+        // Get View Identifier
+        auto view_identifier = self.GetParameter_("view-identifier");
+        if(view_identifier != self.get_parameters().end())
+        {
+            action1->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier");
+        }
+        else
+        {
+            // Get first default view identifier of table
+            auto action = self.AddAction_("a1_1");
+            action->set_sql_code("SELECT identifier FROM views WHERE id_table = ?");
+            action->AddParameter_("table_identifier", table_identifier->get()->ToString_(), false);
+            if(!action->Work_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ihhpykmiuIJk");
+                return;
+            }
+            if(action->get_results()->size() < 1)
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "H8TyAt6zjSix");
+                return;
+            }
+            auto default_view_identifier = action->get_results()->begin()->get()->ExtractField_("identifier");
+            if(default_view_identifier->IsNull_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Dgv1JlwUFfxX");
+                return;
+            }
+            action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(default_view_identifier->ToString_())), "view-identifier");
+        }
+
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            return;
+        }
+
+        self.CompoundResponse_(HTTP::Status::kHTTP_OK, action1->get_json_result());
+
+    });
     get_functions()->push_back(function);
 }
 
@@ -37,9 +94,10 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         "FROM tables_columns fc " \
         "JOIN tables f ON f.id = fc.id_table " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
+        "JOIN views_columns vc ON vc.id_column = fc.id " \
         "WHERE " \
-            "f.identifier = ? " \
-        "ORDER BY fc.position ASC"
+            "f.identifier = ? AND vc.id_view = ? " \
+        "ORDER BY vc.position ASC"
     );
 
     action->AddParameter_("table-identifier", "", true)
@@ -52,6 +110,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("view-identifier", "", false);
 }
 
 Columns::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
