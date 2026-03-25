@@ -83,6 +83,13 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
             void A2(StructBX::Functions::Action::Ptr action);
             void A3(StructBX::Functions::Action::Ptr action);
         };
+        struct ModifyPosition : public Tools::FunctionData
+        {
+            ModifyPosition(Tools::FunctionData& function_data);
+
+            void A1(StructBX::Functions::Action::Ptr action);
+            void A2(StructBX::Functions::Action::Ptr action);
+        };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
@@ -98,6 +105,7 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
         ReadTypes struct_read_types_;
         Add struct_add_;
         Modify struct_modify_;
+        ModifyPosition struct_modify_position_;
         Delete struct_delete_;
 };
 

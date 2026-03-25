@@ -1,5 +1,6 @@
 
 #include "controllers/tables/columns.h"
+#include "tools/dvalue.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -10,6 +11,7 @@ Columns::Columns(Tools::FunctionData& function_data) :
     ,struct_read_types_(function_data)
     ,struct_add_(function_data)
     ,struct_modify_(function_data)
+    ,struct_modify_position_(function_data)
     ,struct_delete_(function_data)
 {
     
@@ -762,6 +764,106 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("id_database", get_database_id(), false);
+}
+
+Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/columns/position/modify
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/position/modify", HTTP::EnumMethods::kHTTP_PUT);
+
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Get new position
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    // Action 2: Modify position
+    auto action2 = function->AddAction_("a2");
+    A2(action2);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
+    {
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            return;
+        }
+
+        // Get new position
+        auto new_position = action1->get_results()->First_();
+        if(new_position->IsNull_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición de la columna");
+            return;
+        }
+
+        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position->ToString_())), "position");
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            return;
+        }
+
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "OK.");
+
+    });
+    get_functions()->push_back(function);
+}
+
+void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT AVG(vc.position) "
+        "FROM views_columns vc "
+        "WHERE vc.id_column IN (?, ?) AND vc.id_view = ? "
+    );
+
+    action->AddParameter_("columnPrev", "", true)
+    ->SetupCondition_("condition-columnPrev", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("La columna previa no puede estar vacía");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("columnNext", "", true)
+    ->SetupCondition_("condition-columnNext", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("La columna siguiente no puede estar vacía");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("view-identifier", "", true)
+    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de la vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+}
+
+void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "UPDATE views_columns "
+        "SET position = ? "
+        "WHERE id_column = ? AND id_view = ? "
+    );
+
+    action->AddParameter_("position", "", false);
+    action->AddParameter_("id", "", true);
+    action->AddParameter_("view-identifier", "", true);
 }
 
 Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
