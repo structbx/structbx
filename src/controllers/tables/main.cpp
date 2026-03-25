@@ -188,12 +188,12 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
 
         // Action 3: Add the ID Column to the table
-        action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
+        /*action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
             return;
-        }
+        }*/
         
         // Action 3_1: Add table permissions to current user
         action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
@@ -204,19 +204,19 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
 
         // Column ID
-        int column_id = action3->get_last_insert_id();
+        /*int column_id = action3->get_last_insert_id();
         if(column_id == 0)
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error lyEC9cs1tj");
             delete_table(table_identifier);
             return;
-        }
+        }*/
 
         // Action 4: Create the table
         action4->set_sql_code(
             "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
-                "_structbx_column_" + std::to_string(column_id) + " INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
+                "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
                 "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
                 "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
                 "_structbx_column_user_owner INT NULL, " \

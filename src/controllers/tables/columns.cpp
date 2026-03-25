@@ -93,6 +93,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
             "fc.*, fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
             ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
+            ",vc.visible AS visible " \
         "FROM tables_columns fc " \
         "JOIN tables f ON f.id = fc.id_table " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \

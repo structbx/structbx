@@ -280,11 +280,11 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     function->SetupCustomProcess_([id_database, action1_0, action1, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
     {
         // Execute actions
-        if(!action1_0->Work_())
+        /*if(!action1_0->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1_0->get_identifier() + ": " + action1_0->get_custom_error());
             return;
-        }
+        }*/
 
         // Get table IDENTIFIER
         auto table_identifier = self.GetParameter_("table-identifier");
@@ -354,12 +354,12 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         }
 
         // Get table column ID
-        auto column_id = action1_0->get_results()->begin()->get()->ExtractField_("column_id");
+        /*auto column_id = action1_0->get_results()->begin()->get()->ExtractField_("column_id");
         if(column_id->IsNull_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRLmX91b3Z5E");
             return;
-        }
+        }*/
 
         // Get columns
         std::string columns = "";
@@ -369,14 +369,18 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         for(auto it : *action1->get_results())
         {
             // If the request is from link, only get the first and second columns
-            if(from_link && count > 1)
+            if(from_link && count > 0)
                 break;
-            count++;
 
             Query::Field::Ptr id = it.get()->ExtractField_("id");
             Query::Field::Ptr name = it.get()->ExtractField_("name");
             Query::Field::Ptr link_to = it.get()->ExtractField_("link_to");
+            Query::Field::Ptr visible = it.get()->ExtractField_("visible");
             if(id->IsNull_() || name->IsNull_())
+                continue;
+
+            // Hide column just if the request is not from link (link_to column)
+            if(visible->Int_() == 0 && !from_link)
                 continue;
 
             std::string column = "_structbx_column_" + id->ToString_() + " AS '" + name->ToString_() + "'";
@@ -443,11 +447,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 " = _" + table_identifier->get()->ToString_() + "._structbx_column_" + id->ToString_();
             }
 
-            // Set column
-            if(it == *action1->get_results()->begin())
-                columns = column;
-            else
-                columns += ", " + column;
+            columns += ", " + column;
+
+            count++;
         }
 
         // Verify if columns is empty
@@ -475,7 +477,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         {
             if(conditions != self.get_parameters().end())
             {
-                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + "._structbx_column_" + column_id->ToString_() + " = " + record_id->get()->ToString_();
+                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
                 if(condition_query == "")
                     condition_query = " WHERE " + record_id_condition;
                 else
@@ -483,7 +485,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             }
             else
             {
-                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + "._structbx_column_" + column_id->ToString_() + " = " + record_id->get()->ToString_();
+                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
                 condition_query = " WHERE " + record_id_condition;
             }
         }
@@ -562,7 +564,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Action 2: Get Table data
         auto action2 = self.AddAction_("a2");
         std::string sql_code = 
-            "SELECT " + columns + " " \
+            "SELECT _" + table_identifier->get()->ToString_() + ".id " + columns + " " \
             "FROM " + id_database + "." + table_identifier->get()->ToString_() + 
                 " AS _" + table_identifier->get()->ToString_()
         ;
@@ -700,6 +702,7 @@ void Tables::Data::Read::A2(StructBX::Functions::Action::Ptr action)
             ",fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
             ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
+            ",vc.visible AS visible " \
         "FROM tables_columns fc " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
         "JOIN tables f ON f.id = fc.id_table " \
