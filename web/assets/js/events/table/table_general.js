@@ -134,6 +134,7 @@ $(function ()
             {
                 $('#component_sidebar_tables_tabs .tab-scroller').append(`
                     <div class="tab ${row.identifier == table_identifier ? "active" : ""}" id="${row.identifier}" table-identifier="${row.identifier}">
+                        <i class="fas fa-table me-2"></i>
                         <span class="tab-title">${row.name}</span>
                     </div>
                 `);

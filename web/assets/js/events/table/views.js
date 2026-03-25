@@ -79,8 +79,8 @@ class Views
                             ${row.name}
                         </a>
                         <div class="py-2 pe-4 btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-secondary modify" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-pen"></i></button>
-                            <button type="button" class="btn btn-sm btn-secondary delete" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-dark-shadow modify" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-pen"></i></button>
+                            <button type="button" class="btn btn-sm btn-dark-shadow delete" view-identifier="${row.identifier}" view-name="${row.name}"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `;
