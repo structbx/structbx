@@ -285,6 +285,48 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1_0->get_identifier() + ": " + action1_0->get_custom_error());
             return;
         }
+
+        // Get table IDENTIFIER
+        auto table_identifier = self.GetParameter_("table-identifier");
+        if(table_identifier == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error x7oJ3q1f1I");
+            return;
+        }
+
+        // Get View Identifier
+        auto view_identifier = self.GetParameter_("view-identifier");
+        if(view_identifier != self.get_parameters().end())
+        {
+            action1->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier");
+        }
+        else
+        {
+            // Get first default view identifier of table
+            auto action = self.AddAction_("a1_1");
+            action->set_sql_code("SELECT identifier FROM views WHERE id_table = ?");
+            action->AddParameter_("table_identifier", table_identifier->get()->ToString_(), false);
+            if(!action->Work_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error K1X5uObcigPt");
+                return;
+            }
+            if(action->get_results()->size() < 1)
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error uoTSpEUxKT8J");
+                return;
+            }
+            auto default_view_identifier = action->get_results()->begin()->get()->ExtractField_("identifier");
+            if(default_view_identifier->IsNull_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error MKebPNhqKdxW");
+                return;
+            }
+            action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(default_view_identifier->ToString_())), "view-identifier");
+        }
+
         if(!action1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
@@ -308,14 +350,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         else if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
             self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
-            return;
-        }
-
-        // Get table IDENTIFIER
-        auto table_identifier = self.GetParameter_("table-identifier");
-        if(table_identifier == self.get_parameters().end())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error x7oJ3q1f1I");
             return;
         }
 
@@ -669,8 +703,9 @@ void Tables::Data::Read::A2(StructBX::Functions::Action::Ptr action)
         "FROM tables_columns fc " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
         "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-        "ORDER BY fc.position ASC"
+        "JOIN views_columns vc ON vc.id_column = fc.id " \
+        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND vc.id_view = ? " \
+        "ORDER BY vc.position ASC"
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)
@@ -685,6 +720,7 @@ void Tables::Data::Read::A2(StructBX::Functions::Action::Ptr action)
     });
 
     action->AddParameter_("id_database", get_database_id(), false);
+    action->AddParameter_("view-identifier", "", false);
 }
 
 Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

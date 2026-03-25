@@ -175,7 +175,7 @@ void Views::Add::A2(StructBX::Functions::Action::Ptr action)
         "INSERT INTO views_columns (id_view, id_column, position, visible) "
         "SELECT "
             "?, tc.id "
-            ",ROW_NUMBER() OVER (PARTITION BY t.id ORDER BY tc.id) "
+            ",ROW_NUMBER() OVER (PARTITION BY t.id ORDER BY tc.id) * 10.0 "
             ", 1 "
         "FROM tables_columns tc "
         "JOIN tables t ON t.id = tc.id_table "

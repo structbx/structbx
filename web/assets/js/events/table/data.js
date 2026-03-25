@@ -255,6 +255,15 @@ class Data
                 return "";
             }
 
+            // Get View identifier
+            const view_identifier = wtools.GetUrlSearchParam('v');
+            if(view_identifier == undefined)
+            {
+                new wtools.Notification('WARNING').Show_('No se encontr&oacute; ninguna vista disponible.');
+                this.FreeMutex_();
+                return "";
+            }
+
             // Get path
             const path = this.GetPath_(reload);
             if(path == "")
@@ -267,7 +276,7 @@ class Data
             let wait = new wtools.ElementState('#component_data_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
             // Request
-            new wtools.Request(server_config.current.api + `/tables/data/read${path}`).Exec_((response_data) =>
+            new wtools.Request(server_config.current.api + `/tables/data/read${path}&view-identifier=${view_identifier}`).Exec_((response_data) =>
             {
                 // Get data
                 let data = this.GetBodyData_(response_data);
