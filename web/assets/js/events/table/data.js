@@ -72,6 +72,10 @@ class Data
 
     constructor()
     {
+        // Clear previous data
+        $('#component_data_read table thead tr').html("");
+        $('#component_data_read table tbody').html("");
+
         this.ReadUsersInDatabase_(() => this.Read_());
         //setInterval(this.ChangeIntVerification_.bind(this), 5000);
 
@@ -938,23 +942,14 @@ $(function()
 
         // Reset URL parameters and set new form identifier
         const url = new URL(window.location.href);
-        url.searchParams.delete('conditions');
-        url.searchParams.delete('order');
-        url.searchParams.delete('view');
+        url.searchParams.delete('v');
         url.searchParams.set('identifier', new_table_identifier);
         history.pushState({}, '', url.toString());
-
-        // Clear previous data
-        $('#component_data_read table thead tr').html("");
-        $('#component_data_read table tbody').html("");
-
-        // New data object
-        dataObject = new Data();
 
         // Reset views
         viewsObject.Read_();
 
-        // Read Form
+        // Read Table
         objectTableGeneral.Read_();
 
         // Set to active current tab

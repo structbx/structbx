@@ -1,45 +1,5 @@
 class Views
 {
-    ReadActiveView_()
-    {
-        // Get view id
-        const view_identifier = wtools.GetUrlSearchParam('v');
-        if(view_identifier == undefined)
-        {
-            $('.table_view_name').text('');
-            return;
-        }
-
-        // Get Form identifier
-        const table_identifier = wtools.GetUrlSearchParam('identifier');
-        if(table_identifier == undefined)
-        {
-            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-            window.location.href = "/start";
-        }
-
-        // Request
-        new wtools.Request(server_config.current.api + `/tables/views/read/identifier?identifier=${view_identifier}&table-identifier=${table_identifier}`).Exec_((response_data) =>
-        {
-            // Manage response
-            const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
-            if(!result.Verify_())
-                return;
-
-            // Handle zero results
-            if(response_data.body.data.length < 1)
-            {
-                new wtools.Notification('WARNING').Show_('Hubo un error al consultar la vista.');
-                return;
-            }
-
-            // Set the current view
-            const row = response_data.body.data[0];
-            $('.table_view_name').text(`${row.name}`);
-            $('#component_data_views .out-view').removeClass('d-none');
-        });
-    };
-
     Read_()
     {
         // Wait animation
@@ -85,20 +45,26 @@ class Views
                     </div>
                 `;
             });
+
+            // Set current view as active
+            const view_identifier = wtools.GetUrlSearchParam('v');
+            if(view_identifier != undefined)
+            {
+                this.SelectView_(view_identifier);
+            }
+            else
+            {
+                // Set the first view as active
+                const view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                this.SelectView_(view_identifier);
+            }
+
         });
     }
     
-    SelectView_(e)
+    SelectView_(view_identifier)
     {
-        // Get view id
-        const view_identifier = $(e.currentTarget).attr('view-identifier');
-        if(view_identifier == undefined)
-        {
-            new wtools.Notification('ERROR').Show_('No se encontr&oacute; la vista.');
-            return;
-        }
-
-        // Get Form identifier
+        // Get table identifier
         const table_identifier = wtools.GetUrlSearchParam('identifier');
         if(table_identifier == undefined)
         {
@@ -117,7 +83,9 @@ class Views
             // Handle zero results
             if(response_data.body.data.length < 1)
             {
-                new wtools.Notification('SUCCESS').Show_('Hubo un error al consultar la vista.');
+                // Set the first view as active
+                const view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                this.SelectView_(view_identifier);
                 return;
             }
             const row = response_data.body.data[0];
@@ -128,9 +96,13 @@ class Views
             url.searchParams.set('v', row.identifier);
             history.pushState({}, '', url.toString());
 
-            // Reload data
-            $('#component_data_reload').click();
-            this.ReadActiveView_();
+            // Set view name in dropdown
+            $('.view_name').html(row.name);
+
+            // New data object
+            dataObject = new Data();
+            dataObject.Start_();
+            columnsObject.Read_();
         });
     }
 
@@ -277,16 +249,14 @@ var viewsObject = new Views();
 $(function()
 {
     // Read current view
-    viewsObject.ReadActiveView_();
-
-    // Read Views
     viewsObject.Read_();
-    
+
     // Select a view
     $(document).on('click', '#component_data_views .dropdown-item a', (e) =>
     {
         e.preventDefault();
-        viewsObject.SelectView_(e);
+        const view_identifier = $(e.currentTarget).attr('view-identifier');
+        viewsObject.SelectView_(view_identifier);
     });
 
     // Add a view
