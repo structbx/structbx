@@ -100,8 +100,41 @@ Views::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/add", HTTP::EnumMethods::kHTTP_POST);
     
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Save the view
     auto action1 = function->AddAction_("a1");
     A1(action1);
+
+    // Action 2: Add all table columns to the view
+    auto action2 = function->AddAction_("a2");
+    A2(action2);
+    
+    // Setup Custom Process
+    auto database_id = get_database_id();
+    function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
+    {
+        Tools::RandomGenerator rg;
+        auto table_identifier = rg.GenerateAlphanumericID_(20);
+        
+        // Action 1: Save the view
+        action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "xnA6uie2nfiu");
+            return;
+        }
+        // Action 2: Add all table columns to the view
+        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "retJiMthjcJC");
+            return;
+        }
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+    });
 
     get_functions()->push_back(function);
 }
@@ -113,16 +146,7 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
         "SELECT "
             "?, ?, ?"
     );
-    action->AddParameter_("identifier", "", false)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        
-        Tools::RandomGenerator rg;
-        auto table_identifier = rg.GenerateAlphanumericID_(20);
-        param->set_value(Tools::DValue::Ptr(new Tools::DValue(table_identifier)));
-        
-        return true;
-    });
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -133,6 +157,31 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() == "")
+        {
+            param->set_error("El identificador de tabla no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+}
+
+void Views::Add::A2(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "INSERT INTO views_columns (id_view, id_column, position, visible) "
+        "SELECT "
+            "?, tc.id "
+            ",ROW_NUMBER() OVER (PARTITION BY t.id ORDER BY tc.id) "
+            ", 1 "
+        "FROM tables_columns tc "
+        "JOIN tables t ON t.id = tc.id_table "
+        "WHERE t.identifier = ? "
+    );
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("table-identifier", "", true)
     ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
