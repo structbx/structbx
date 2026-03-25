@@ -257,10 +257,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1_0: Get table id
-    auto action1_0 = function->AddAction_("a1_0");
-    A1(action1_0);
-
     // Action 1: Get table columns
     auto action1 = function->AddAction_("a1");
     A2(action1);
@@ -277,15 +273,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1_0, action1, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, action1, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
     {
-        // Execute actions
-        /*if(!action1_0->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1_0->get_identifier() + ": " + action1_0->get_custom_error());
-            return;
-        }*/
-
         // Get table IDENTIFIER
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
@@ -353,14 +342,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             return;
         }
 
-        // Get table column ID
-        /*auto column_id = action1_0->get_results()->begin()->get()->ExtractField_("column_id");
-        if(column_id->IsNull_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRLmX91b3Z5E");
-            return;
-        }*/
-
         // Get columns
         std::string columns = "";
         std::string joins = "";
@@ -385,14 +366,19 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
             std::string column = "_structbx_column_" + id->ToString_() + " AS '" + name->ToString_() + "'";
 
-            // Get link columns
+            // Get LINK columns
             if(!link_to->IsNull_())
             {
                 has_link = true;
 
-                // Get table link identifier
+                // Get table link identifier and display_value
                 auto action1_1 = self.AddAction_("a1_1");
-                action1_1->set_sql_code("SELECT identifier FROM tables WHERE id = ?");
+                action1_1->set_sql_code(
+                    "SELECT t.identifier AS identifier, tc.id AS id_display_value "
+                    "FROM tables t "
+                    "LEFT JOIN tables_columns tc ON tc.identifier = t.id_display_value "
+                    "WHERE t.id = ? "
+                );
                 action1_1->AddParameter_("id", link_to->Int_(), false);
                 if(!action1_1->Work_())
                 {
@@ -405,46 +391,51 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                     return;
                 }
                 auto table_link = action1_1->get_results()->begin()->get()->ExtractField_("identifier");
+                auto display_value = action1_1->get_results()->begin()->get()->ExtractField_("id_display_value");
                 if(table_link->IsNull_())
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error qJ6oW3X8Zn");
                     return;
                 }
 
-                // Get table columns (link)
-                auto action1_2 = self.AddAction_("a1_2");
-                action1_2->set_sql_code("SELECT * FROM tables_columns WHERE id_table = ? ORDER BY position ASC");
-                action1_2->AddParameter_("id", link_to->Int_(), false);
-                if(!action1_2->Work_())
+                std::string column_display_value = "";
+                if(!display_value->IsNull_())
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error wmAdRBELoO");
-                    return;
+                    column_display_value = display_value->ToString_();
                 }
-                if(action1_2->get_results()->size() < 2)
+                else
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error OFYV54ToXi");
-                    return;
-                }
+                    // Get table columns (link)
+                    auto action1_2 = self.AddAction_("a1_2");
+                    action1_2->set_sql_code(
+                        "SELECT tc.id "
+                        "FROM tables_columns tc "
+                        "WHERE tc.id_table = ? LIMIT 1 "
+                    );
+                    action1_2->AddParameter_("id_table", link_to->Int_(), false);
+                    if(!action1_2->Work_())
+                    {
+                        self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error wmAdRBELoO");
+                        return;
+                    }
+                    // Get column display value
+                    if(action1_2->get_results()->size() < 1)
+                    {
+                        self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error NmYoq56SDN");
+                        return;
+                    }
+                    column_display_value = action1_2->get_results()->First_()->ToString_();
 
-                // Get ID from first and second column
-                auto join_it = action1_2->get_results()->begin();
-                auto join_column1 = join_it->get()->ExtractField_("id");
-                join_it++;
-                auto join_column2 = join_it->get()->ExtractField_("id");
-                if(join_column1->IsNull_() || join_column2->IsNull_())
-                {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error NmYoq56SDN");
-                    return;
                 }
-
+                
                 // Setup column link
-                column = "_" + table_link->ToString_() + "._structbx_column_" + join_column2->ToString_() + " AS '" + name->ToString_() + "'" +
+                column = "_" + table_link->ToString_() + "._structbx_column_" + column_display_value + " AS '" + name->ToString_() + "'" +
                     ", _" + table_link->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + id->ToString_() + "_colorHeader'";
 
                 // Setup new join
                 joins += " LEFT JOIN " + id_database + "." + table_link->ToString_() +
-                " AS _" + table_link->ToString_() + " ON _" + table_link->ToString_() + "._structbx_column_" + join_column1->ToString_() + 
-                " = _" + table_identifier->get()->ToString_() + "._structbx_column_" + id->ToString_();
+                " AS _" + table_link->ToString_() + " ON _" + table_link->ToString_() + ".id = _" + 
+                table_identifier->get()->ToString_() + "._structbx_column_" + id->ToString_();
             }
 
             columns += ", " + column;

@@ -107,6 +107,7 @@ class Views
 
             // New data object
             dataObject = new Data();
+            dataObject.Start_();
             columnsObject.Read_();
         });
     }

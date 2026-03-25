@@ -73,9 +73,6 @@ class Data
     constructor()
     {
         this.Clear_();
-        this.ReadUsersInDatabase_(() => this.Read_());
-        //setInterval(this.ChangeIntVerification_.bind(this), 5000);
-
         this.colorSelectAdd.AddOption_('', '-- Ninguno --');
         this.colorSelectModify.AddOption_('', '-- Ninguno --');
         this.colorsSelect.forEach(colorOption => {
@@ -91,7 +88,12 @@ class Data
         // Clear previous data
         $('#component_data_read table thead tr').html("");
         $('#component_data_read table tbody').html("");
+    }
 
+    Start_()
+    {
+        this.ReadUsersInDatabase_(() => this.Read_());
+        //setInterval(this.ChangeIntVerification_.bind(this), 5000);
     }
 
     CreateRows_(response_data, row)
@@ -150,9 +152,10 @@ class Data
 
         // Loop in columns
         let key = 0;
+        console.log(response_data.body.columns)
         for(let column of response_data.body.columns)
         {
-            if(column.includes("_structbx_column"))
+            if(column.includes("_structbx_column") || column == "id")
                 continue;
 
             // Setup columns meta
@@ -169,7 +172,7 @@ class Data
                     file_row(row, column);
                 else if(column_meta.column_type == "user" || column_meta.column_type == "current-user")
                     user_row(row, column);
-                else if(key == 1)
+                else if(key == 0)
                     header_row(row, column);
                 else
                     basic_row(row, column, link_color);
@@ -310,20 +313,26 @@ class Data
                     let it = 0;
 
                     // Setup columns meta
-                    new wtools.UIElementsCreator('#component_data_read table thead tr', keys).Build_((row) =>
+                    new wtools.UIElementsCreator('#component_data_read table thead tr', keys).Build_((column) =>
                     {
+                        if(column.identifier == "id")
+                            return undefined;
+
+                        if(column.visible == 0)
+                            return undefined;
+
                         // Setup columns and icon
-                        let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, "text"), row, table_identifier);
+                        let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, "text"), column, table_identifier);
                         let table_icon = table_element_object.GetIcon_(false);
 
                         // Add column to array
-                        this.data_read_columns.push({id: row.id, identifier: row.identifier, name: row.name});
+                        this.data_read_columns.push({id: column.id, identifier: column.identifier, name: column.name});
 
                         it++;
                         
                         return [`
-                            <th scope="col" class="user-select-none position-relative" data-col="${row.id}">
-                                <span>${table_icon}${row.name}</span>
+                            <th scope="col" class="user-select-none position-relative" data-col="${column.id}">
+                                <span>${table_icon}${column.name}</span>
                                 <div class="resize-handle"></div>
                             </th>
                         `];
@@ -343,10 +352,10 @@ class Data
                     });
 
                     // If there is less than 5 columns, add empty column
-                    /*if(it < 5)
+                    if(it < 5)
                     {
                         $('#component_data_read table thead tr').append($(`<th scope="col"  class="user-select-none" style="width: 50%;background: #f3f3f3;border-top:none !important;"></th>`));
-                    }*/
+                    }
                 }
 
                 // Verify if results is lower than limit
@@ -369,8 +378,9 @@ class Data
                 new wtools.UIElementsCreator('#component_data_read table tbody', data).Build_((row) =>
                 {
                     // Create rows
+                    //console.log(row)
                     const elements = this.CreateRows_(response_data, row);
-                    return new wtools.UIElementsPackage(`<tr id="row_${row.ID}" record-id="${row.ID}"></tr>`, elements).Pack_();
+                    return new wtools.UIElementsPackage(`<tr id="row_${row.id}" record-id="${row.id}"></tr>`, elements).Pack_();
                 });
 
                 // Next page if not reload
