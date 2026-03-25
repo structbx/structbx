@@ -57,15 +57,13 @@ class Columns
                 let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
 
                 return `
-                    <div class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" column-id="${row.id}" href="#">
+                    <div column-id="${row.id}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                        <span class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
                             <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
-                        </a>
+                        </span>
                         <div class="form-check form-switch pe-4">
-                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked column-id="${row.id}" column-name="${row.name}">
-                            <label class="form-check-label" for="flexSwitchCheckChecked">
-                                <i class="fas fa-eye"></i>
-                            </label>
+                            <input class="form-check-input" type="checkbox" checked column-id="${row.id}" column-name="${row.name}">
+                            <label class="form-check-label"><i class="fas fa-eye"></i></label>
                         </div>
                     </div>
                 `;
@@ -205,7 +203,7 @@ class Columns
             return;
         }
 
-        // Get Form identifier
+        // Get Table identifier
         const table_identifier = wtools.GetUrlSearchParam('identifier');
         if(table_identifier == undefined)
         {
@@ -385,7 +383,43 @@ $(function()
         }
     }
 
-    $(`${component_columns_read.identifier} .contents`).sortable();
+    // Sort columns position in view
+    $(`${component_columns_read.identifier} .contents`).sortable
+    ({
+        update: function( event, ui)
+        {
+            let element = $(ui.item).attr('column-id');
+            let columnPrev = $(ui.item).prev().attr('column-id');
+            let columnNext = $(ui.item).next().attr('column-id');
+
+            // Get View identifier
+            const view_identifier = wtools.GetUrlSearchParam('v');
+            if(view_identifier == undefined)
+            {
+                wait.Off_();
+                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+                return;
+            }
+
+            // Data collection
+            const new_data = new FormData();
+            new_data.append('view-identifier', view_identifier);
+            new_data.append('id', element);
+            new_data.append('columnPrev', columnPrev);
+            new_data.append('columnNext', columnNext);
+
+            // Request
+            new wtools.Request(server_config.current.api + "/tables/columns/position/modify", "PUT", new_data, false).Exec_((response_data) =>
+            {
+                // Manage response
+                const result = new ResponseManager(response_data, '#notifications', 'Columnas: Posici&oacute;n: Modificar');
+                if(!result.Verify_())
+                    return;
+
+                viewsObject.Read_();
+            });
+        }
+    });
 
     // Click on Add Button
     const read_table_columns_add = () =>
