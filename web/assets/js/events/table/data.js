@@ -72,10 +72,7 @@ class Data
 
     constructor()
     {
-        // Clear previous data
-        $('#component_data_read table thead tr').html("");
-        $('#component_data_read table tbody').html("");
-
+        this.Clear_();
         this.ReadUsersInDatabase_(() => this.Read_());
         //setInterval(this.ChangeIntVerification_.bind(this), 5000);
 
@@ -87,6 +84,14 @@ class Data
         });
         this.colorSelectAdd.hiddenInput.attr('name', '_structbx_column_colorHeader');
         this.colorSelectModify.hiddenInput.attr('name', '_structbx_column_colorHeader');
+    }
+
+    Clear_()
+    {
+        // Clear previous data
+        $('#component_data_read table thead tr').html("");
+        $('#component_data_read table tbody').html("");
+
     }
 
     CreateRows_(response_data, row)
@@ -263,7 +268,6 @@ class Data
             const view_identifier = wtools.GetUrlSearchParam('v');
             if(view_identifier == undefined)
             {
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; ninguna vista disponible.');
                 this.FreeMutex_();
                 return "";
             }
@@ -932,31 +936,6 @@ $(function()
         dataObject.ReadDataColumns_();
     });
 
-    // Click on new tab
-    $(document).on('click', '#component_sidebar_tables_tabs .tab-scroller .tab', (e) =>
-    {
-        e.preventDefault();
-
-        // Get Form identifier
-        const new_table_identifier = $(e.currentTarget).attr('table-identifier');
-
-        // Reset URL parameters and set new form identifier
-        const url = new URL(window.location.href);
-        url.searchParams.delete('v');
-        url.searchParams.set('identifier', new_table_identifier);
-        history.pushState({}, '', url.toString());
-
-        // Reset views
-        viewsObject.Read_();
-
-        // Read Table
-        objectTableGeneral.Read_();
-
-        // Set to active current tab
-        $('#component_sidebar_tables_tabs .tab').removeClass('active');
-        $(e.currentTarget).addClass('active');
-    });
-    
     // Add record
     $('#component_data_add form').submit((e) =>
     {

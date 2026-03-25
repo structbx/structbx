@@ -9,7 +9,12 @@ class Columns
 {
     constructor()
     {
+        this.Clear_();
+    }
 
+    Clear_()
+    {
+        $(`${component_columns_read.identifier} .contents`).html('');
     }
 
     Read_()

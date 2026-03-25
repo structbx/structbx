@@ -23,10 +23,6 @@ class Views
             if(!result.Verify_())
                 return;
 
-            // Handle zero results
-            if(response_data.body.data.length < 1)
-                return;
-
             // Results elements creator
             wait.Off_();
             $('#component_data_views .notifications').html('');
@@ -46,6 +42,9 @@ class Views
                 `;
             });
 
+            // Set view name in dropdown
+            $('.view_name').html("");
+
             // Set current view as active
             const view_identifier = wtools.GetUrlSearchParam('v');
             if(view_identifier != undefined)
@@ -55,8 +54,15 @@ class Views
             else
             {
                 // Set the first view as active
-                const view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
-                this.SelectView_(view_identifier);
+                const first_view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                if(first_view_identifier == undefined)
+                {
+                    dataObject.Clear_();
+                    columnsObject.Clear_();
+                    new wtools.Notification('WARNING').Show_('No se encontr&oacute; ninguna vista disponible.');
+                }
+                else
+                    this.SelectView_(view_identifier);
             }
 
         });
