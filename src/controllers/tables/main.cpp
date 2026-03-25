@@ -155,20 +155,16 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     auto action2 = function->AddAction_("a2");
     A2(action2);
     
-    // Action 3: Add the ID Column to the table
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
-
     // Action 3_1: Add table permissions to current user
     auto action3_1 = function->AddAction_("a3_1");
-    A3_1(action3_1);
+    A3(action3_1);
 
     // Action 4: Create the table
     auto action4 = function->AddAction_("a4");
     
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3, action3_1, action4](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3_1, action4](StructBX::Functions::Function& self)
     {
         Tools::RandomGenerator rg;
         auto table_identifier = rg.GenerateAlphanumericID_(20);
@@ -187,14 +183,6 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             return;
         }
 
-        // Action 3: Add the ID Column to the table
-        /*action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
-        if(!action3->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
-            return;
-        }*/
-        
         // Action 3_1: Add table permissions to current user
         action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!action3_1->Work_())
@@ -202,15 +190,6 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3_1->get_identifier() + ": " + action3_1->get_custom_error());
             return;
         }
-
-        // Column ID
-        /*int column_id = action3->get_last_insert_id();
-        if(column_id == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error lyEC9cs1tj");
-            delete_table(table_identifier);
-            return;
-        }*/
 
         // Action 4: Create the table
         action4->set_sql_code(
@@ -338,26 +317,6 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 }
 
 void Main::Add::A3(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "INSERT INTO tables_columns (identifier, name, length, required, id_column_type, id_table) " \
-        "SELECT " \
-            "? " \
-            ",? " \
-            ",? " \
-            ",? " \
-            ",(SELECT id FROM tables_columns_types WHERE identifier = 'int-number') " \
-            ",(SELECT id FROM tables WHERE identifier = ?)"
-    );
-
-    action->AddParameter_("identifier", "id", false);
-    action->AddParameter_("name", "ID", false);
-    action->AddParameter_("length", "11", false);
-    action->AddParameter_("required", 1, false);
-    action->AddParameter_("table_identifier", 0, false);
-}
-
-void Main::Add::A3_1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_naf_user, id_table) " \
