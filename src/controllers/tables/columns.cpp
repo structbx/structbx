@@ -12,6 +12,7 @@ Columns::Columns(Tools::FunctionData& function_data) :
     ,struct_add_(function_data)
     ,struct_modify_(function_data)
     ,struct_modify_position_(function_data)
+    ,struct_modify_visible_(function_data)
     ,struct_delete_(function_data)
 {
     
@@ -865,6 +866,59 @@ void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("position", "", false);
     action->AddParameter_("id", "", true);
     action->AddParameter_("view-identifier", "", true);
+}
+
+Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/columns/visible/modify
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/visible/modify", HTTP::EnumMethods::kHTTP_PUT);
+
+    // Action 1: Set visible
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    get_functions()->push_back(function);
+}
+
+void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "UPDATE views_columns "
+        "SET visible = ? "
+        "WHERE id_column = ? AND id_view = ? "
+    );
+
+    action->AddParameter_("visible", "", true)
+    ->SetupCondition_("condition-visible", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El parámetro visible  no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("id", "", true)
+    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("La columna no puede estar vacía");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("view-identifier", "", true)
+    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de la vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
 }
 
 Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

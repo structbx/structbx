@@ -67,7 +67,7 @@ class Columns
                             <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
                         </span>
                         <div class="form-check form-switch pe-4">
-                            <input class="form-check-input" type="checkbox" checked column-id="${row.id}" column-name="${row.name}">
+                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-id="${row.id}" column-name="${row.name}">
                             <label class="form-check-label"><i class="fas fa-eye"></i></label>
                         </div>
                     </div>
@@ -424,6 +424,39 @@ $(function()
                 viewsObject.Read_();
             });
         }
+    });
+
+    // Set visible column in view
+    $(document).on('change', `${component_columns_read.identifier} .contents input.form-check-input`, function(e)
+    {
+            let element = $(e.target).attr('column-id');
+            let visible = $(e.target)[0].checked;
+
+            // Get View identifier
+            const view_identifier = wtools.GetUrlSearchParam('v');
+            if(view_identifier == undefined)
+            {
+                wait.Off_();
+                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+                return;
+            }
+
+            // Data collection
+            const new_data = new FormData();
+            new_data.append('view-identifier', view_identifier);
+            new_data.append('id', element);
+            new_data.append('visible', visible ? 1 : 0);
+
+            // Request
+            new wtools.Request(server_config.current.api + "/tables/columns/visible/modify", "PUT", new_data, false).Exec_((response_data) =>
+            {
+                // Manage response
+                const result = new ResponseManager(response_data, '#notifications', 'Columnas: Visible: Modificar');
+                if(!result.Verify_())
+                    return;
+
+                viewsObject.Read_();
+            });
     });
 
     // Click on Add Button
