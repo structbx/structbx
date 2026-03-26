@@ -1,9 +1,81 @@
 
+// Components
+var component_filters_read = new Component('#component_filters_read', ComponentTypes.BLOCK)
+
+class FilterType
+{
+    constructor()
+    {
+        this.like = {title: 'Contiene', value: 'LIKE'};
+        this.equal = {title: 'Igual', value: '='};
+        this.not_equal = {title: 'No igual', value: '!='};
+        this.greater = {title: 'Mayor que', value: '>'};
+        this.less = {title: 'Menor que', value: '<'};
+        this.greater_equal = {title: 'Mayor o igual que', value: '>='};
+        this.less_equal = {title: 'Menor o igual que', value: '<='};
+        this.array = [this.like, this.equal, this.not_equal, this.greater, this.less, this.greater_equal, this.less_equal];
+    }
+}
+
 class Filters
 {
-    data_read_columns = [];
 
-    ConditionElement_()
+    constructor()
+    {
+        this.Clear_();
+    }
+
+    Clear_()
+    {
+        $(`${component_filters_read.identifier} .contents`).html('');
+    }
+
+    Read_()
+    {
+
+        let target = component_filters_read;
+        // Wait animation
+        let wait = new wtools.ElementState(target.notifications, false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Get Table identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+            return;
+
+        // Get View identifier
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
+            return;
+
+        // Request
+        new wtools.Request(server_config.current.api + `/tables/filters/read?table-identifier=${table_identifier}&view-identifier=${view_identifier}`).Exec_((response_data) =>
+        {
+            // Clean
+            wait.Off_();
+            $(target.notifications).html('');
+
+            // Manage response
+            const result = new ResponseManager(response_data, target.notifications, 'Filtros: Leer');
+            if(!result.Verify_())
+                return;
+
+            // Handle zero results
+            if(response_data.body.data.length < 1)
+                return;
+
+            // Results elements creator
+            wait.Off_();
+            $(target.notifications).html('');
+            $(`${target.identifier} .contents`).html('');
+
+            for(let filter of response_data.body.data)
+            {
+                this.SetupNewFilterElement_(filter.id_column, filter.op, filter.value);
+            }
+        });
+    }
+    
+    GetFilterElement_()
     {
         let options = '';
         for(let option of new FilterType().array)
@@ -11,23 +83,49 @@ class Filters
             options += `<option value="${option.value}">${option.title}</option>`;
         }
         return $(`
-            <tr class="ui-state-default">
-                <td><a class="btn"><i class="fas fa-sort"></i></a></td>
-                <td>
-                    <select class="form-select" name="column" required>
-                    </select>
-                </td>
-                <td>
-                    <select class="form-select" name="condition" required>
-                        ${options}
-                    </select>
-                </td>
-                <td><input type="text" class="form-control" name="value" required/></td>
-                <td><button type="button" class="btn-close" aria-label="Close"></button></td>
-            </tr>
+            <div class="input-group ui-state-default">
+                <a class="btn me-2"><i class="fas fa-sort"></i></a>
+                <select class="form-select" name="column" required></select>
+                <select class="form-select" name="op" required>
+                    ${options}
+                </select>
+                <input type="text" class="form-control" name="value" placeholder="value" required/>
+                <button type="button" class="btn me-2"><i class="fas fa-trash"></i></button>
+            </div>
         `);
     }
 
+    SetupNewFilterElement_(column = undefined, op = undefined, value = undefined)
+    {
+        // Create filter
+        let filter = this.GetFilterElement_()
+
+        // Setup row 'columns'
+        for(let column of columnsObject.columns)
+        {
+            $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))
+        }
+        if(column != undefined)
+        {
+            $(filter).find('select[name=column]').val(column);
+        }
+        if(op != undefined)
+        {
+            $(filter).find('select[name=op]').val(op);
+        }
+        if(value != undefined)
+        {
+            $(filter).find('input[name=value]').val(value);
+        }
+
+        // Add filter
+        $('#component_filters_read .contents').append(filter);
+    }
+
+
+    //data_read_columns = [];
+
+    /*
     OrderElement_()
     {
         return $(`
@@ -112,36 +210,6 @@ class Filters
         {
             new wtools.Notification('SUCCESS', 5000, '#component_data_filter .notifications').Show_('No se pudieron decodificar los filtros actuales.');
         }
-    }
-
-    AddElementCondition_(column = undefined, condition = undefined, value = undefined)
-    {
-        // Update data read columns
-        this.data_read_columns = dataObject.data_read_columns;
-
-        // Create row filter
-        let row = this.ConditionElement_()
-
-        // Setup row 'columns'
-        for(let column of this.data_read_columns)
-        {
-            $(row).find('select[name=column]').append($(`<option value="${column.id}">${column.name}</option>`))
-        }
-        if(column != undefined)
-        {
-            $(row).find('select[name=column]').val(column);
-        }
-        if(condition != undefined)
-        {
-            $(row).find('select[name=condition]').val(condition);
-        }
-        if(value != undefined)
-        {
-            $(row).find('input[name=value]').val(value);
-        }
-
-        // Add row filter
-        $('#component_data_filter_conditions tbody').append(row);
     }
 
     AddElementOrder_(column = undefined, order = undefined)
@@ -237,7 +305,7 @@ class Filters
         $('#component_data_reload').click();
 
         $('#component_data_filter').modal('hide');
-    }
+    }*/
     
 }
 
@@ -245,19 +313,25 @@ var filtersObject = new Filters();
 
 $(function()
 {
-    // Setup filters tables
-    $("#component_data_filter_conditions tbody").sortable();
-    $("#component_data_filter_order tbody").sortable();
-
     // Show filter modal
     const show_filter_modal = (e) =>
     {
         e.preventDefault();
 
-        filtersObject.ReadFromURL_();
-        $('#component_data_filter').modal('show');
+        $('#component_filters_read').modal('show');
     }
-    $('.data_filter').click(e => show_filter_modal(e));
+    $('.filters_read').click(e => show_filter_modal(e));
+
+    $('#component_data_filter .add').click(e => 
+    {
+        e.preventDefault();
+        filtersObject.SetupNewFilterElement_();
+    });
+
+    // Setup filters tables
+    /*$("#component_data_filter_conditions tbody").sortable();
+    $("#component_data_filter_order tbody").sortable();
+
     $(document).on('click', '#component_data_read_table thead span', e => show_filter_modal(e));
 
     // Remove elements
@@ -265,12 +339,6 @@ $(function()
     {
         e.preventDefault();
         $(e.currentTarget).parent().parent().remove();
-    });
-
-    $('#component_data_filter .add_condition').click(e => 
-    {
-        e.preventDefault();
-        filtersObject.AddElementCondition_();
     });
 
     $('#component_data_filter .add_order').click(e => 
@@ -317,5 +385,5 @@ $(function()
 
         // Reload data
         $('#component_data_reload').click();
-    });
+    });*/
 });
