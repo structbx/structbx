@@ -9,6 +9,7 @@
 #include "controllers/tables/columns.h"
 #include "controllers/tables/permissions.h"
 #include "controllers/tables/views.h"
+#include "controllers/tables/filters.h"
 #include "tools/random_generator.h"
 
 namespace StructBX
@@ -72,6 +73,7 @@ class StructBX::Controllers::Tables::Main : public Tools::FunctionData
         Columns function_columns_;
         Permissions function_permissions_;
         Views function_views_;
+        Filters function_filters_;
         Read struct_read_;
         ReadSpecific struct_read_specific_;
         Add struct_add_;
