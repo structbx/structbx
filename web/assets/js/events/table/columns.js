@@ -10,6 +10,7 @@ class Columns
     constructor()
     {
         this.Clear_();
+        this.columns = []
     }
 
     Clear_()
@@ -61,6 +62,7 @@ class Columns
             {
                 let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
 
+                this.columns.push({identifier: row.id, name: row.name, icon: table_icon});
                 return `
                     <div column-id="${row.id}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
                         <span class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
@@ -73,6 +75,8 @@ class Columns
                     </div>
                 `;
             });
+
+            filtersObject.Read_();
         });
     }
 

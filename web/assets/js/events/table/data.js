@@ -152,7 +152,6 @@ class Data
 
         // Loop in columns
         let key = 0;
-        console.log(response_data.body.columns)
         for(let column of response_data.body.columns)
         {
             if(column.includes("_structbx_column") || column == "id")

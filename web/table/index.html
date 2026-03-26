@@ -78,7 +78,7 @@
                                                     Crear nueva vista
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"></div>
+                                                <div class="contents"><span class="text-muted p-2">No hay vistas</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -97,7 +97,7 @@
                                                     Nueva columna
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"></div>
+                                                <div class="contents"><span class="text-muted p-2">No hay columnas</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -111,9 +111,20 @@
                                 <!-- Filters Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
-                                        <a class="btn btn-sm btn-dark-shadow data_filter">
+                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                             <i class="fas fa-filter"></i>
-                                        </a>
+                                        </button>
+                                        <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
+                                            <div id="component_filters_read">
+                                                <div class="notifications"></div>
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                    <i class="fas fa-plus me-2"></i>
+                                                    Agregar filtro
+                                                </div>
+                                                <hr class="dropdown-divider">
+                                                <div class="contents"><span class="text-muted p-2">No hay filtros</span></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- More Options -->
@@ -519,69 +530,6 @@
                         </div>
                         <!-- /Data: Delete -->
 
-                        <!-- Data: Filter -->
-                        <div id="component_data_filter" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_data_filter_label" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <form class="modal-content" novalidate>
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_filter_label">
-                                            <i class="fas fa-filter"></i>Filtros
-                                        </h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-
-                                        <div class="notifications"></div>
-                                        <div class="d-flex">
-                                            <h3 class="flex-grow-1">Condiciones</h3>
-                                            <button class="btn btn-dark-shadow add_condition"><i class="fas fa-plus"></i></button>
-                                        </div>
-                                        <table id="component_data_filter_conditions" class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th scope="col">Columna</th>
-                                                    <th scope="col">Condici&oacute;n</th>
-                                                    <th scope="col">Valor</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                            </tbody>
-                                        </table>
-
-                                        <div class="mt-4 d-flex">
-                                            <h3 class="flex-grow-1">Ordenamiento</h3>
-                                            <button class="btn btn-dark-shadow add_order"><i class="fas fa-plus"></i></button>
-                                        </div>
-                                        <table id="component_data_filter_order" class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th scope="col">Columna</th>
-                                                    <th scope="col">Orden</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger me-auto reset_filters" data-bs-dismiss="modal">
-                                            <i class="fas fa-times me-2"></i>Resetear filtros
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cerrar
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save me-2"></i>Aplicar filtros
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <!-- /Data: Filter -->
-
                         <!-- Data: Import data -->
                         <div id="component_data_import" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_data_import_label" aria-hidden="true">
                             <div class="modal-dialog">
@@ -833,7 +781,6 @@
             <script src="/assets/js/classes/tools.js"></script>
             <script src="/assets/js/classes/table_elements.js"></script>
             <script src="/assets/js/classes/response_manager.js"></script>
-            <script src="/assets/js/classes/filter_type.js"></script>
             <script src="/assets/js/classes/csv_reader.js"></script>
             <script src="/assets/js/classes/component.js"></script>
 
