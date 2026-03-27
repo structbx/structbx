@@ -75,7 +75,7 @@ class Filters
         });
     }
     
-    GetFilterElement_()
+    GetFilterElement_(type = "modify")
     {
         let options = '';
         for(let option of new FilterType().array)
@@ -83,22 +83,23 @@ class Filters
             options += `<option value="${option.value}">${option.title}</option>`;
         }
         return $(`
-            <div class="input-group ui-state-default">
+            <div class="input-group ui-state-default mb-2">
                 <a class="btn me-2"><i class="fas fa-sort"></i></a>
                 <select class="form-select" name="column" required></select>
                 <select class="form-select" name="op" required>
                     ${options}
                 </select>
                 <input type="text" class="form-control" name="value" placeholder="value" required/>
-                <button type="button" class="btn me-2"><i class="fas fa-trash"></i></button>
+                <button type="button" class="btn btn-sm btn-dark-shadow ${type}"><i class="fas fa-${type=="modify" ? "pen" : "save"}"></i></button>
+                <button type="button" class="btn btn-sm btn-dark-shadow me-2 delete"><i class="fas fa-trash"></i></button>
             </div>
         `);
     }
 
-    SetupNewFilterElement_(column = undefined, op = undefined, value = undefined)
+    SetupNewFilterElement_(column = undefined, op = undefined, value = undefined, type="modify")
     {
         // Create filter
-        let filter = this.GetFilterElement_()
+        let filter = this.GetFilterElement_(type)
 
         // Setup row 'columns'
         for(let column of columnsObject.columns)
@@ -122,6 +123,49 @@ class Filters
         $('#component_filters_read .contents').append(filter);
     }
 
+    Add_(e)
+    {
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        // Get table identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+        {
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
+        {
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+            return;
+        }
+
+        const parent = $(e.currentTarget).parent();
+        const column_identifier = parent.find('select[name=column]');
+        const operator = parent.find('select[name=op]');
+        const value = parent.find('input[name=value]');
+        
+        // Data collection
+        const data = new FormData();
+        data.append('table-identifier', table_identifier);
+        data.append('view-identifier', view_identifier);
+        data.append('column-identifier', column_identifier.val());
+        data.append('op', operator.val());
+        data.append('value', value.val());
+
+        // Request
+        new wtools.Request(server_config.current.api + "/tables/filters/add", "POST", data, false).Exec_((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+        });
+    }
 
     //data_read_columns = [];
 
@@ -322,10 +366,16 @@ $(function()
     }
     $('.filters_read').click(e => show_filter_modal(e));
 
-    $('#component_data_filter .add').click(e => 
+    $('#component_filters_read .add').click(e => 
     {
         e.preventDefault();
-        filtersObject.SetupNewFilterElement_();
+        filtersObject.SetupNewFilterElement_(undefined, undefined, undefined, type="save");
+    });
+
+    $(document).on('click', '#component_filters_read .save', e => 
+    {
+        e.preventDefault();
+        filtersObject.Add_(e);
     });
 
     // Setup filters tables
