@@ -70,7 +70,7 @@ class Filters
 
             for(let filter of response_data.body.data)
             {
-                this.SetupNewFilterElement_(filter.id_column, filter.op, filter.value);
+                this.SetupNewFilterElement_(filter.identifier, filter.id_column, filter.op, filter.value);
             }
         });
     }
@@ -96,7 +96,7 @@ class Filters
         `);
     }
 
-    SetupNewFilterElement_(column = undefined, op = undefined, value = undefined, type="modify")
+    SetupNewFilterElement_(identifier = undefined, column = undefined, op = undefined, value = undefined, type="modify")
     {
         // Create filter
         let filter = this.GetFilterElement_(type)
@@ -105,6 +105,10 @@ class Filters
         for(let column of columnsObject.columns)
         {
             $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))
+        }
+        if(identifier != undefined)
+        {
+            $(filter).attr('filter-identifier', identifier);
         }
         if(column != undefined)
         {
@@ -164,9 +168,64 @@ class Filters
             const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: A&ntilde;adir');
             if(!result.Verify_())
                 return;
+
+            this.Read_();
         });
     }
 
+    Modify_(e)
+    {
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        // Get filter identifier from the parent element
+        const filter_element = $(e.currentTarget).parent();
+        const filter_identifier = filter_element.attr('filter-identifier');
+        if(filter_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            return;
+        }
+
+        // Get table identifier
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+            return;
+        }
+
+        // Get current values from the filter element
+        const column_identifier = filter_element.find('select[name=column]').val();
+        const operator = filter_element.find('select[name=op]').val();
+        const value = filter_element.find('input[name=value]').val();
+
+        // Data collection
+        const data = new FormData();
+        data.append('identifier', filter_identifier);
+        data.append('table-identifier', table_identifier);
+        data.append('view-identifier', view_identifier);
+        data.append('column-identifier', column_identifier);
+        data.append('op', operator);
+        data.append('value', value);
+
+        // Request
+        new wtools.Request(server_config.current.api + "/tables/filters/modify", "PUT", data, false).Exec_((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
+            if(!result.Verify_())
+                return;
+
+            this.Read_();
+        });
+    }
     //data_read_columns = [];
 
     /*
@@ -369,13 +428,19 @@ $(function()
     $('#component_filters_read .add').click(e => 
     {
         e.preventDefault();
-        filtersObject.SetupNewFilterElement_(undefined, undefined, undefined, type="save");
+        filtersObject.SetupNewFilterElement_(undefined, undefined, undefined, undefined, type="save");
     });
 
     $(document).on('click', '#component_filters_read .save', e => 
     {
         e.preventDefault();
         filtersObject.Add_(e);
+    });
+
+    $(document).on('click', '#component_filters_read .modify', e => 
+    {
+        e.preventDefault();
+        filtersObject.Modify_(e);
     });
 
     // Setup filters tables

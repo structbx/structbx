@@ -222,6 +222,10 @@ Filters::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/modify", HTTP::EnumMethods::kHTTP_PUT);
 
+    // Action 1: Update the filter
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
     get_functions()->push_back(function);
 }
 
@@ -230,7 +234,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE views_filters " \
         "SET id_column = ?, op = ?, value = ? " \
-        "WHERE identifier = ? AND v.identifier"
+        "WHERE identifier = ? AND id_view = ?"
     );
 
     action->AddParameter_("column-identifier", "", true)
