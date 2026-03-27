@@ -88,11 +88,11 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         }
 
         // Get new position
-        auto position = action1->get_results()->First_();
+        auto position = action2->get_results()->First_();
         int new_position = 10;
-        if(!position->IsNull_())
+        if(action2->get_results()->size() > 0 && !position->IsNull_())
         {
-            new_position = position->Int_() + 10;
+            new_position = position->Float_() + 10;
         }
         action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position)), "position");
 
@@ -188,7 +188,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
 void Filters::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT MAX(vc.position) + 10 AS position " \
+        "SELECT MAX(vc.position) AS position " \
         "FROM views_filters vc " \
         "JOIN views v ON v.identifier = vc.id_view "
         "WHERE vc.id_view = ? AND v.id_table = ? "
@@ -380,7 +380,7 @@ void Filters::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
 void Filters::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "UPDATE views_columns "
+        "UPDATE views_filters "
         "SET position = ? "
         "WHERE identifier = ? AND id_view = ? "
     );
