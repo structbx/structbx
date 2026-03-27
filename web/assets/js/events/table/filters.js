@@ -149,17 +149,24 @@ class Filters
         }
 
         const parent = $(e.currentTarget).parent();
-        const column_identifier = parent.find('select[name=column]');
-        const operator = parent.find('select[name=op]');
-        const value = parent.find('input[name=value]');
+        const column_identifier = parent.find('select[name=column]').val();
+        const operator = parent.find('select[name=op]').val();
+        const value = parent.find('input[name=value]').val();
+
+        // Validate inputs
+        if (column_identifier === "" || operator === "" || value === "")
+        {
+            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            return;
+        }
         
         // Data collection
         const data = new FormData();
         data.append('table-identifier', table_identifier);
         data.append('view-identifier', view_identifier);
-        data.append('column-identifier', column_identifier.val());
-        data.append('op', operator.val());
-        data.append('value', value.val());
+        data.append('column-identifier', column_identifier);
+        data.append('op', operator);
+        data.append('value', value);
 
         // Request
         new wtools.Request(server_config.current.api + "/tables/filters/add", "POST", data, false).Exec_((response_data) =>
@@ -206,6 +213,13 @@ class Filters
         const operator = filter_element.find('select[name=op]').val();
         const value = filter_element.find('input[name=value]').val();
 
+        // Validate inputs
+        if (column_identifier === "" || operator === "" || value === "")
+        {
+            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            return;
+        }
+        
         // Data collection
         const data = new FormData();
         data.append('identifier', filter_identifier);
