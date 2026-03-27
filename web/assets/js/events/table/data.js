@@ -193,16 +193,6 @@ class Data
         if(table_identifier == undefined)
             return "";
 
-        // Get conditions
-        let conditions = ""
-        if(wtools.GetUrlSearchParam('conditions') != undefined)
-            conditions = `&conditions=${wtools.GetUrlSearchParam('conditions')}`;
-
-        // Get order
-        let order = ""
-        if(wtools.GetUrlSearchParam('order') != undefined)
-            order = `&order=${wtools.GetUrlSearchParam('order')}`;
-
         // Path request
         let path = "";
         if(reload)
@@ -215,14 +205,14 @@ class Data
 
             // Setup path
             if(this.data_read_limit < 20)
-                path = `?table-identifier=${table_identifier}&limit=20${conditions}${order}`;
+                path = `?table-identifier=${table_identifier}&limit=20`;
             else
-                path = `?table-identifier=${table_identifier}&limit=${this.data_read_limit}${conditions}${order}`;
+                path = `?table-identifier=${table_identifier}&limit=${this.data_read_limit}`;
         }
         else
         {
             // Setup path
-            path = `?table-identifier=${table_identifier}&page=${this.data_read_page}${conditions}${order}`;
+            path = `?table-identifier=${table_identifier}&page=${this.data_read_page}`;
         }
         return path;
     }
