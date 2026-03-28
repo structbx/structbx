@@ -65,9 +65,9 @@ class Columns
                 this.columns.push({identifier: row.id, name: row.name, icon: table_icon});
                 return `
                     <div column-id="${row.id}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <span class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
+                        <a column-id="${row.id}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
                             <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
-                        </span>
+                        </a>
                         <div class="form-check form-switch pe-4">
                             <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-id="${row.id}" column-name="${row.name}">
                             <label class="form-check-label"><i class="fas fa-eye"></i></label>

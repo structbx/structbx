@@ -277,18 +277,6 @@
                                                         </select>
                                                     </td>
                                                 </tr>
-                                                <tr>
-                                                    <th scope="row">Posici&oacute;n</th>
-                                                    <td>
-                                                        <input type="number" class="form-control" name="position" required>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Descripcion</th>
-                                                    <td>
-                                                        <textarea class="form-control" name="description"></textarea>
-                                                    </td>
-                                                </tr>
                                             </tbody>
                                         </table>
                                         <div class="my-2">
@@ -299,6 +287,18 @@
                                         <div class="collapse" id="component_columns_add_avanced">
                                             <table class="table">
                                                 <tbody>
+                                                    <tr>
+                                                        <th scope="row">Posici&oacute;n</th>
+                                                        <td>
+                                                            <input type="number" class="form-control" name="position" required>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Descripcion</th>
+                                                        <td>
+                                                            <textarea class="form-control" name="description"></textarea>
+                                                        </td>
+                                                    </tr>
                                                     <tr>
                                                         <th scope="row">Obligatorio</th>
                                                         <td>
@@ -359,7 +359,7 @@
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="id" required>
-                                        <p>Seguro desea eliminar la columna ID <strong class="name"></strong></p>
+                                        <p>Seguro desea eliminar la columna <strong class="name"></strong></p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
