@@ -25,9 +25,9 @@ class Filters
         
     }
 
-    Clear_()
+    Clear_(default_content = false)
     {
-        $(`${component_filters_read.identifier} .contents`).html('');
+        $(`${component_filters_read.identifier} .contents`).html(default_content ? '<span class="text-muted p-2">No hay filtros</span>' : '');
     }
 
     Read_()
@@ -61,12 +61,15 @@ class Filters
 
             // Handle zero results
             if(response_data.body.data.length < 1)
+            {
+                this.Clear_(true);
                 return;
+            }
 
             // Results elements creator
             wait.Off_();
             $(target.notifications).html('');
-            $(`${target.identifier} .contents`).html('');
+            this.Clear_();
 
             for(let filter of response_data.body.data)
             {
@@ -240,6 +243,40 @@ class Filters
             this.Read_();
         });
     }
+
+    Delete_(e)
+    {
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        // Get filter identifier from the parent element
+        const filter_element = $(e.currentTarget).parent();
+        const filter_identifier = filter_element.attr('filter-identifier');
+        if(filter_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            return;
+        }
+
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+            return;
+        }
+
+        // Request
+        const path = `/tables/filters/delete?identifier=${filter_identifier}&view-identifier=${view_identifier}`;
+        new wtools.Request(server_config.current.api + path, "DEL").Exec_((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
+            if(!result.Verify_())
+                return;
+
+            this.Read_();
+        });
+    }
 }
 
 var filtersObject = new Filters();
@@ -259,6 +296,7 @@ $(function()
     $('#component_filters_read .add').click(e => 
     {
         e.preventDefault();
+        filtersObject.Clear_();
         filtersObject.SetupNewFilterElement_(undefined, undefined, undefined, undefined, type="save");
     });
 
@@ -272,6 +310,12 @@ $(function()
     {
         e.preventDefault();
         filtersObject.Modify_(e);
+    });
+
+    $(document).on('click', '#component_filters_read .delete', e => 
+    {
+        e.preventDefault();
+        filtersObject.Delete_(e);
     });
 
     // Sort filters position in view

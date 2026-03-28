@@ -463,8 +463,6 @@ Filters::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/delete", HTTP::EnumMethods::kHTTP_DEL);
 
-    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
-
     // Action 1: Delete filter
     auto action1 = function->AddAction_("a1");
     A1(action1);
