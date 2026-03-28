@@ -767,7 +767,6 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("id_database", get_database_id(), false);
 }
-
 Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/columns/position/modify
@@ -787,6 +786,19 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     // Setup Custom Process
     function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
     {
+        // Get columnPrev and columnNext parameters
+        auto column_prev_param = self.GetParameter_("columnPrev");
+        auto column_next_param = self.GetParameter_("columnNext");
+        
+        // Validate that both parameters are not null at the same time
+        if(column_prev_param == self.get_parameters().end() && 
+           column_next_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, 
+                              "Error: Both columnPrev and columnNext cannot be null");
+            return;
+        }
+
         // Execute actions
         if(!action1->Work_())
         {
@@ -802,7 +814,28 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
             return;
         }
 
-        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position->ToString_())), "position");
+        // Calculate new_position_float based on the parameters
+        float new_position_float = 0.0;
+        
+        if(column_prev_param == self.get_parameters().end())
+        {
+            // columnNext is null, use /2 logic
+            new_position_float = new_position->Float_() / 2.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else if(column_next_param == self.get_parameters().end())
+        {
+            // columnPrev is null, use +5 logic
+            new_position_float = new_position->Float_() + 5.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else
+        {
+            action2->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(new_position->ToString_())), "position");
+        }
+
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
@@ -823,26 +856,8 @@ void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
         "WHERE vc.id_column IN (?, ?) AND vc.id_view = ? "
     );
 
-    action->AddParameter_("columnPrev", "", true)
-    ->SetupCondition_("condition-columnPrev", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("La columna previa no puede estar vacía");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("columnNext", "", true)
-    ->SetupCondition_("condition-columnNext", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("La columna siguiente no puede estar vacía");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("columnPrev", "", true);
+    action->AddParameter_("columnNext", "", true);
     action->AddParameter_("view-identifier", "", true)
     ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {

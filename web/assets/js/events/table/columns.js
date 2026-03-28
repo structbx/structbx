@@ -414,8 +414,10 @@ $(function()
             const new_data = new FormData();
             new_data.append('view-identifier', view_identifier);
             new_data.append('id', element);
-            new_data.append('columnPrev', columnPrev);
-            new_data.append('columnNext', columnNext);
+            if(columnPrev != undefined)
+                new_data.append('columnPrev', columnPrev);
+            if(columnNext != undefined)
+                new_data.append('columnNext', columnNext);
 
             // Request
             new wtools.Request(server_config.current.api + "/tables/columns/position/modify", "PUT", new_data, false).Exec_((response_data) =>

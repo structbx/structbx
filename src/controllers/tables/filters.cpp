@@ -35,7 +35,7 @@ void Filters::Read::A1(StructBX::Functions::Action::Ptr action)
         "FROM views_filters vf " \
         "JOIN views v ON v.identifier = vf.id_view " \
         "JOIN tables f ON f.identifier = v.id_table " \
-        "WHERE v.identifier = ? AND f.identifier = ? "
+        "WHERE v.identifier = ? AND f.identifier = ? ORDER BY vf.position ASC"
     );
 
     action->AddParameter_("view-identifier", "", true)
@@ -309,22 +309,54 @@ Filters::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     // Setup Custom Process
     function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
     {
+        // Get filterPrev and filterNext parameters
+        auto filter_prev_param = self.GetParameter_("filterPrev");
+        auto filter_next_param = self.GetParameter_("filterNext");
+        
+        // Validate that both parameters are not null at the same time
+        if(filter_prev_param == self.get_parameters().end() && 
+           filter_next_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, 
+                              "Error: Both filterPrev and filterNext cannot be null");
+            return;
+        }
+
         // Execute actions
         if(!action1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
-
-        // Get new position
         auto new_position = action1->get_results()->First_();
         if(new_position->IsNull_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición del filtro");
             return;
         }
+        
+        // Calculate new_position_float based on the parameters
+        float new_position_float = 0.0;
+        
+        if(filter_prev_param == self.get_parameters().end())
+        {
+            // filterNext is null, use /2 logic
+            new_position_float = new_position->Float_() / 2.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else if(filter_next_param == self.get_parameters().end())
+        {
+            // filterPrev is null, use +5 logic
+            new_position_float = new_position->Float_() + 5.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else
+        {
+            action2->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(new_position->ToString_())), "position");
+        }
 
-        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position->ToString_())), "position");
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
@@ -345,26 +377,8 @@ void Filters::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
         "WHERE vc.identifier IN (?, ?) AND vc.id_view = ? "
     );
 
-    action->AddParameter_("filterPrev", "", true)
-    ->SetupCondition_("condition-filterPrev", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El filtro previo no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("filterNext", "", true)
-    ->SetupCondition_("condition-filterNext", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El filtro siguiente no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("filterPrev", "", true);
+    action->AddParameter_("filterNext", "", true);
     action->AddParameter_("view-identifier", "", true)
     ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
