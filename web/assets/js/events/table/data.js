@@ -100,71 +100,86 @@ class Data
     {
         let elements = [];
 
-        // Basic <td> row
+        // Basic <td> row - creates a standard text cell with no special formatting.
         const basic_row = (row, column, link_color = undefined) =>
         {
+            // Get the header value from the row object using the specified column name.
             let header = row[column];
+            
+            // If a specific link color is provided and not an empty string, apply it to the header.
             if(link_color != undefined && link_color != "")
-            {
                 header = getHeaderColor(link_color, row[column]);
-            }
+
+            // Append the formatted header cell to the elements array.
             elements.push(`<td class="bg-white" scope="row">${header}</td>`);
         };
-        // header <td> row
+
+        // Header <td> row - creates a cell with styled text and color based on metadata.
         const header_row = (row, column) =>
         {
+            // Create a span element for the header.
             let header = `<span class="row-header">${row[column]}</span>`;
+            
+            // If there's specific color metadata for this column, apply it to the header.
             if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
-            {
                 header = getHeaderColor(row["_structbx_column_colorHeader"], row[column]);
-            }
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`)
+
+            // Append the styled header cell to the elements array.
+            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
         };
-        // User <td> row
+
+        // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
         const user_row = (row, column) =>
         {
+            // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
             if(this.users_in_database[row[column]] != undefined)
                 elements.push(`<td class="bg-white" scope="row">${this.users_in_database[row[column]]}</td>`);
             else
                 elements.push(`<td class="bg-white" scope="row">${row[column]}</td>`);
         };
-        // Image <td> row
+
+        // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
         const image_row = (row, column) =>
         {
+            // Construct the URL for the image file and append it to the elements array.
             elements.push(`<td class="bg-white" scope="row"><img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${GetTableIdentifier()}" alt="${column}" width="100px"></td>`);
         };
-        // File <td> row
+
+        // File <td> row - creates a cell with truncated text for files longer than 10 characters.
         const file_row = (row, column) =>
         {
+            // If the file length exceeds 10 characters, truncate it and append to the elements array.
             if(row[column].length > 10)
             {
-                // Setup text less than 10 characters
                 let new_content = "";
                 let max = row[column].length - 1;
                 for(let i = max; i > max - 10; i--)
                     new_content = row[column][i] + new_content;
-                    
+
                 elements.push(`<td class="bg-white" scope="row">...${new_content}</td>`);
             }
             else
+                // Otherwise, create a basic row with the file name.
                 basic_row(row, column);
         };
 
-        // Loop in columns
+        // Loop through each column in the response_data.body.columns array.
         let key = 0;
         for(let column of response_data.body.columns)
         {
+            // Skip columns that start with "_structbx_column_" or are named "id".
             if(column.includes("_structbx_column") || column == "id")
                 continue;
 
-            // Setup columns meta
+            // Get the metadata for this column from response_data.body.columns_meta.data.
             let column_meta = response_data.body.columns_meta.data[key];
 
+            // If there's metadata and a value exists for this column, process it based on its type.
             if(column_meta != undefined && row[column] != "")
             {
                 let link_color = row[`_structbx_column_${column_meta.id}_colorHeader`];
 
-                // Verify column type
+                // Determine the appropriate function to create the cell based on the column type.
                 if(column_meta.column_type == "image")
                     image_row(row, column);
                 else if(column_meta.column_type == "file")
@@ -177,12 +192,13 @@ class Data
                     basic_row(row, column, link_color);
             }
             else
+                // If no metadata or the value is empty, create a basic row.
                 basic_row(row, column);
 
             key++;
         }
 
-        // Return <td> rows in array
+        // Return the array of formatted <td> cells.
         return elements;
     }
 
