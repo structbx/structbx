@@ -1,5 +1,6 @@
 
 #include "controllers/tables/columns.h"
+#include "tools/dvalue.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -10,6 +11,8 @@ Columns::Columns(Tools::FunctionData& function_data) :
     ,struct_read_types_(function_data)
     ,struct_add_(function_data)
     ,struct_modify_(function_data)
+    ,struct_modify_position_(function_data)
+    ,struct_modify_visible_(function_data)
     ,struct_delete_(function_data)
 {
     
@@ -21,9 +24,66 @@ Columns::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fu
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Action 1: Get table id
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1](StructBX::Functions::Function& self)
+    {
+        // Get table IDENTIFIER
+        auto table_identifier = self.GetParameter_("table-identifier");
+        if(table_identifier == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "aNTa9tFRblfl");
+            return;
+        }
+
+        // Get View Identifier
+        auto view_identifier = self.GetParameter_("view-identifier");
+        if(view_identifier != self.get_parameters().end())
+        {
+            action1->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier");
+        }
+        else
+        {
+            // Get first default view identifier of table
+            auto action = self.AddAction_("a1_1");
+            action->set_sql_code("SELECT identifier FROM views WHERE id_table = ?");
+            action->AddParameter_("table_identifier", table_identifier->get()->ToString_(), false);
+            if(!action->Work_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ihhpykmiuIJk");
+                return;
+            }
+            if(action->get_results()->size() < 1)
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "H8TyAt6zjSix");
+                return;
+            }
+            auto default_view_identifier = action->get_results()->begin()->get()->ExtractField_("identifier");
+            if(default_view_identifier->IsNull_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Dgv1JlwUFfxX");
+                return;
+            }
+            action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(default_view_identifier->ToString_())), "view-identifier");
+        }
+
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            return;
+        }
+
+        self.CompoundResponse_(HTTP::Status::kHTTP_OK, action1->get_json_result());
+
+    });
     get_functions()->push_back(function);
 }
 
@@ -34,12 +94,14 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
             "fc.*, fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
             ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
+            ",vc.visible AS visible " \
         "FROM tables_columns fc " \
         "JOIN tables f ON f.id = fc.id_table " \
         "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
+        "JOIN views_columns vc ON vc.id_column = fc.id " \
         "WHERE " \
-            "f.identifier = ? " \
-        "ORDER BY fc.position ASC"
+            "f.identifier = ? AND vc.id_view = ? " \
+        "ORDER BY vc.position ASC"
     );
 
     action->AddParameter_("table-identifier", "", true)
@@ -52,6 +114,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+    action->AddParameter_("view-identifier", "", false);
 }
 
 Columns::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -703,6 +766,174 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("id_database", get_database_id(), false);
+}
+Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/columns/position/modify
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/position/modify", HTTP::EnumMethods::kHTTP_PUT);
+
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Get new position
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    // Action 2: Modify position
+    auto action2 = function->AddAction_("a2");
+    A2(action2);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
+    {
+        // Get columnPrev and columnNext parameters
+        auto column_prev_param = self.GetParameter_("columnPrev");
+        auto column_next_param = self.GetParameter_("columnNext");
+        
+        // Validate that both parameters are not null at the same time
+        if(column_prev_param == self.get_parameters().end() && 
+           column_next_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, 
+                              "Error: Both columnPrev and columnNext cannot be null");
+            return;
+        }
+
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            return;
+        }
+
+        // Get new position
+        auto new_position = action1->get_results()->First_();
+        if(new_position->IsNull_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición de la columna");
+            return;
+        }
+
+        // Calculate new_position_float based on the parameters
+        float new_position_float = 0.0;
+        
+        if(column_prev_param == self.get_parameters().end())
+        {
+            // columnNext is null, use /2 logic
+            new_position_float = new_position->Float_() / 2.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else if(column_next_param == self.get_parameters().end())
+        {
+            // columnPrev is null, use +5 logic
+            new_position_float = new_position->Float_() + 5.0;
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+        }
+        else
+        {
+            action2->SetValueToParamater_(
+                Tools::DValue::Ptr(
+                    new Tools::DValue(new_position->ToString_())), "position");
+        }
+
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            return;
+        }
+
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "OK.");
+
+    });
+    get_functions()->push_back(function);
+}
+
+void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT AVG(vc.position) "
+        "FROM views_columns vc "
+        "WHERE vc.id_column IN (?, ?) AND vc.id_view = ? "
+    );
+
+    action->AddParameter_("columnPrev", "", true);
+    action->AddParameter_("columnNext", "", true);
+    action->AddParameter_("view-identifier", "", true)
+    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de la vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+}
+
+void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "UPDATE views_columns "
+        "SET position = ? "
+        "WHERE id_column = ? AND id_view = ? "
+    );
+
+    action->AddParameter_("position", "", false);
+    action->AddParameter_("id", "", true);
+    action->AddParameter_("view-identifier", "", true);
+}
+
+Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/tables/columns/visible/modify
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/visible/modify", HTTP::EnumMethods::kHTTP_PUT);
+
+    // Action 1: Set visible
+    auto action1 = function->AddAction_("a1");
+    A1(action1);
+
+    get_functions()->push_back(function);
+}
+
+void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "UPDATE views_columns "
+        "SET visible = ? "
+        "WHERE id_column = ? AND id_view = ? "
+    );
+
+    action->AddParameter_("visible", "", true)
+    ->SetupCondition_("condition-visible", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El parámetro visible  no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("id", "", true)
+    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("La columna no puede estar vacía");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("view-identifier", "", true)
+    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de la vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
 }
 
 Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

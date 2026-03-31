@@ -134,6 +134,7 @@ $(function ()
             {
                 $('#component_sidebar_tables_tabs .tab-scroller').append(`
                     <div class="tab ${row.identifier == table_identifier ? "active" : ""}" id="${row.identifier}" table-identifier="${row.identifier}">
+                        <i class="fas fa-table me-2"></i>
                         <span class="tab-title">${row.name}</span>
                     </div>
                 `);
@@ -177,4 +178,30 @@ $(function ()
     });
     
     hide_elements_without_permission();
+
+    // Click on TABLE (tab)
+    $(document).on('click', '#component_sidebar_tables_tabs .tab-scroller .tab', (e) =>
+    {
+        e.preventDefault();
+
+        // Get Form identifier
+        const new_table_identifier = $(e.currentTarget).attr('table-identifier');
+
+        // Reset URL parameters and set new form identifier
+        const url = new URL(window.location.href);
+        url.searchParams.delete('v');
+        url.searchParams.set('identifier', new_table_identifier);
+        history.pushState({}, '', url.toString());
+
+        // Reset views
+        viewsObject.Read_();
+
+        // Read Table
+        objectTableGeneral.Read_();
+
+        // Set to active current tab
+        $('#component_sidebar_tables_tabs .tab').removeClass('active');
+        $(e.currentTarget).addClass('active');
+    });
+    
 });

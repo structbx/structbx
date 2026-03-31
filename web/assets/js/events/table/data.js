@@ -72,9 +72,7 @@ class Data
 
     constructor()
     {
-        this.ReadUsersInDatabase_(() => this.Read_());
-        //setInterval(this.ChangeIntVerification_.bind(this), 5000);
-
+        this.Clear_();
         this.colorSelectAdd.AddOption_('', '-- Ninguno --');
         this.colorSelectModify.AddOption_('', '-- Ninguno --');
         this.colorsSelect.forEach(colorOption => {
@@ -85,93 +83,122 @@ class Data
         this.colorSelectModify.hiddenInput.attr('name', '_structbx_column_colorHeader');
     }
 
+    Clear_()
+    {
+        // Clear previous data
+        $('#component_data_read table thead tr').html("");
+        $('#component_data_read table tbody').html("");
+    }
+
+    Start_()
+    {
+        this.ReadUsersInDatabase_(() => this.Read_());
+        //setInterval(this.ChangeIntVerification_.bind(this), 5000);
+    }
+
     CreateRows_(response_data, row)
     {
         let elements = [];
 
-        // Basic <td> row
+        // Basic <td> row - creates a standard text cell with no special formatting.
         const basic_row = (row, column, link_color = undefined) =>
         {
+            // Get the header value from the row object using the specified column name.
             let header = row[column];
+            
+            // If a specific link color is provided and not an empty string, apply it to the header.
             if(link_color != undefined && link_color != "")
-            {
                 header = getHeaderColor(link_color, row[column]);
-            }
+
+            // Append the formatted header cell to the elements array.
             elements.push(`<td class="bg-white" scope="row">${header}</td>`);
         };
-        // header <td> row
+
+        // Header <td> row - creates a cell with styled text and color based on metadata.
         const header_row = (row, column) =>
         {
+            // Create a span element for the header.
             let header = `<span class="row-header">${row[column]}</span>`;
+            
+            // If there's specific color metadata for this column, apply it to the header.
             if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
-            {
                 header = getHeaderColor(row["_structbx_column_colorHeader"], row[column]);
-            }
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`)
+
+            // Append the styled header cell to the elements array.
+            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
         };
-        // User <td> row
+
+        // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
         const user_row = (row, column) =>
         {
+            // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
             if(this.users_in_database[row[column]] != undefined)
                 elements.push(`<td class="bg-white" scope="row">${this.users_in_database[row[column]]}</td>`);
             else
                 elements.push(`<td class="bg-white" scope="row">${row[column]}</td>`);
         };
-        // Image <td> row
+
+        // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
         const image_row = (row, column) =>
         {
+            // Construct the URL for the image file and append it to the elements array.
             elements.push(`<td class="bg-white" scope="row"><img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${GetTableIdentifier()}" alt="${column}" width="100px"></td>`);
         };
-        // File <td> row
+
+        // File <td> row - creates a cell with truncated text for files longer than 10 characters.
         const file_row = (row, column) =>
         {
+            // If the file length exceeds 10 characters, truncate it and append to the elements array.
             if(row[column].length > 10)
             {
-                // Setup text less than 10 characters
                 let new_content = "";
                 let max = row[column].length - 1;
                 for(let i = max; i > max - 10; i--)
                     new_content = row[column][i] + new_content;
-                    
+
                 elements.push(`<td class="bg-white" scope="row">...${new_content}</td>`);
             }
             else
+                // Otherwise, create a basic row with the file name.
                 basic_row(row, column);
         };
 
-        // Loop in columns
+        // Loop through each column in the response_data.body.columns array.
         let key = 0;
         for(let column of response_data.body.columns)
         {
-            if(column.includes("_structbx_column"))
+            // Skip columns that start with "_structbx_column_" or are named "id".
+            if(column.includes("_structbx_column") || column == "id")
                 continue;
 
-            // Setup columns meta
+            // Get the metadata for this column from response_data.body.columns_meta.data.
             let column_meta = response_data.body.columns_meta.data[key];
 
+            // If there's metadata and a value exists for this column, process it based on its type.
             if(column_meta != undefined && row[column] != "")
             {
                 let link_color = row[`_structbx_column_${column_meta.id}_colorHeader`];
 
-                // Verify column type
+                // Determine the appropriate function to create the cell based on the column type.
                 if(column_meta.column_type == "image")
                     image_row(row, column);
                 else if(column_meta.column_type == "file")
                     file_row(row, column);
                 else if(column_meta.column_type == "user" || column_meta.column_type == "current-user")
                     user_row(row, column);
-                else if(key == 1)
+                else if(key == 0)
                     header_row(row, column);
                 else
                     basic_row(row, column, link_color);
             }
             else
+                // If no metadata or the value is empty, create a basic row.
                 basic_row(row, column);
 
             key++;
         }
 
-        // Return <td> rows in array
+        // Return the array of formatted <td> cells.
         return elements;
     }
 
@@ -181,16 +208,6 @@ class Data
         const table_identifier = GetTableIdentifier();
         if(table_identifier == undefined)
             return "";
-
-        // Get conditions
-        let conditions = ""
-        if(wtools.GetUrlSearchParam('conditions') != undefined)
-            conditions = `&conditions=${wtools.GetUrlSearchParam('conditions')}`;
-
-        // Get order
-        let order = ""
-        if(wtools.GetUrlSearchParam('order') != undefined)
-            order = `&order=${wtools.GetUrlSearchParam('order')}`;
 
         // Path request
         let path = "";
@@ -204,14 +221,14 @@ class Data
 
             // Setup path
             if(this.data_read_limit < 20)
-                path = `?table-identifier=${table_identifier}&limit=20${conditions}${order}`;
+                path = `?table-identifier=${table_identifier}&limit=20`;
             else
-                path = `?table-identifier=${table_identifier}&limit=${this.data_read_limit}${conditions}${order}`;
+                path = `?table-identifier=${table_identifier}&limit=${this.data_read_limit}`;
         }
         else
         {
             // Setup path
-            path = `?table-identifier=${table_identifier}&page=${this.data_read_page}${conditions}${order}`;
+            path = `?table-identifier=${table_identifier}&page=${this.data_read_page}`;
         }
         return path;
     }
@@ -255,6 +272,14 @@ class Data
                 return "";
             }
 
+            // Get View identifier
+            const view_identifier = wtools.GetUrlSearchParam('v');
+            if(view_identifier == undefined)
+            {
+                this.FreeMutex_();
+                return "";
+            }
+
             // Get path
             const path = this.GetPath_(reload);
             if(path == "")
@@ -267,7 +292,7 @@ class Data
             let wait = new wtools.ElementState('#component_data_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
             // Request
-            new wtools.Request(server_config.current.api + `/tables/data/read${path}`).Exec_((response_data) =>
+            new wtools.Request(server_config.current.api + `/tables/data/read${path}&view-identifier=${view_identifier}`).Exec_((response_data) =>
             {
                 // Get data
                 let data = this.GetBodyData_(response_data);
@@ -293,20 +318,26 @@ class Data
                     let it = 0;
 
                     // Setup columns meta
-                    new wtools.UIElementsCreator('#component_data_read table thead tr', keys).Build_((row) =>
+                    new wtools.UIElementsCreator('#component_data_read table thead tr', keys).Build_((column) =>
                     {
+                        if(column.identifier == "id")
+                            return undefined;
+
+                        if(column.visible == 0)
+                            return undefined;
+
                         // Setup columns and icon
-                        let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, "text"), row, table_identifier);
+                        let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, "text"), column, table_identifier);
                         let table_icon = table_element_object.GetIcon_(false);
 
                         // Add column to array
-                        this.data_read_columns.push({id: row.id, identifier: row.identifier, name: row.name});
+                        this.data_read_columns.push({id: column.id, identifier: column.identifier, name: column.name});
 
                         it++;
                         
                         return [`
-                            <th scope="col" class="user-select-none position-relative" data-col="${row.id}">
-                                <span>${table_icon}${row.name}</span>
+                            <th scope="col" class="user-select-none position-relative" data-col="${column.id}">
+                                <span>${table_icon}${column.name}</span>
                                 <div class="resize-handle"></div>
                             </th>
                         `];
@@ -326,10 +357,10 @@ class Data
                     });
 
                     // If there is less than 5 columns, add empty column
-                    /*if(it < 5)
+                    if(it < 5)
                     {
                         $('#component_data_read table thead tr').append($(`<th scope="col"  class="user-select-none" style="width: 50%;background: #f3f3f3;border-top:none !important;"></th>`));
-                    }*/
+                    }
                 }
 
                 // Verify if results is lower than limit
@@ -352,8 +383,9 @@ class Data
                 new wtools.UIElementsCreator('#component_data_read table tbody', data).Build_((row) =>
                 {
                     // Create rows
+                    //console.log(row)
                     const elements = this.CreateRows_(response_data, row);
-                    return new wtools.UIElementsPackage(`<tr id="row_${row.ID}" record-id="${row.ID}"></tr>`, elements).Pack_();
+                    return new wtools.UIElementsPackage(`<tr id="row_${row.id}" record-id="${row.id}"></tr>`, elements).Pack_();
                 });
 
                 // Next page if not reload
@@ -919,40 +951,6 @@ $(function()
         dataObject.ReadDataColumns_();
     });
 
-    // Click on new tab
-    $(document).on('click', '#component_sidebar_tables_tabs .tab-scroller .tab', (e) =>
-    {
-        e.preventDefault();
-
-        // Get Form identifier
-        const new_table_identifier = $(e.currentTarget).attr('table-identifier');
-
-        // Reset URL parameters and set new form identifier
-        const url = new URL(window.location.href);
-        url.searchParams.delete('conditions');
-        url.searchParams.delete('order');
-        url.searchParams.delete('view');
-        url.searchParams.set('identifier', new_table_identifier);
-        history.pushState({}, '', url.toString());
-
-        // Clear previous data
-        $('#component_data_read table thead tr').html("");
-        $('#component_data_read table tbody').html("");
-
-        // New data object
-        dataObject = new Data();
-
-        // Reset views
-        viewsObject.Read_();
-
-        // Read Form
-        objectTableGeneral.Read_();
-
-        // Set to active current tab
-        $('#component_sidebar_tables_tabs .tab').removeClass('active');
-        $(e.currentTarget).addClass('active');
-    });
-    
     // Add record
     $('#component_data_add form').submit((e) =>
     {

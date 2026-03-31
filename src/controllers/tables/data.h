@@ -10,6 +10,7 @@
 #include <functions/function.h>
 #include <query/field.h>
 #include <query/results.h>
+#include "controllers/tables/filters.h"
 
 namespace StructBX
 {
@@ -122,6 +123,12 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         };
         struct Read : public Tools::FunctionData
         {
+            struct GetFilters
+            {
+                GetFilters(){}
+                void Get(Functions::Function& self, std::string& conditions, std::string view_identifier) const;
+            };
+
             Read(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
