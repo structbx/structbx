@@ -34,5 +34,5 @@ StructBX is a full-stack data management platform.
 
 ## 6. Git Workflow
 - **Branching:** Use `iss[number]` for features/fixes. Merge into `dev` via Pull Request.
-- **Commits:** Use "Squash and Merge" for clean history in the `dev` branch.
+- **Commits:** Use commit message `[feat, chore, doc, etc]: Commit title \n Commit message \nRel: iss[issueNumber]`
 - **Versioning:** Follow Semantic Versioning (Major.Minor.Patch).
