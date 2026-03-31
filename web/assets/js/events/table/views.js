@@ -109,6 +109,7 @@ class Views
             dataObject = new Data();
             dataObject.Start_();
             columnsObject.Read_();
+            filtersObject.Read_();
         });
     }
 

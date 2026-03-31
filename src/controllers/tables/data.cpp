@@ -249,6 +249,79 @@ void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::P
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
+void Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string& conditions, std::string view_identifier) const
+{
+    // 1. Declaration
+    auto get_filters_action = self.AddAction_("get_view_filters");
+
+    // 2. SQL Setup
+    get_filters_action->set_sql_code(
+        "SELECT id_column, op, value FROM views_filters "
+        "WHERE id_view = ? AND is_active = 1 "
+        "ORDER BY position ASC"
+    );
+
+    // 3. Parameters
+    get_filters_action->AddParameter_("view_identifier", view_identifier, false);
+
+    // 4. Execution
+    if (!get_filters_action->Work_())
+    {
+        Tools::OutputLogger::Error_("Error to get filters");
+        return;
+    }
+
+    // 5. Validation
+    auto results = get_filters_action->get_results();
+    if (results->size() < 1)
+    {
+        // No filters found - set empty condition
+        conditions = "";
+        return;
+    }
+
+    // 6. Result Extraction and condition building
+    bool first_condition = true;
+    conditions = " WHERE ";
+
+    for (const auto& row : *results)
+    {
+        auto id_column = row->ExtractField_("id_column")->ToString_();
+        auto op = row->ExtractField_("op")->ToString_();
+        auto value = row->ExtractField_("value")->ToString_();
+
+        // Validate operator to prevent SQL injection
+        if (valid_filters_ops.find(op) == valid_filters_ops.end())
+            op = "=";
+
+        // Build condition
+        if (!first_condition)
+            conditions += " AND ";
+
+        // Handle special operators
+        if (op == "IS NULL" || op == "IS NOT NULL")
+        {
+            conditions += "_structbx_column_" + id_column + " " + op;
+        }
+        else if (op == "IN" || op == "NOT IN")
+        {
+            // Assuming value contains comma-separated list
+            conditions += "_structbx_column_" + id_column + " " + op + " (" + value + ")";
+        }
+        else if (op == "LIKE" || op == "NOT LIKE")
+        {
+            conditions += "_structbx_column_" + id_column + " " + op + " '%" + value + "%'";
+        }
+        else
+        {
+            // For =, !=, <, >, <=, >=, LIKE, NOT LIKE
+            conditions += "_structbx_column_" + id_column + " " + op + " '" + value + "'";
+        }
+
+        first_condition = false;
+    }
+}
+
 Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/data/read
@@ -284,9 +357,11 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         }
 
         // Get View Identifier
+        std::string view_identifier_str = "";
         auto view_identifier = self.GetParameter_("view-identifier");
         if(view_identifier != self.get_parameters().end())
         {
+            view_identifier_str = view_identifier->get()->ToString_();
             action1->SetValueToParamater_(
                 Tools::DValue::Ptr(
                     new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier");
@@ -450,35 +525,20 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             return;
         }
 
-        // Get conditions
-        auto conditions = self.GetParameter_("conditions");
-        std::string condition_query = "";
-        if(conditions != self.get_parameters().end())
-        {
-            if(conditions->get()->ToString_() != "")
-            {
-                std::string conditions_decoded =  StructBX::Tools::Base64Tool().Decode_(conditions->get()->ToString_());
-                condition_query = " WHERE " + conditions_decoded;
-            }
-        }
+        // Get filters
+        std::string filters_query = "";
+        GetFilters get_filters;
+        get_filters.Get(self, filters_query, view_identifier_str);
         
         // Set record ID condition if specified
         auto record_id = self.GetParameter_("id");
         if(record_id != self.get_parameters().end() && record_id->get()->ToString_() != "")
         {
-            if(conditions != self.get_parameters().end())
-            {
-                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
-                if(condition_query == "")
-                    condition_query = " WHERE " + record_id_condition;
-                else
-                    condition_query += " AND " + record_id_condition;
-            }
+            std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
+            if(filters_query == "")
+                filters_query = " WHERE " + record_id_condition;
             else
-            {
-                std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
-                condition_query = " WHERE " + record_id_condition;
-            }
+                filters_query += " AND " + record_id_condition;
         }
 
         // Setup just owner
@@ -500,10 +560,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         if(is_just_owner == 1)
         {
             std::string just_owner_condition = "_" + table_identifier->get()->ToString_() + "._structbx_column_user_owner = " + std::to_string(self.get_current_user().get_id());
-            if(condition_query == "")
-                condition_query = " WHERE " + just_owner_condition;
+            if(filters_query == "")
+                filters_query = " WHERE " + just_owner_condition;
             else
-                condition_query += " AND " + just_owner_condition;
+                filters_query += " AND " + just_owner_condition;
         }
         // Setup color header
         columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
@@ -565,7 +625,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             sql_code += joins;
 
         // Conditions
-        sql_code += condition_query;
+        sql_code += filters_query;
 
         // Order
         sql_code += order_query;

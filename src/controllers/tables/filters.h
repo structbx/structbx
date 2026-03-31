@@ -2,6 +2,8 @@
 #ifndef STRUCTBX_CONTROLLERS_TABLES_FILTERS_H
 #define STRUCTBX_CONTROLLERS_TABLES_FILTERS_H
 
+#include <unordered_set>
+
 #include "tools/base_action.h"
 #include "tools/function_data.h"
 
@@ -12,6 +14,11 @@ namespace StructBX
         namespace Tables
         {
             class Filters;
+
+            static const std::unordered_set<std::string> valid_filters_ops = {
+                "=", "!=", "<", ">", "<=", ">=", "LIKE", "NOT LIKE", 
+                "IN", "NOT IN", "IS NULL", "IS NOT NULL"
+            };
         }
     }
 }

@@ -31,7 +31,7 @@ void Filters::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "vf.identifier, vf.id_column, vf.op, vf.value, vf.position " \
+            "vf.identifier, vf.id_column, vf.op, vf.value, vf.position, vf.is_active " \
         "FROM views_filters vf " \
         "JOIN views v ON v.identifier = vf.id_view " \
         "JOIN tables f ON f.identifier = v.id_table " \
@@ -112,8 +112,8 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position) " \
-        "SELECT ?, v.identifier, vc.id_column, ?, ?, ? " \
+        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) " \
+        "SELECT ?, v.identifier, vc.id_column, ?, ?, ?, ? " \
         "FROM views_columns vc " \
         "JOIN views v ON v.identifier = vc.id_view " \
         "WHERE v.identifier = ? AND v.id_table = ? AND vc.id_column = ? "
@@ -148,6 +148,16 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("La posición no puede estar vacía");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("is-active", "", true)
+    ->SetupCondition_("condition-is-active", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("is-active no puede estar vacío");
             return false;
         }
         return true;
@@ -233,7 +243,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_filters " \
-        "SET id_column = ?, op = ?, value = ? " \
+        "SET id_column = ?, op = ?, value = ?, is_active = ? " \
         "WHERE identifier = ? AND id_view = ?"
     );
 
@@ -263,6 +273,16 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("El valor no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("is-active", "", true)
+    ->SetupCondition_("condition_is-active", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("is-active no puede estar vacío");
             return false;
         }
         return true;

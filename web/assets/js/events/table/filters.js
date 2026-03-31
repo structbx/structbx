@@ -73,7 +73,7 @@ class Filters
 
             for(let filter of response_data.body.data)
             {
-                this.SetupNewFilterElement_(filter.identifier, filter.id_column, filter.op, filter.value);
+                this.SetupNewFilterElement_(filter, "modify");
             }
         });
     }
@@ -88,6 +88,9 @@ class Filters
         return $(`
             <div class="input-group ui-state-default mb-2">
                 <a class="btn me-2"><i class="fas fa-sort"></i></a>
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input" type="checkbox" name="is_active"/>
+                </div>
                 <select class="form-select" name="column" required></select>
                 <select class="form-select" name="op" required>
                     ${options}
@@ -99,7 +102,7 @@ class Filters
         `);
     }
 
-    SetupNewFilterElement_(identifier = undefined, column = undefined, op = undefined, value = undefined, type="modify")
+    SetupNewFilterElement_(filter_row = undefined, type="modify")
     {
         // Create filter
         let filter = this.GetFilterElement_(type)
@@ -109,21 +112,28 @@ class Filters
         {
             $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))
         }
-        if(identifier != undefined)
+        if(filter_row)
         {
-            $(filter).attr('filter-identifier', identifier);
-        }
-        if(column != undefined)
-        {
-            $(filter).find('select[name=column]').val(column);
-        }
-        if(op != undefined)
-        {
-            $(filter).find('select[name=op]').val(op);
-        }
-        if(value != undefined)
-        {
-            $(filter).find('input[name=value]').val(value);
+            if(filter_row.identifier != undefined)
+            {
+                $(filter).attr('filter-identifier', filter_row.identifier);
+            }
+            if(filter_row.id_column != undefined)
+            {
+                $(filter).find('select[name=column]').val(filter_row.id_column);
+            }
+            if(filter_row.op != undefined)
+            {
+                $(filter).find('select[name=op]').val(filter_row.op);
+            }
+            if(filter_row.value != undefined)
+            {
+                $(filter).find('input[name=value]').val(filter_row.value);
+            }
+            if(filter_row.is_active != undefined)
+            {
+                $(filter).find('input[name=is_active]')[0].checked = filter_row.is_active == 0 ? false : true;
+            }
         }
 
         // Add filter
@@ -155,6 +165,7 @@ class Filters
         const column_identifier = parent.find('select[name=column]').val();
         const operator = parent.find('select[name=op]').val();
         const value = parent.find('input[name=value]').val();
+        const is_active = parent.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
         if (column_identifier === "" || operator === "" || value === "")
@@ -170,6 +181,7 @@ class Filters
         data.append('column-identifier', column_identifier);
         data.append('op', operator);
         data.append('value', value);
+        data.append('is-active', is_active ? 1 : 0);
 
         // Request
         new wtools.Request(server_config.current.api + "/tables/filters/add", "POST", data, false).Exec_((response_data) =>
@@ -179,7 +191,7 @@ class Filters
             if(!result.Verify_())
                 return;
 
-            this.Read_();
+            viewsObject.Read_();
         });
     }
 
@@ -215,6 +227,7 @@ class Filters
         const column_identifier = filter_element.find('select[name=column]').val();
         const operator = filter_element.find('select[name=op]').val();
         const value = filter_element.find('input[name=value]').val();
+        const is_active = filter_element.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
         if (column_identifier === "" || operator === "" || value === "")
@@ -231,6 +244,7 @@ class Filters
         data.append('column-identifier', column_identifier);
         data.append('op', operator);
         data.append('value', value);
+        data.append('is-active', is_active ? 1 : 0);
 
         // Request
         new wtools.Request(server_config.current.api + "/tables/filters/modify", "PUT", data, false).Exec_((response_data) =>
@@ -240,7 +254,7 @@ class Filters
             if(!result.Verify_())
                 return;
 
-            this.Read_();
+            viewsObject.Read_();
         });
     }
 
@@ -274,7 +288,7 @@ class Filters
             if(!result.Verify_())
                 return;
 
-            this.Read_();
+            viewsObject.Read_();
         });
     }
 }
@@ -297,7 +311,7 @@ $(function()
     {
         e.preventDefault();
         filtersObject.Clear_();
-        filtersObject.SetupNewFilterElement_(undefined, undefined, undefined, undefined, type="save");
+        filtersObject.SetupNewFilterElement_(undefined, type="save");
     });
 
     $(document).on('click', '#component_filters_read .save', e => 
