@@ -14,6 +14,7 @@ StructBX is a full-stack data management platform.
 - **Security:** NEVER use string concatenation for SQL queries. ALWAYS use Prepared Statements (placeholders `?`).
 - **Memory Management:** Prefer smart pointers (`std::unique_ptr`, `std::shared_ptr`) over raw pointers.
 - **Versioning:** Versioning is handled via Git Tags and CMake's `git describe`.
+- **CPP Guidelines:** Use *Indent Style* `Allman` or `BSD style`
 
 ## 3. Database & SQL Guidelines
 - **Naming Convention:** Use `snake_case` for tables and columns (e.g., `tbl_main_metadata`, `sort_order`).
