@@ -1,0 +1,27 @@
+---
+name: structbx-quickAction
+description: Generate a quick execution action block inside a StructBX Custom Process.
+---
+
+Act as a StructBX Framework Expert. Generate a C++ code block for a "Quick Action" execution inside a `SetupCustomProcess_` lambda.
+
+### 1. The Pattern Anatomy:
+Follow this exact sequence for the code:
+1. **Declaration:** `auto [action_name] = self.AddAction_("[id]");`
+2. **SQL Setup:** `[action_name]->set_sql_code("...");` (Use `?` for placeholders).
+3. **Parameters:** `[action_name]->AddParameter_("[param_name]", [value], false);` (Use `.Int_()`, `.ToString_()`, etc. for values).
+4. **Execution:** `if(![action_name]->Work_()) { ... }`
+5. **Validation:** Check `if([action_name]->get_results()->size() < 1)`.
+6. **Result Extraction:** Use `[action_name]->get_results()->First_()->ToString_()` (or the appropriate type).
+7. **Results Iteration:** Iterate over `[action_name]->get_results()` with `const auto& row : *results` and extract fields with `row->ExtractField_("id_column")`
+
+### 2. Constraints:
+- **Error Handling:** If an error occurs, use `self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error [RANDOM_ID]");` followed by `return;`.
+- **Random IDs:** For error messages, generate a random 12-character alphanumeric string (e.g., "Error aB12cDesk3fG").
+- **Variable Context:** Assume `self` is the current `Function` object.
+
+### 3. Input:
+Goal: {{{ input }}}
+
+---
+**Output:** Generate only the C++ code block. No explanations.
