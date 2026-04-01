@@ -64,12 +64,12 @@ class Columns
 
                 this.columns.push({identifier: row.identifier, name: row.name, icon: table_icon});
                 return `
-                    <div column-id="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a column-id="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
+                    <div column-identifier="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                        <a column-identifier="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
                             <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
                         </a>
                         <div class="form-check form-switch pe-4">
-                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-id="${row.identifier}" column-name="${row.name}">
+                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-identifier="${row.identifier}" column-name="${row.name}">
                             <label class="form-check-label"><i class="fas fa-eye"></i></label>
                         </div>
                     </div>
@@ -151,8 +151,8 @@ class Columns
         }
 
         // Get ID
-        let id = $(e.target).attr('column-id');
-        if(id == undefined)
+        let identifier = $(e.target).attr('column-identifier');
+        if(identifier == undefined)
         {
             wait.Off_();
             new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la columna.');
@@ -163,7 +163,7 @@ class Columns
         $('#component_data_modify table tbody').html('');
         
         // Read form to modify
-        new wtools.Request(server_config.current.api + `/tables/columns/read/id?id=${id}&table-identifier=${table_identifier}`).Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/tables/columns/read/identifier?identifier=${identifier}&table-identifier=${table_identifier}`).Exec_((response_data) =>
         {
             // Manage response
             const result = new ResponseManager(response_data, '', 'Columnas: Modificar');
@@ -178,14 +178,14 @@ class Columns
             }
 
             // Set data
-            $('#component_columns_modify input[name="id"]').val(response_data.body.data[0].id);
+            $('#component_columns_modify input[name="identifier"]').val(response_data.body.data[0].identifier);
             $('#component_columns_modify input[name="name"]').val(response_data.body.data[0].name);
             $('#component_columns_modify input[name="length"]').val(response_data.body.data[0].length);
             $('#component_columns_modify select[name="required"]').val(response_data.body.data[0].required);
             $('#component_columns_modify input[name="position"]').val(response_data.body.data[0].position);
             $('#component_columns_modify input[name="default_value"]').val(response_data.body.data[0].default_value);
             $('#component_columns_modify textarea[name="description"]').val(response_data.body.data[0].description);
-            $('#component_columns_modify select[name="id_column_type"]').val(response_data.body.data[0].id_column_type);
+            $('#component_columns_modify select[name="column_type"]').val(response_data.body.data[0].column_type);
             $('#component_columns_modify select[name="link_to"]').val(response_data.body.data[0].link_to);
             if(response_data.body.data[0].link_to == "")
                 $('#component_columns_modify form select[name="link_to"]').prop('disabled', true);
@@ -310,28 +310,21 @@ $(function()
     options_required.Build_('#component_columns_add select[name="required"]');
     options_required.Build_('#component_columns_modify select[name="required"]');
 
-    let options_column_type = new wtools.SelectOptions();
-    const options_column_type_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/columns/types/read").Exec_((response_data) =>
-    {
-        try
-        {
-            let tmp_options = [];
-            for(let row of response_data.body.data)
-                tmp_options.push(new wtools.OptionValue(row.id, row.name));
-
-            options.options = tmp_options;
-            options.Build_('#component_columns_add select[name="id_column_type"]');
-            options.Build_('#component_columns_modify select[name="id_column_type"]');
-            callback();
-        }
-        catch(error)
-        {
-            new wtools.Notification('WARNING').Show_('No se pudo acceder a los tipos de columnas.');
-            new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tipos de columnas.');
-            new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tipos de columnas.');
-        }
-    });
-    options_column_type_init(options_column_type, () => {})
+    let options_column_type = new wtools.SelectOptions([
+        new wtools.OptionValue("text", "Texto", true),
+        new wtools.OptionValue("long-text", "Texto largo", false),
+        new wtools.OptionValue("int-number", "Número entero", false),
+        new wtools.OptionValue("decimal-number", "Número decimal", false),
+        new wtools.OptionValue("date", "Fecha", false),
+        new wtools.OptionValue("time", "Hora", false),
+        new wtools.OptionValue("file", "Archivo", false),
+        new wtools.OptionValue("image", "Imagen", false),
+        new wtools.OptionValue("selection", "Selección", false),
+        new wtools.OptionValue("user", "Usuario", false),
+        new wtools.OptionValue("current-user", "Usuario actual", false),
+        new wtools.OptionValue("created-date", "Fecha de creación", false),
+        new wtools.OptionValue("updated-date", "Fecha de actualización", false)
+    ]);
 
     let options_link_to = new wtools.SelectOptions();
     const options_link_to_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/read").Exec_((response_data) =>
@@ -468,17 +461,13 @@ $(function()
     // Click on Add Button
     const read_table_columns_add = () =>
     {
-        const add = () =>
-        {
-            component_columns_add.ClearNotifications_();
-            $('#component_columns_add form select[name="id_column_type"]').val("1");
-            $('#component_columns_add form select[name="required"]').val("0");
-            $('#component_columns_add form input[name="length"]').val("100");
-            $('#component_columns_add form select[name="link_to"]').val("");
-            $('#component_columns_add form select[name="link_to"]').prop('disabled', true);
-            $('#component_columns_add').modal('show');
-        }
-        options_column_type_init(options_column_type, add);
+        component_columns_add.ClearNotifications_();
+        $('#component_columns_add form select[name="id_column_type"]').val("1");
+        $('#component_columns_add form select[name="required"]').val("0");
+        $('#component_columns_add form input[name="length"]').val("100");
+        $('#component_columns_add form select[name="link_to"]').val("");
+        $('#component_columns_add form select[name="link_to"]').prop('disabled', true);
+        $('#component_columns_add').modal('show');
     }
 
     $('#component_columns_read .add').click(() => read_table_columns_add());
@@ -501,13 +490,8 @@ $(function()
     // Read column to modify
     $(document).on("click", '#component_columns_read a', (e) =>
     {
-        const read_modify = () => 
-        {
-            e.preventDefault();
-
-            columnsObject.PreModify_(e);
-        }
-        options_column_type_init(options_column_type, read_modify);
+        e.preventDefault();
+        columnsObject.PreModify_(e);
     });
 
     // Setup Avanced values in Modify

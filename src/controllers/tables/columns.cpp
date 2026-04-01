@@ -71,9 +71,9 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
 
 Columns::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
-    // Function GET /api/tables/columns/read/id
+    // Function GET /api/tables/columns/read/identifier
     StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read/id", HTTP::EnumMethods::kHTTP_GET);
+        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
     auto action = function->AddAction_("a1");
     A1(action);
@@ -85,23 +85,20 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "fc.*, fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
-            ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
-            ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
-        "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
+            "tc.identifier, tc.name, tc.position, tc.length, tc.required, tc.default_value, tc.description, tc.link_to, tc.column_type, " \
+            "f.identifier AS table_identifier " \
+            ",(SELECT name FROM tables WHERE identifier = tc.link_to) AS link_to_table_name " \
+        "FROM tables_columns tc " \
+        "JOIN tables t ON t.identifier = tc.id_table " \
         "WHERE " \
-            "fc.id = ? AND f.identifier = ? " \
-            "AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-        "ORDER BY fc.position ASC"
+            "tc.identifier = ? AND t.identifier = ?"
     );
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de columna no puede estar vacío");
+            param->set_error("El identificador de columna no puede estar vacío");
             return false;
         }
         return true;
@@ -116,7 +113,6 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Columns::ReadTypes::ReadTypes(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
