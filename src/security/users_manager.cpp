@@ -8,7 +8,7 @@ UsersManager::UsersManager()
 {
     // Setting up the action
     action_ = std::make_shared<Functions::Action>("UsersManager::AuthenticateUser_");
-    action_->set_sql_code("SELECT id, username, id_group, status, type FROM users WHERE username = ? AND password = ?");
+    action_->set_sql_code("SELECT identifier AS id, username, id_group, status, type FROM users WHERE username = ? AND password = ?");
     action_->AddParameter_("username", "", true);
     action_->AddParameter_("password", "", true);
 }
@@ -37,10 +37,10 @@ bool UsersManager::AuthenticateUser_()
                     return false;
                 }
 
-                current_user_.set_id(id->Int_());
+                current_user_.set_id(id->String_());
                 current_user_.set_username(username->String_());
                 if(!id_group->IsNull_())
-                    current_user_.set_id_group(id_group->Int_());
+                    current_user_.set_id_group(id_group->String_());
                 if(!status->IsNull_())
                     current_user_.set_status(status->String_());
                 if(!type->IsNull_())
@@ -59,7 +59,7 @@ bool UsersManager::AuthenticateUser_()
 }
 
 
-void UsersManager::ReloadCurrentUser_(int user_id)
+void UsersManager::ReloadCurrentUser_(std::string user_id)
 {
     // Query process
         Functions::Action action("update_user");
@@ -81,10 +81,10 @@ void UsersManager::ReloadCurrentUser_(int user_id)
             if(id->IsNull_() || username->IsNull_())
                 return;
 
-            current_user_.set_id(id->Int_());
+            current_user_.set_id(id->String_());
             current_user_.set_username(username->String_());
             if(!id_group->IsNull_())
-                current_user_.set_id_group(id_group->Int_());
+                current_user_.set_id_group(id_group->String_());
             if(!status->IsNull_())
                 current_user_.set_status(status->String_());
             if(!type->IsNull_())
