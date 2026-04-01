@@ -111,7 +111,7 @@ class Columns
         data.append('table-identifier', table_identifier);
 
         // Verify if column type is selection then link_to is required
-        if(data.get('id_column_type') == "9" && (data.get('link_to') == null || data.get('link_to') == ""))
+        if(data.get('column_type') == "selection" && (data.get('link_to') == null || data.get('link_to') == ""))
         {
             wait.Off_();
             new wtools.Notification('WARNING', 5000, '#component_columns_add .notifications').Show_('Debe especificar la tabla a enlazar.');
@@ -325,6 +325,8 @@ $(function()
         new wtools.OptionValue("created-date", "Fecha de creación", false),
         new wtools.OptionValue("updated-date", "Fecha de actualización", false)
     ]);
+    options_column_type.Build_('#component_columns_add select[name="column_type"]');
+    options_column_type.Build_('#component_columns_modify select[name="column_type"]');
 
     let options_link_to = new wtools.SelectOptions();
     const options_link_to_init = (options, callback) => new wtools.Request(server_config.current.api + "/tables/read").Exec_((response_data) =>
@@ -334,7 +336,7 @@ $(function()
             let tmp_options = [];
             tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
             for(let row of response_data.body.data)
-                tmp_options.push(new wtools.OptionValue(row.id, row.name));
+                tmp_options.push(new wtools.OptionValue(row.identifier, row.name));
 
             options.options = tmp_options;
             options.Build_('#component_columns_add select[name="link_to"]');

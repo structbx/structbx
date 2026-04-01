@@ -126,34 +126,24 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
-    // Action 2: Verify that the columns don't exists in the table
+    // Action 3: Save the column
     auto action2 = function->AddAction_("a2");
     A2(action2);
-
-    // Action 3: Save the column
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
 
     // Action 4: Add the column in the table
     auto action4 = function->AddAction_("a4");
 
-    // Action 5: Get column id from link to
-    auto action5 = function->AddAction_("a5");
-
-    // Action 6: Create foreign key if there is a link to
-    auto action6 = function->AddAction_("a6");
-
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, action1, action2, action3, action4, action5, action6](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action1, action2, action4](StructBX::Functions::Function& self)
     {
         // If error, delete the column from the table
-        auto delete_column_table = [](int column_id)
+        auto delete_column_table = [](std::string column_id)
         {
             // Delete database from table
             StructBX::Functions::Action action("action_delete_column");
-            action.set_sql_code("DELETE FROM tables_columns WHERE id = ?");
-            action.AddParameter_("id", column_id, false);
+            action.set_sql_code("DELETE FROM tables_columns WHERE identifier = ?");
+            action.AddParameter_("identifier", column_id, false);
             action.Work_();
         };
 
@@ -163,14 +153,14 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
             return;
         }
+
+        // Set column identifier
+        Tools::RandomGenerator rg;
+        auto column_identifier = rg.GenerateAlphanumericID_(20);
+        action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier)), "identifier");
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
-            return;
-        }
-        if(!action3->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
             return;
         }
 
@@ -182,88 +172,27 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
             return;
         }
 
-        // Get Column ID
-        int column_id = action3->get_last_insert_id();
-        if(column_id == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 6eHh9R4Pv5");
-            return;
-        }
-
         // Setup column variables
         auto column_setup = ColumnSetup();
         auto variables = ColumnVariables();
         if(!column_setup.Setup(self, variables))
         {
-            delete_column_table(column_id);
+            delete_column_table(column_identifier);
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error e4GBhN1lxk");
             return;
         }
-        std::string column = "_structbx_column_" + std::to_string(column_id);
 
         // Action 4: Add the column in the table
         action4->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "ADD " + column + " " + variables.column_type + variables.length + " " +
+            "ADD " + column_identifier + " " + variables.column_type + variables.length + " " +
             variables.required + " " + variables.default_value
         );
         if(!action4->Work_())
         {
-            delete_column_table(column_id);
+            delete_column_table(column_identifier);
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action4->get_identifier() + ": " + action4->get_custom_error());
             return;
-        }
-
-        // Create foreign key if there is a link to
-        if(variables.link_to != "")
-        {
-            // Get column id from link to
-            action5->set_sql_code(
-                "SELECT fc.id " \
-                "FROM tables_columns fc " \
-                "JOIN tables f ON f.id = fc.id_table " \
-                "WHERE f.id = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
-            );
-            action5->AddParameter_("id_table", variables.link_to, false);
-            action5->AddParameter_("id_database", database_id, false);
-            if(!action5->Work_())
-            {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action5->get_identifier() + ": No se pudo crear la llave foránea");
-                return;
-            }
-
-            auto column_id_link = action5->get_results()->First_();
-            if(column_id_link->IsNull_())
-            {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error: No se pudo crear la llave foránea");
-                return;
-            }
-
-            // Get link_to table identifier
-            Functions::Action action_link_to("action_link_to");
-            action_link_to.set_sql_code("SELECT identifier FROM tables WHERE id = ?");
-            action_link_to.AddParameter_("id", variables.link_to, false);
-            if(!action_link_to.Work_())
-            {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to get link_to table identifier x3JdT9pQ8m");
-                return;
-            }
-            auto link_to_table_identifier = action_link_to.get_results()->First_();
-
-            // Create the foreign key
-            action6->set_sql_code(
-                "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-                "ADD CONSTRAINT _IDX" + column + " " + 
-                "FOREIGN KEY (" + column + ") " +
-                "REFERENCES " + database_id + "." + link_to_table_identifier->ToString_() + 
-                    "(_structbx_column_" + column_id_link->ToString_() + ") " + 
-                    variables.cascade_key_condition
-            );
-            if(!action6->Work_())
-            {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action6->get_identifier() + ": No se pudo crear la llave foránea");
-                return;
-            }
         }
 
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "OK.");
@@ -275,7 +204,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() < 1)
@@ -297,70 +226,16 @@ void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.id " \
-        "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE fc.name = ? AND f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)" \
+        "INSERT INTO tables_columns (identifier, name, length, required, default_value, description, column_type, link_to, id_table) " \
+        "VALUES (?,?,?,?,?,?,?,?,?)"
     );
 
-    action->SetupCondition_("verify-column-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
-    {
-        if(self.get_results()->size() > 0)
-        {
-            self.set_custom_error("La columna solicitada ya existe en el formulario actual");
-            return false;
-        }
-
-        return true;
-    });
-
-    action->AddParameter_("name", "", true)
-    ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El nombre de columna no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de tabla no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Columns::Add::A3(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "INSERT INTO tables_columns (identifier, name, position, length, required, default_value, description, id_column_type, link_to, id_table) " \
-        "SELECT " \
-            "?, ? " \
-            ",MAX(fc.position) + 1 " \
-            ",?, ?, ?, ?, ?, ? " \
-            ",f.id " \
-        "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)" \
-    );
-
-    Tools::RandomGenerator rg;
-    action->AddParameter_("identifier", rg.GenerateAlphanumericID_(20), false);
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "", true)
     ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -399,8 +274,8 @@ void Columns::Add::A3(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("default_value", "", true);
     action->AddParameter_("description", "", true);
-    action->AddParameter_("id_column_type", "", true)
-    ->SetupCondition_("condition-id_column_type", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("column_type", "", true)
+    ->SetupCondition_("condition-column_type", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
@@ -428,7 +303,6 @@ void Columns::Add::A3(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -1038,18 +912,18 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     auto length = self.GetParameter_("length");
     auto required = self.GetParameter_("required");
     auto default_value = self.GetParameter_("default_value");
-    auto id_column_type = self.GetParameter_("id_column_type");
+    auto column_type = self.GetParameter_("column_type");
     auto table_identifier = self.GetParameter_("table-identifier");
     if(
         name == end || length == end || required == end ||
-        default_value == end || id_column_type == end || table_identifier == end
+        default_value == end || column_type == end || table_identifier == end
     )
         return false;
 
     // Column Type setup
-    std::string column_type_id = id_column_type->get()->ToString_();
+    std::string column_type_str = column_type->get()->ToString_();
     auto column_type_setup = ColumnTypeSetup();
-    if(!column_type_setup.Setup(column_type_id, variables.column_type, variables.length))
+    if(!column_type_setup.Setup(column_type_str, variables.column_type, variables.length))
         return false;
 
     // Length setup
@@ -1084,7 +958,7 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
 
     // Verify if column type is selection and link_to is empty
     if(
-        (column_type_id == "9") &&
+        (column_type_str == "selection") &&
         (
             variables.link_to == "" 
             || link_to->get()->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kEmpty)
@@ -1095,51 +969,51 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     return true;
 }
 
-bool Columns::ColumnTypeSetup::Setup(std::string column_type_id, std::string& column_type, std::string& length_value)
+bool Columns::ColumnTypeSetup::Setup(std::string column_type_str, std::string& column_type, std::string& length_value)
 {
-    if(column_type_id == "1" || column_type_id == "10" || column_type_id == "11")
+    if(column_type_str == "text" || column_type_str == "user" || column_type_str == "current-user")
     {
         column_type = "VARCHAR";
         length_value = "(100)";
         return true;
     }
-    else if(column_type_id == "2" || column_type_id == "7" || column_type_id == "8")
+    else if(column_type_str == "long-text" || column_type_str == "file" || column_type_str == "image")
     {
         column_type = "TEXT";
         length_value = "";
         return true;
     }
-    else if(column_type_id == "3")
+    else if(column_type_str == "int-number")
     {
         column_type = "INT";
         length_value = "(11)";
         return true;
     }
-    else if(column_type_id == "4")
+    else if(column_type_str == "decimal-number")
     {
         column_type = "DECIMAL";
         length_value = "(10, 2)";
         return true;
     }
-    else if(column_type_id == "5")
+    else if(column_type_str == "date")
     {
         column_type = "DATE";
         length_value = "";
         return true;
     }
-    else if(column_type_id == "6")
+    else if(column_type_str == "time")
     {
         column_type = "TIME";
         length_value = "";
         return true;
     }
-    else if(column_type_id == "9")
+    else if(column_type_str == "selection")
     {
-        column_type = "INT";
-        length_value = "(11)";
+        column_type = "VARCHAR";
+        length_value = "(20)";
         return true;
     }
-    else if(column_type_id == "12" || column_type_id == "13")
+    else if(column_type_str == "created-date" || column_type_str == "updated-date")
     {
         column_type = "DATETIME";
         length_value = "";

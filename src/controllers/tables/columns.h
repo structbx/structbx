@@ -67,7 +67,6 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
             void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
@@ -102,7 +101,6 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
     private:
         Read struct_read_;
         ReadSpecific struct_read_specific_;
-        ReadTypes struct_read_types_;
         Add struct_add_;
         Modify struct_modify_;
         ModifyPosition struct_modify_position_;
