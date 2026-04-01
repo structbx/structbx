@@ -34,7 +34,7 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
         "SELECT fp.*, nu.username AS username, f.name AS table_name " \
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
-        "JOIN users nu ON nu.id = fp.id_naf_user "
+        "JOIN users nu ON nu.id = fp.id_user "
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
@@ -69,8 +69,8 @@ void Permissions::Tables::A1(StructBX::Functions::Action::Ptr action)
         "SELECT f.identifier AS table_identifier " \
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
-        "JOIN users nu ON nu.id = fp.id_naf_user "
-        "WHERE fp.read = 1 AND fp.id_naf_user = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "JOIN users nu ON nu.id = fp.id_user "
+        "WHERE fp.read = 1 AND fp.id_user = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
     action->AddParameter_("id_user", get_id_user(), false);
@@ -95,7 +95,7 @@ void Permissions::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         "SELECT fp.*, nu.username AS username, f.name AS table_name " \
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
-        "JOIN users nu ON nu.id = fp.id_naf_user "
+        "JOIN users nu ON nu.id = fp.id_user "
         "WHERE fp.id = ? AND f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
 
@@ -139,12 +139,12 @@ void Permissions::ReadUsersOut::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT nu.id, nu.username "
         "FROM users nu "
-        "JOIN databases_users du ON du.id_naf_user = nu.id "
+        "JOIN databases_users du ON du.id_user = nu.id "
         "LEFT JOIN tables_permissions su ON "
-            "su.id_naf_user = nu.id AND "
+            "su.id_user = nu.id AND "
             "su.id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
         "WHERE "
-            "su.id_naf_user IS NULL AND nu.type = 'default'"
+            "su.id_user IS NULL AND nu.type = 'default'"
     );
 
     action->AddParameter_("table-identifier", "", true)
@@ -175,10 +175,10 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
 void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_naf_user, id_table) "
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_user, id_table) "
         "SELECT "
             "?, ?, ?, ?, ? "
-            ",(SELECT id_naf_user FROM databases_users WHERE id_naf_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
+            ",(SELECT id_user FROM databases_users WHERE id_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
             ",(SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
     );
     action->AddParameter_("read", "", true)

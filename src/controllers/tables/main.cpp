@@ -320,7 +320,7 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 void Main::Add::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_naf_user, id_table) " \
+        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_user, id_table) " \
         "SELECT 1, 1, 1, 1, ?, (SELECT id FROM tables WHERE identifier = ?)"
     );
 

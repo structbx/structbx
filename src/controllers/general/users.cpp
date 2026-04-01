@@ -162,7 +162,7 @@ void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& function_data) :
@@ -279,7 +279,7 @@ void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
         param->set_value(StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue(password_encoded)));
         return true;
     });
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 Users::Add::Add(Tools::FunctionData& function_data) :

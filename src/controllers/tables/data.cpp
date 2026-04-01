@@ -31,7 +31,7 @@ void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr ac
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.read = 1 AND fp.id_naf_user = ?"
+            "AND fp.read = 1 AND fp.id_user = ?"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
     {
@@ -71,7 +71,7 @@ void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.id_naf_user = ? " \
+            "AND fp.id_user = ? " \
             "AND (SELECT COUNT(1) FROM tables_columns fc WHERE fc.link_to = f.id) > 0"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
@@ -112,7 +112,7 @@ void Tables::Data::VerifyPermissionsAdd::A1(StructBX::Functions::Action::Ptr act
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.add = 1 AND fp.id_naf_user = ?"
+            "AND fp.add = 1 AND fp.id_user = ?"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
     {
@@ -152,7 +152,7 @@ void Tables::Data::VerifyPermissionsModify::A1(StructBX::Functions::Action::Ptr 
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.modify = 1 AND fp.id_naf_user = ?"
+            "AND fp.modify = 1 AND fp.id_user = ?"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
     {
@@ -192,7 +192,7 @@ void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr 
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.delete = 1 AND fp.id_naf_user = ?"
+            "AND fp.delete = 1 AND fp.id_user = ?"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
     {
@@ -232,7 +232,7 @@ void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::P
         "JOIN tables_permissions fp ON fp.id_table = f.id " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
-            "AND fp.id_naf_user = ?"
+            "AND fp.id_user = ?"
     );
     action->AddParameter_("table-identifier", "", true)
     ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
