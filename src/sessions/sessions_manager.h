@@ -40,7 +40,7 @@ class StructBX::Sessions::SessionsManager
         }
 
         static void ReadSessions_();
-        static StructBX::Sessions::Session& CreateSession_(int id_user, std::string path, int max_age);
+        static StructBX::Sessions::Session& CreateSession_(std::string id_user, std::string path, int max_age);
         static void DeleteSession_(std::string id);
 
     protected:

@@ -38,7 +38,7 @@ void SessionsManager::ReadSessions_()
             {
                 auto identifier = row->ExtractField_("identifier");
                 auto path = row->ExtractField_("path");
-                auto id_user = row->ExtractField_("id_naf_user");
+                auto id_user = row->ExtractField_("id_user");
                 auto max_age = row->ExtractField_("max_age");
 
                 if(identifier->IsNull_() || path->IsNull_() || id_user->IsNull_() || max_age->IsNull_())
@@ -50,7 +50,7 @@ void SessionsManager::ReadSessions_()
 
                 Sessions::Session new_session;
                 new_session.set_id(identifier->String_());
-                new_session.set_id_user(id_user->Int_());
+                new_session.set_id_user(id_user->String_());
                 new_session.set_path(path->String_());
                 new_session.set_max_age(max_age->Int_());
 
@@ -73,7 +73,7 @@ void SessionsManager::ReadSessions_()
     }
 }
 
-StructBX::Sessions::Session& SessionsManager::CreateSession_(int id_user, std::string path, int max_age)
+StructBX::Sessions::Session& SessionsManager::CreateSession_(std::string id_user, std::string path, int max_age)
 {
     Sessions::Session new_session;
     new_session.set_id_user(id_user);
@@ -99,7 +99,7 @@ StructBX::Sessions::Session& SessionsManager::CreateSession_(int id_user, std::s
             Functions::Action action{""};
             action.set_custom_error("Session not saved.");
             std::string sql_code =
-                "INSERT INTO sessions (identifier, path, max_age, id_naf_user) "
+                "INSERT INTO sessions (identifier, path, max_age, id_user) "
                 "VALUES (?, ?, ?, ?)"
             ;
             action.set_sql_code(sql_code);
