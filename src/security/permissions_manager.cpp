@@ -12,7 +12,7 @@ PermissionsManager::PermissionsManager()
     
 }
 
-std::_List_iterator<Permission> PermissionsManager::FindPermission_(Tools::Route& route, int id_user, std::string action_type)
+std::_List_iterator<Permission> PermissionsManager::FindPermission_(Tools::Route& route, std::string id_user, std::string action_type)
 {
     auto permission_final = permissions_.end();
 
