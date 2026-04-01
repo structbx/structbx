@@ -8,7 +8,6 @@ Columns::Columns(Tools::FunctionData& function_data) :
     FunctionData(function_data)
     ,struct_read_(function_data)
     ,struct_read_specific_(function_data)
-    ,struct_read_types_(function_data)
     ,struct_add_(function_data)
     ,struct_modify_(function_data)
     ,struct_modify_position_(function_data)
@@ -113,23 +112,6 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-}
-
-Columns::ReadTypes::ReadTypes(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
-{
-    // Function GET /api/tables/columns/types/read
-    StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/tables/columns/types/read", HTTP::EnumMethods::kHTTP_GET);
-
-    auto action = function->AddAction_("a1");
-    A1(action);
-
-    get_functions()->push_back(function);
-}
-
-void Columns::ReadTypes::A1(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code("SELECT * FROM tables_columns_types ");
 }
 
 Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

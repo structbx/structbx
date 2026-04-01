@@ -61,12 +61,6 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
-        struct ReadTypes : public Tools::FunctionData
-        {
-            ReadTypes(Tools::FunctionData& function_data);
-
-            void A1(StructBX::Functions::Action::Ptr action);
-        };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
