@@ -62,14 +62,14 @@ class Columns
             {
                 let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
 
-                this.columns.push({identifier: row.id, name: row.name, icon: table_icon});
+                this.columns.push({identifier: row.identifier, name: row.name, icon: table_icon});
                 return `
-                    <div column-id="${row.id}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a column-id="${row.id}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
+                    <div column-id="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                        <a column-id="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
                             <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
                         </a>
                         <div class="form-check form-switch pe-4">
-                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-id="${row.id}" column-name="${row.name}">
+                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-id="${row.identifier}" column-name="${row.name}">
                             <label class="form-check-label"><i class="fas fa-eye"></i></label>
                         </div>
                     </div>
