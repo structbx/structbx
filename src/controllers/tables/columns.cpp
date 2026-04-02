@@ -696,20 +696,13 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
-    // Action 2_0: Delete foreign key if exists
-    auto action2_0 = function->AddAction_("a2_0");
-
-    // Action 2: Delete column from table
+    // Action 2: Delete column metadata
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
-    // Action 3: Delete column record
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
-
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, action1, action2_0, action2, action3](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action1, action2](StructBX::Functions::Function& self)
     {
         // Execute action 1
         if(!action1->Work_())
@@ -726,36 +719,28 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
             return;
         }
 
-        // Get Column ID
-        auto column_id = action1->get_results()->front()->ExtractField_("column_id");
-        if(column_id->IsNull_())
+        // Get Column identifier
+        auto column_identifier = self.GetParameter_("identifier");
+        if(column_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error UFwgqfZp59");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error sk28skvX9W");
             return;
         }
 
-        // Action 2_0: Delete foreign key if exists
-        action2_0->set_sql_code(
+        // Delete column from table
+        auto delete_from_table = self.AddAction_("a2");
+
+        delete_from_table->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "DROP FOREIGN KEY IF EXISTS _IDX_structbx_column_" + column_id->ToString_());
-        if(!action2_0->Work_())
+            "DROP COLUMN IF EXISTS " + column_identifier->get()->ToString_());
+        if(!delete_from_table->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2_0->get_identifier() + ": " + action2_0->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + delete_from_table->get_identifier() + ": " + delete_from_table->get_custom_error());
             return;
         }
-
-        // Action 2: Delete columns
-        action2->set_sql_code(
-            "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "DROP COLUMN IF EXISTS _structbx_column_" + column_id->ToString_());
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
-            return;
-        }
-        if(!action3->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
             return;
         }
 
@@ -769,29 +754,28 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
 void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.id AS column_id, f.id AS table_id " \
-        "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE fc.id = ? AND f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "SELECT fc.identifier AS column_identifier " \
+        "FROM tables_columns tc " \
+        "WHERE tc.identifier = ? AND tc.id_table = ?"
     );
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La columna solicitada no existe en el formulario actual");
+            self.set_custom_error("La columna solicitada no existe en la tabla actual");
             return false;
         }
 
         return true;
     });
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de columna no puede estar vacío");
+            param->set_error("El identificador de columna no puede estar vacío");
             return false;
         }
         return true;
@@ -807,25 +791,18 @@ void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Columns::Delete::A2(StructBX::Functions::Action::Ptr)
+void Columns::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
-    
-}
+    action->set_sql_code("DELETE FROM tables_columns WHERE identifier = ?");
 
-void Columns::Delete::A3(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code("DELETE FROM tables_columns WHERE id = ?");
-
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de columna no puede estar vacío");
+            param->set_error("El identificador de columna no puede estar vacío");
             return false;
         }
         return true;

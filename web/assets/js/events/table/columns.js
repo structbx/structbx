@@ -249,11 +249,11 @@ class Columns
 
         // Data
         let data = new FormData($('#component_columns_modify form')[0]);
-        const id = data.get('id');
+        const identifier = data.get('identifier');
         const name = data.get('name');
 
         // Setup data to delete
-        $('#component_columns_delete input[name=id]').val(id);
+        $('#component_columns_delete input[name=identifier]').val(identifier);
         $('#component_columns_delete strong.name').html(name);
         $('#component_columns_delete').modal('show');
         wait.Off_();
@@ -275,10 +275,10 @@ class Columns
         }
 
         // Data
-        const id = $('#component_columns_delete input[name=id]').val();
+        const identifier = $('#component_columns_delete input[name=identifier]').val();
 
         // Request
-        new wtools.Request(server_config.current.api + `/tables/columns/delete?id=${id}&table-identifier=${table_identifier}`, "DEL").Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/tables/columns/delete?identifier=${identifier}&table-identifier=${table_identifier}`, "DEL").Exec_((response_data) =>
         {
             wait.Off_();
             
