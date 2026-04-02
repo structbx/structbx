@@ -392,7 +392,7 @@ $(function()
     ({
         update: function( event, ui)
         {
-            let element = $(ui.item).attr('column-identifier');
+            let column_identifier = $(ui.item).attr('column-identifier');
             let columnPrev = $(ui.item).prev().attr('column-identifier');
             let columnNext = $(ui.item).next().attr('column-identifier');
 
@@ -408,7 +408,7 @@ $(function()
             // Data collection
             const new_data = new FormData();
             new_data.append('view-identifier', view_identifier);
-            new_data.append('identifier', element);
+            new_data.append('identifier', column_identifier);
             if(columnPrev != undefined)
                 new_data.append('columnPrev', columnPrev);
             if(columnNext != undefined)
@@ -430,7 +430,7 @@ $(function()
     // Set visible column in view
     $(document).on('change', `${component_columns_read.identifier} .contents input.form-check-input`, function(e)
     {
-            let element = $(e.target).attr('column-id');
+            let column_identifier = $(e.target).attr('column-identifier');
             let visible = $(e.target)[0].checked;
 
             // Get View identifier
@@ -445,7 +445,7 @@ $(function()
             // Data collection
             const new_data = new FormData();
             new_data.append('view-identifier', view_identifier);
-            new_data.append('id', element);
+            new_data.append('identifier', column_identifier);
             new_data.append('visible', visible ? 1 : 0);
 
             // Request
