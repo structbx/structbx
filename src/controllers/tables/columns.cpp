@@ -618,7 +618,16 @@ void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
     );
 
     action->AddParameter_("position", "", false);
-    action->AddParameter_("id", "", true);
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de columna no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
     action->AddParameter_("view-identifier", "", true);
 }
 

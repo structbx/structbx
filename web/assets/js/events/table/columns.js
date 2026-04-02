@@ -392,9 +392,9 @@ $(function()
     ({
         update: function( event, ui)
         {
-            let element = $(ui.item).attr('column-id');
-            let columnPrev = $(ui.item).prev().attr('column-id');
-            let columnNext = $(ui.item).next().attr('column-id');
+            let element = $(ui.item).attr('column-identifier');
+            let columnPrev = $(ui.item).prev().attr('column-identifier');
+            let columnNext = $(ui.item).next().attr('column-identifier');
 
             // Get View identifier
             const view_identifier = wtools.GetUrlSearchParam('v');
@@ -408,7 +408,7 @@ $(function()
             // Data collection
             const new_data = new FormData();
             new_data.append('view-identifier', view_identifier);
-            new_data.append('id', element);
+            new_data.append('identifier', element);
             if(columnPrev != undefined)
                 new_data.append('columnPrev', columnPrev);
             if(columnNext != undefined)
