@@ -317,27 +317,18 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
-    // Action 2: Verify that the columns don't exists in the table
+    // Action 2: Update the column
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
-    // Action 3: Update the column
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
-
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, action1, action2, action3](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action1, action2](StructBX::Functions::Function& self)
     {
         // Execute actions
         if(!action1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
-            return;
-        }
-        if(!action2->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
             return;
         }
 
@@ -349,9 +340,9 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
             return;
         }
 
-        // Get Column ID
-        auto column_id = self.GetParameter_("id");
-        if(column_id == self.get_parameters().end())
+        // Get Column Identifier
+        auto column_identifier = self.GetParameter_("identifier");
+        if(column_identifier == self.get_parameters().end())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error XVtkYKnme6");
             return;
@@ -365,24 +356,24 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error WW17KL82QJ");
             return;
         }
-        std::string column = "_structbx_column_" + column_id->get()->ToString_();
+        std::string column = column_identifier->get()->ToString_();
 
-        // Action 4: Add the column in the table
-        auto action4 = self.AddAction_("a4");
-        action4->set_sql_code(
+        // Alter table column
+        auto action_alter_table = self.AddAction_("action_alter_table");
+        action_alter_table->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
             "CHANGE COLUMN `" + column + "` " + column + 
             " " + variables.column_type + variables.length + " " + variables.required +
             " " + variables.default_value
         );
-        if(!action4->Work_())
+        if(!action_alter_table->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action4->get_identifier() + ": " + action4->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action_alter_table->get_identifier() + ": " + action_alter_table->get_custom_error());
             return;
         }
-        if(!action3->Work_())
+        if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
             return;
         }
 
@@ -395,7 +386,7 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
 void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() < 1)
@@ -417,70 +408,15 @@ void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.identifier, fc.id " \
-        "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE fc.id != ? AND fc.name = ? AND f.identifier = ?"
-    );
-
-    action->SetupCondition_("verify-column-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
-    {
-        if(self.get_results()->size() > 0)
-        {
-            self.set_custom_error("La columna solicitada ya existe en el formulario actual");
-            return false;
-        }
-
-        return true;
-    });
-
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El id de columna no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("name", "", true)
-    ->SetupCondition_("condition-name", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El nombre de columna no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de tabla no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-}
-
-void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
         "UPDATE tables_columns SET " \
             "name = ?, length = ?, required = ? " \
-            ",default_value = ?, description = ?, id_column_type = ?, link_to = ?, position = ? " \
-        "WHERE id = ? AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ? ) LIMIT 1)"
+            ",default_value = ?, description = ?, column_type = ?, link_to = ?, position = ? " \
+        "WHERE identifier = ? AND id_table = ?"
     );
 
     action->AddParameter_("name", "", true)
@@ -520,8 +456,8 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
     });
     action->AddParameter_("default_value", "", true);
     action->AddParameter_("description", "", true);
-    action->AddParameter_("id_column_type", "", true)
-    ->SetupCondition_("condition-id_column_type", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("column_type", "", true)
+    ->SetupCondition_("condition-column_type", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
@@ -531,7 +467,7 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("link_to", StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue()), true)
-    ->SetupCondition_("condition-id_column_type", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    ->SetupCondition_("condition-link_to", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
@@ -549,12 +485,12 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de la columna no puede estar vacío");
+            param->set_error("El identificador de la columna no puede estar vacío");
             return false;
         }
         return true;
@@ -569,7 +505,6 @@ void Columns::Modify::A3(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
