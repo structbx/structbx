@@ -19,7 +19,7 @@
         <script src="https://josefelixrc7.github.io/wtools/wtools.js"></script>
         <!-- /JS Libraries -->
     </head>
-    <body>
+    <body data-page="Login">
         <div id="component_login" class="login-container">
             <div class="row g-0">
                 <!-- Login Form -->
@@ -127,51 +127,8 @@
         <!-- /Wait animation -->
 
         <!-- Javascript -->
-            <!-- General -->
-            <script src="/assets/js/main.js"></script>
-
-            <!-- Classes -->
-            <script src="/assets/js/classes/tools.js"></script>
-            <script src="/assets/js/classes/table_elements.js"></script>
-            <script src="/assets/js/classes/response_manager.js"></script>
-
-            <!-- Elements -->
-            <script src="/assets/js/elements/headers.js"></script>
-            <script src="/assets/js/elements/footers.js"></script>
-            <script src="/assets/js/elements/sidebars.js"></script>
-
-            <!-- Events -->
-            <script src="/assets/js/events/login/login_general.js"></script>
-
+            <script src="/assets/js/structbx.js" type="module"></script>
         <!-- Javascript -->
 
-        <script>
-            $(document).ready(function()
-            {
-                // Toggle password visibility
-                $('#togglePassword').click(function()
-                {
-                    const passwordInput = $('#password');
-                    const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
-                    passwordInput.attr('type', type);
-                    
-                    // Toggle eye icon
-                    $(this).find('i').toggleClass('fa-eye fa-eye-slash');
-                });
-                
-                // Add focus effects to form inputs
-                $('.form-control').focus(function()
-                {
-                    $(this).parent().addClass('focused');
-                })
-                .blur(function()
-                {
-                    if ($(this).val() === '')
-                    {
-                        $(this).parent().removeClass('focused');
-                    }
-                });
-            });
-        </script>
     </body>
 </html>
