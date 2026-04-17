@@ -29,7 +29,7 @@
         ,{
             "label": "Doxygen Documentation"
             ,"type": "shell"
-            ,"command": "cd build/Debug && doxygen"
+            ,"command": "cd build/Debug && doxygen && cd doc_doxygen/latex && make"
         }
     ]
 }
