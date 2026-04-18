@@ -1,12 +1,17 @@
 import { BaseController } from '../classes/base_controller.js';
 import * as Tools from '../classes/tools.js';
 
+import { Session } from '../models/Session.js';
+import { Database } from '../models/Database.js';
+
 export class LoginController extends BaseController {
     constructor() {
         super();
+        this.session = new Session;
+        this.database = new Database;
     }
 
-    bindEvents() {
+    async bindEvents() {
         this.verifySession();
 
         // Toggle password visibility
@@ -34,7 +39,7 @@ export class LoginController extends BaseController {
         });
 
         // Login
-        $('#component_login form').submit((e) =>
+        $('#component_login form').submit(async (e) =>
         {
             e.preventDefault();
 
@@ -54,82 +59,74 @@ export class LoginController extends BaseController {
             }
 
             // Data collection
-            const data = new FormData($('#component_login form')[0]);
+            const username = $('#component_login form #user').val();
+            const password = $('#component_login form #password').val();
 
             // Request
-            new wtools.Request("/api/auth/login", "POST", data, false).Exec_((response_data) =>
-            {
-                wait.Off_();
-                $('#component_login .notifications').html('');
+            const response_data = await this.session.login(username, password);
+            wait.Off_();
+            $('#component_login .notifications').html('');
 
-                // Notifications
-                if(response_data.status == 200)
-                {
-                    new wtools.Notification('SUCCESS').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
-                    const callback = () => {window.location.href = "/start/"};
-                    this.setupDatabaseIdentifier(callback);
-                    return;
-                }
-                else if(response_data.status == 401)
-                {
-                    $('#component_login form input[name=password]').val('');
-                    new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Usuario o contrase&ntilde;a incorrectos.");
-                }
-                else
-                {
-                    $('#component_login form input[name=password]').val('');
-                    new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
-                }
-            });
+            // Notifications
+            if(response_data.status == 200)
+            {
+                new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
+                this.setupDatabaseIdentifier();
+                //window.location.href = "/start/"
+                console.log("callback")
+                return;
+            }
+            else if(response_data.status == 401)
+            {
+                $('#component_login form input[name=password]').val('');
+                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Usuario o contrase&ntilde;a incorrectos.");
+            }
+            else
+            {
+                $('#component_login form input[name=password]').val('');
+                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
+            }
         });
     }
 
-    verifySession()
+    async verifySession()
     {
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         // Request
-        new wtools.Request("/api/auth/login", "POST").Exec_((response_data) =>
+        const response_data = await this.session.login(undefined, undefined);
+        if(response_data.status == 200)
         {
-            if(response_data.status == 200)
-            {
-                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-                window.location.href = "/start/";
-                return;
-            }
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            window.location.href = "/start/";
+            return;
+        }
 
-            wait.Off_();
-        });
+        wait.Off_();
     }
 
-    setupDatabaseIdentifier(callback){
+    async setupDatabaseIdentifier(){
         // Request
-        new wtools.Request("/api/databases/read/id").Exec_((response_data) =>
+        const response_data = await this.database.current();
+
+        // Manage error
+        if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
         {
-            // Manage error
-            if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
+            new wtools.Notification('WARNING').Show_('No se pudo acceder a la base de datos.');
+
+            // Logout
+            const logout_response = await this.session.logout();
+            // Notifications
+            if(logout_response.status == 200)
             {
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a la base de datos.');
-
-                // Logout
-                /*new wtools.Request("/api/auth/logout", "POST").Exec_((response_data) =>
-                {
-                    // Notifications
-                    if(response_data.status == 200)
-                    {
-                        new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-                        window.location.href = "/login/";
-                    }
-                    else
-                    {
-                        new wtools.Notification('WARNING').Show_('No se pudo cerrar la sesi&oacute;n.');
-                    }
-                });*/
-                return;
+                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+                window.location.href = "/login/";
             }
+            else
+                new wtools.Notification('WARNING').Show_('No se pudo cerrar la sesi&oacute;n.');
 
-            callback();
-        });
+            return;
+        }
     };
 }
