@@ -4,7 +4,6 @@ export class BaseController {
     }
 
     init() {
-        console.log("BaseController: Inicializando...");
         this.bindEvents();
     }
 

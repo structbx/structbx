@@ -1,4 +1,4 @@
-class ResponseManager
+export class ResponseManager
 {
     constructor(response, component, target)
     {

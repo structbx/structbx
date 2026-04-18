@@ -1,6 +1,6 @@
 
 // Read instance name
-var instance_name_read = () =>
+export var instance_name_read = () =>
 {
     // Wait animation
     let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
@@ -24,7 +24,7 @@ var instance_name_read = () =>
 };
 
 // Read current Database
-var databases_read_id = () =>
+export var databases_read_id = () =>
 {
     // Wait animation
     let wait = new wtools.ElementState('#database_name', false, 'button', new wtools.WaitAnimation().for_button);
@@ -50,7 +50,7 @@ var databases_read_id = () =>
 };
 
 // Read databases
-var databases_read = () =>
+export var databases_read = () =>
 {
     // Wait animation
     let wait_sidebar = new wtools.ElementState('#component_sidebar_databases .contents', false, 'block', new wtools.WaitAnimation().for_block);
@@ -117,7 +117,7 @@ var databases_read = () =>
     });
 };
 
-var change_current_database = (database_id) =>
+export var change_current_database = (database_id) =>
 {
     // Wait animation
     let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
@@ -142,7 +142,7 @@ var change_current_database = (database_id) =>
 }
 
 // Read username logued
-var username_logued_read = () =>
+export var username_logued_read = () =>
 {
     // Wait animation
     let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
@@ -166,7 +166,7 @@ var username_logued_read = () =>
 };
 
 // Logout
-var logout = () =>
+export var logout = () =>
 {
     // Wait animation
     let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
@@ -189,7 +189,7 @@ var logout = () =>
     });
 }
 
-var GetTableIdentifier = () =>
+export var GetTableIdentifier = () =>
 {
     // Get Form identifier
     const table_identifier = wtools.GetUrlSearchParam('identifier');
@@ -201,7 +201,7 @@ var GetTableIdentifier = () =>
     return table_identifier;
 }
 
-function OptionsLinkSelection(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = '')
+export function OptionsLinkSelection(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = '')
 {
     new wtools.Request(server_config.current.api + `${form}/tables/data/read?table-identifier=${link_to_table}&from=link&main-table-identifier=${main_table}`).Exec_((response_data) =>
     {
@@ -237,7 +237,7 @@ function OptionsLinkSelection(element, link_to_table, column_name, target, selec
     });
 }
 
-function OptionsLinkUsersInDatabase(element, target, selected = undefined, form = '')
+export function OptionsLinkUsersInDatabase(element, target, selected = undefined, form = '')
 {
     let options = new wtools.SelectOptions();
 
@@ -279,7 +279,7 @@ function OptionsLinkUsersInDatabase(element, target, selected = undefined, form 
     });
 }
 
-function GenerateRandomName(l)
+export function GenerateRandomName(l)
 {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let randomName = '';
@@ -290,7 +290,7 @@ function GenerateRandomName(l)
     return randomName;
 }
 
-function getContrastColor(hexColor)
+export function getContrastColor(hexColor)
 {
     // Convertir hex a RGB
     const r = parseInt(hexColor.substr(1, 2), 16);
@@ -304,7 +304,8 @@ function getContrastColor(hexColor)
     // Si el fondo es claro (luminancia >= 0.5), usar texto negro
     return luminance < 0.5 ? '#fff' : '#333';
 }
-function getHeaderColor(link_color, value)
+
+export function getHeaderColor(link_color, value)
 {
     return  `
         <span class='small' style='background-color:${link_color};color:${getContrastColor(link_color)};padding:2px 8px;border-radius:4px;'>

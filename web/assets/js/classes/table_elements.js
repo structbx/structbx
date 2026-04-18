@@ -1,4 +1,4 @@
-class TableElements
+export class TableElements
 {
     constructor(element_type, data, table_identifier)
     {
