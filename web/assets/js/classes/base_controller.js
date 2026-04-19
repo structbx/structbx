@@ -170,4 +170,95 @@ export class BaseController {
             return;
     }
 
+    // Read current Database
+    readCurrentDatabase = () =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#database_name', false, 'button', new wtools.WaitAnimation().for_button);
+
+        const response_data = this.database.current();
+
+        // Clean
+        wait.Off_();
+
+        // Manage error
+        if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
+        {
+            new wtools.Notification('WARNING').Show_('No se pudo acceder a la base de datos.');
+            return;
+        }
+        
+        // Setup database name
+        $(".database_name").html(response_data.body.data[0].name);
+
+        this.readDatabasesSelector();
+    };
+
+    // Read databases
+    readDatabasesSelector = () =>
+    {
+        // Wait animation
+        let wait_sidebar = new wtools.ElementState('#component_sidebar_databases .contents', false, 'block', new wtools.WaitAnimation().for_block);
+        let wait_header = new wtools.ElementState('#component_databases_selector', false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Request
+        const response_data = this.database.read();
+    
+        // Clean
+        wait_sidebar.Off_();
+        wait_header.Off_();
+        $('#component_sidebar_databases .contents').html('');
+        $('#component_databases_selector').html('');
+
+        // Manage error
+        const result = new ResponseManager(response_data, '');
+        if(!result.Verify_())
+            return;
+        
+        // Results elements creator (Sidebar)
+        new wtools.UIElementsCreator('#component_sidebar_databases .contents', response_data.body.data).Build_((row) =>
+        {
+            let element = '';
+            if($('.database_name').html() == row.name)
+            {
+                element = `
+                    <div class="nav-item">
+                        <a class="nav-link mb-2 active" href="#" database_id="${row.identifier}">
+                            <i class="fas fa-building"></i>
+                            <span class="ms-2">${row.name}</span>
+                        </a>
+                    </div>`
+            }
+            else
+            {
+                element = `
+                    <div class="nav-item">
+                        <a class="nav-link mb-2" href="#" database_id="${row.identifier}">
+                            <i class="fas fa-building"></i>
+                            <span class="ms-2">${row.name}</span>
+                        </a>
+                    </div>`
+            }
+
+            return new wtools.UIElementsPackage('<li></li>', [element]).Pack_();
+        });
+
+        // Results elements creator (Header)
+        new wtools.UIElementsCreator('#component_databases_selector', response_data.body.data).Build_((row) =>
+        {
+            let element = '';
+            if($('.database_name').html() != row.name)
+            {
+                element = `
+                    <li>
+                        <a class="dropdown-item btn btn-ligth" href="#" database_id="${row.identifier}">
+                            ${row.name}
+                        </a>
+                    </li>`
+            }
+
+            return new wtools.UIElementsPackage('<li></li>', [element]).Pack_();
+        });
+    };
+
 }
