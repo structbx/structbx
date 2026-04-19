@@ -1,7 +1,11 @@
+
+import * as DOME from '../classes/dom_elements.js';
+
 import { Permission } from '../models/Permission.js';
 import { TablePermission } from '../models/Table.js';
 import { Setting } from '../models/Setting.js';
 import { Database } from '../models/Database.js';
+import { User } from '../models/User.js';
 
 export class BaseController {
     constructor() {
@@ -11,7 +15,8 @@ export class BaseController {
         this.permission = new Permission;
         this.table_permission = new TablePermission;
         this.setting = new Setting;
-        this.Database = new Database;
+        this.database = new Database;
+        this.user = new User;
     }
 
     init() {
@@ -19,13 +24,10 @@ export class BaseController {
     }
 
     bindEvents() {
-        readInstanceName();
-
-        readInstanceLogo()
-            
-        readCurrentDatabase();
-        
-        readCurrentUser();
+        this.readInstanceName();
+        this.readInstanceLogo()
+        this.readCurrentDatabase();
+        this.readCurrentUser();
 
         $(document).on('click', '#logout-button', (e) =>
         {
@@ -63,13 +65,13 @@ export class BaseController {
         {
             e.preventDefault();
 
-            change_current_database($(e.currentTarget).attr('database_id'));
+            this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
         $(document).on("click", '#component_databases_selector li a', (e) =>
         {
             e.preventDefault();
 
-            change_current_database($(e.currentTarget).attr('database_id'));
+            this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
     }
     
