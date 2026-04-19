@@ -139,4 +139,35 @@ export class BaseController {
             });
         });
     }
+
+    readInstanceName = () =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
+
+        const response_data = this.setting.readName();
+
+        // Clean
+        wait.Off_();
+
+        // Manage error
+        if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
+        {
+            new wtools.Notification('WARNING').Show_('No se pudo acceder al nombre de la instancia.');
+            return;
+        }
+        
+        // Setup database name
+        $("#instance_name").html(response_data.body.data[0].value);
+    };
+
+    readInstanceLogo = () =>{
+        const response_data = this.setting.readLogo();
+
+        // Manage error
+        const result = new ResponseManager(response_data, '');
+        if(!result.Verify_())
+            return;
+    }
+
 }
