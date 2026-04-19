@@ -12,6 +12,8 @@ export class LoginController extends BaseController {
     }
 
     async bindEvents() {
+        super.bindEvents();
+        
         this.verifySession();
 
         // Toggle password visibility
