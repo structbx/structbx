@@ -261,4 +261,45 @@ export class BaseController {
         });
     };
 
+    changeCurrentDatabase = (database_id) =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        // Read dashboard to modify
+        const response_data = this.database.change(database_id);
+    
+        // Manage error
+        const result = new ResponseManager(response_data, '');
+        if(!result.Verify_())
+            return;
+        
+        new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+        location.href = "/start/";
+
+        wait.Off_();
+    }
+
+    readCurrentUser = () =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
+
+        // Request
+        const response_data = this.user.current();
+    
+        // Clean
+        wait.Off_();
+
+        // Manage error
+        if(response_data.status == 403 || response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
+        {
+            this.logout();
+            return;
+        }
+        
+        // Setup username logued
+        $(".username_logued").html(response_data.body.data[0].username);
+    };
+
 }
