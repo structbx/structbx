@@ -302,4 +302,35 @@ export class BaseController {
         $(".username_logued").html(response_data.body.data[0].username);
     };
 
+    logout = () =>
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        // Request
+        const response_data = this.session.logout();
+        
+        wait.Off_();
+
+        // Notifications
+        if(response_data.status == 200)
+        {
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            window.location.href = "/login/";
+        }
+        else
+        {
+            new wtools.Notification('WARNING').Show_('No se pudo cerrar la sesi&oacute;n.');
+        }
+    }
+
+    getTableIdentifier = () =>
+    {
+        const table_identifier = wtools.GetUrlSearchParam('identifier');
+        if(table_identifier == undefined)
+            new wtools.Notification('ERROR').Show_('No se encontr&oacute; el identificador de la tabla.');
+        
+        return table_identifier;
+    }
+
 }
