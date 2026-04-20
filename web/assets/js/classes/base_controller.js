@@ -371,4 +371,46 @@ export class BaseController {
             new wtools.Notification('WARNING', 0, target).Show_(error);
         }
     }
+
+    linkUsersInDatabaseOptions(element, target, selected = undefined, form = '')
+    {
+        const response_data = this.database_user.current(form);
+    
+        let options = new wtools.SelectOptions();
+
+        try
+        {
+            let tmp_options = [];
+
+            // Add empty <option>
+            if(selected == undefined)
+                tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
+            else
+                tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', false));
+
+            // Verify status
+            if(response_data.status == 401) throw new Error(`No posee los permisos necesarios para acceder a los usuarios de la base de datos`);
+            if(response_data.status != 200) throw new Error(`Hubo un error al acceder a los usuarios de la base de datos`);
+            if(response_data.body == undefined || response_data.body.data == undefined) throw new Error(`No se encontraron datos al consultar los usuarios de la base de datos`);
+
+            // Add select or not selected <option>
+            for(let row of response_data.body.data)
+            {
+                if(selected == row.id)
+                    tmp_options.push(new wtools.OptionValue(row.id, row.username, true));
+                else
+                    tmp_options.push(new wtools.OptionValue(row.id, row.username));
+            }
+
+            // Build <option>s
+            options.options = tmp_options;
+            let element_building = $(element).find('select');
+            options.Build_(element_building);
+        }
+        catch(error)
+        {
+            new wtools.Notification('WARNING', 0, target).Show_(error);
+        }
+    }
+
 }
