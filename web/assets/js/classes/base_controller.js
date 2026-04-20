@@ -6,6 +6,8 @@ import { TablePermission } from '../models/Table.js';
 import { Setting } from '../models/Setting.js';
 import { Database } from '../models/Database.js';
 import { User } from '../models/User.js';
+import { Session } from '../models/Session.js';
+import { TableData } from '../models/TableData.js';
 
 export class BaseController {
     constructor() {
@@ -17,6 +19,8 @@ export class BaseController {
         this.setting = new Setting;
         this.database = new Database;
         this.user = new User;
+        this.session = new Session;
+        this.table_data = new TableData;
     }
 
     init() {
@@ -329,8 +333,42 @@ export class BaseController {
         const table_identifier = wtools.GetUrlSearchParam('identifier');
         if(table_identifier == undefined)
             new wtools.Notification('ERROR').Show_('No se encontr&oacute; el identificador de la tabla.');
-        
+
         return table_identifier;
     }
 
+    linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = '')
+    {
+        const response_data = this.table_data.readToLinkSelectionOptions(form, link_to_table, main_table);
+    
+        try
+        {
+            // Add empty <option>
+            element.AddOption_('', '-- Ninguno --');
+
+            // Verify status
+            if(response_data.status == 401) throw new Error(`No posee los permisos necesarios para acceder a <b>${column_name}</b>`);
+            if(response_data.status != 200) throw new Error(`Hubo un error al acceder a la columna enlazada <b>${column_name}</b>`);
+            if(response_data.body == undefined || response_data.body.data == undefined) throw new Error(`No se encontraron datos en la columna enlazada <b>${column_name}</b>`);
+
+            // Add select or not selected <option>
+            for(let row of response_data.body.data)
+            {
+                const col_id = response_data.body.columns[0];
+                const col_name = response_data.body.columns[1];
+                
+                let final_value = row[col_name];
+                if(row._structbx_column_colorHeader != "")
+                    final_value = getHeaderColor(row._structbx_column_colorHeader, row[col_name]);
+
+                element.AddOption_(row[col_id], final_value);
+                if(selected == row[col_name])
+                    element.setValue(row[col_id]);
+            }
+        }
+        catch(error)
+        {
+            new wtools.Notification('WARNING', 0, target).Show_(error);
+        }
+    }
 }
