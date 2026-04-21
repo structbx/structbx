@@ -8,6 +8,7 @@ import { Database } from '../models/Database.js';
 import { User } from '../models/User.js';
 import { Session } from '../models/Session.js';
 import { TableData } from '../models/TableData.js';
+import { DatabaseUser } from '../models/DatabaseUser.js';
 
 export class BaseController {
     constructor() {
@@ -21,6 +22,7 @@ export class BaseController {
         this.user = new User;
         this.session = new Session;
         this.table_data = new TableData;
+        this.database_user = new DatabaseUser;
     }
 
     init() {
@@ -359,7 +361,7 @@ export class BaseController {
                 
                 let final_value = row[col_name];
                 if(row._structbx_column_colorHeader != "")
-                    final_value = getHeaderColor(row._structbx_column_colorHeader, row[col_name]);
+                    final_value = headerRowColor(row._structbx_column_colorHeader, row[col_name]);
 
                 element.AddOption_(row[col_id], final_value);
                 if(selected == row[col_name])
@@ -413,4 +415,38 @@ export class BaseController {
         }
     }
 
+    randomGenerator(l)
+    {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let randomName = '';
+        for (let i = 0; i < l; i++) {
+            const randI = Math.floor(Math.random() * chars.length);
+            randomName += chars[randI];
+        }
+        return randomName;
+    }
+
+    headerRowContrastColor(hexColor)
+    {
+        // Convertir hex a RGB
+        const r = parseInt(hexColor.substr(1, 2), 16);
+        const g = parseInt(hexColor.substr(3, 2), 16);
+        const b = parseInt(hexColor.substr(5, 2), 16);
+        
+        // Calcular luminancia (fórmula WCAG)
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Si el fondo es oscuro (luminancia < 0.5), usar texto blanco
+        // Si el fondo es claro (luminancia >= 0.5), usar texto negro
+        return luminance < 0.5 ? '#fff' : '#333';
+    }
+
+    headerRowColor(link_color, value)
+    {
+        return  `
+            <span class='small' style='background-color:${link_color};color:${headerRowContrastColor(link_color)};padding:2px 8px;border-radius:4px;'>
+                ${value}
+            </span>
+        `;
+    }
 }
