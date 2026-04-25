@@ -1,8 +1,9 @@
-
+import * as tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
+import {ResponseManager} from '../classes/response_manager.js';
 
 import { Permission } from '../models/Permission.js';
-import { TablePermission } from '../models/Table.js';
+import { TablePermission } from '../models/TablePermission.js';
 import { Setting } from '../models/Setting.js';
 import { Database } from '../models/Database.js';
 import { User } from '../models/User.js';
@@ -30,16 +31,11 @@ export class BaseController {
     }
 
     bindEvents() {
-        this.readInstanceName();
-        this.readInstanceLogo()
-        this.readCurrentDatabase();
-        this.readCurrentUser();
-
         $(document).on('click', '#logout-button', (e) =>
         {
             e.preventDefault();
 
-            logout();
+            this.logout();
         });
         
         $(document).on('click', '.go-button', function(e)
@@ -87,7 +83,7 @@ export class BaseController {
 
     async readCurrentUserPermissions (callback){
         // Request
-        const response_data = this.permission.currentUser();
+        const response_data = await this.permission.currentUser();
 
         // Manage error
         const result = new ResponseManager(response_data, '');
@@ -116,7 +112,7 @@ export class BaseController {
     }
 
     async readCurrentUserTablePermissions(callback){
-        const response_data = this.table_permission.read();
+        const response_data = await this.table_permission.read();
 
         // Manage error
         const result = new ResponseManager(response_data, '');
@@ -146,12 +142,11 @@ export class BaseController {
         });
     }
 
-    readInstanceName = () =>
-    {
+    async readInstanceName(){
         // Wait animation
         let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
 
-        const response_data = this.setting.readName();
+        const response_data = await this.setting.readName();
 
         // Clean
         wait.Off_();
@@ -167,22 +162,12 @@ export class BaseController {
         $("#instance_name").html(response_data.body.data[0].value);
     };
 
-    readInstanceLogo = () =>{
-        const response_data = this.setting.readLogo();
-
-        // Manage error
-        const result = new ResponseManager(response_data, '');
-        if(!result.Verify_())
-            return;
-    }
-
     // Read current Database
-    readCurrentDatabase = () =>
-    {
+    async readCurrentDatabase(){
         // Wait animation
         let wait = new wtools.ElementState('#database_name', false, 'button', new wtools.WaitAnimation().for_button);
 
-        const response_data = this.database.current();
+        const response_data = await this.database.current();
 
         // Clean
         wait.Off_();
@@ -201,14 +186,13 @@ export class BaseController {
     };
 
     // Read databases
-    readDatabasesSelector = () =>
-    {
+    async readDatabasesSelector(){
         // Wait animation
         let wait_sidebar = new wtools.ElementState('#component_sidebar_databases .contents', false, 'block', new wtools.WaitAnimation().for_block);
         let wait_header = new wtools.ElementState('#component_databases_selector', false, 'block', new wtools.WaitAnimation().for_block);
 
         // Request
-        const response_data = this.database.read();
+        const response_data = await this.database.read();
     
         // Clean
         wait_sidebar.Off_();
@@ -267,13 +251,12 @@ export class BaseController {
         });
     };
 
-    changeCurrentDatabase = (database_id) =>
-    {
+    async changeCurrentDatabase(database_id){
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         // Read dashboard to modify
-        const response_data = this.database.change(database_id);
+        const response_data = await this.database.change(database_id);
     
         // Manage error
         const result = new ResponseManager(response_data, '');
@@ -286,13 +269,12 @@ export class BaseController {
         wait.Off_();
     }
 
-    readCurrentUser = () =>
-    {
+    async readCurrentUser(){
         // Wait animation
-        let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
+        let wait = new wtools.ElementState('.username_logued', false, 'button', new wtools.WaitAnimation().for_button);
 
         // Request
-        const response_data = this.user.current();
+        const response_data = await this.user.current();
     
         // Clean
         wait.Off_();
@@ -308,13 +290,12 @@ export class BaseController {
         $(".username_logued").html(response_data.body.data[0].username);
     };
 
-    logout = () =>
-    {
+    async logout(){
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         // Request
-        const response_data = this.session.logout();
+        const response_data = await this.session.logout();
         
         wait.Off_();
 
@@ -330,8 +311,7 @@ export class BaseController {
         }
     }
 
-    getTableIdentifier = () =>
-    {
+    getTableIdentifier(){
         const table_identifier = wtools.GetUrlSearchParam('identifier');
         if(table_identifier == undefined)
             new wtools.Notification('ERROR').Show_('No se encontr&oacute; el identificador de la tabla.');
@@ -339,9 +319,8 @@ export class BaseController {
         return table_identifier;
     }
 
-    linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = '')
-    {
-        const response_data = this.table_data.readToLinkSelectionOptions(form, link_to_table, main_table);
+    async linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = ''){
+        const response_data = await this.table_data.readToLinkSelectionOptions(form, link_to_table, main_table);
     
         try
         {
@@ -374,9 +353,8 @@ export class BaseController {
         }
     }
 
-    linkUsersInDatabaseOptions(element, target, selected = undefined, form = '')
-    {
-        const response_data = this.database_user.current(form);
+    async linkUsersInDatabaseOptions(element, target, selected = undefined, form = ''){
+        const response_data = await this.database_user.current(form);
     
         let options = new wtools.SelectOptions();
 
@@ -413,40 +391,5 @@ export class BaseController {
         {
             new wtools.Notification('WARNING', 0, target).Show_(error);
         }
-    }
-
-    randomGenerator(l)
-    {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let randomName = '';
-        for (let i = 0; i < l; i++) {
-            const randI = Math.floor(Math.random() * chars.length);
-            randomName += chars[randI];
-        }
-        return randomName;
-    }
-
-    headerRowContrastColor(hexColor)
-    {
-        // Convertir hex a RGB
-        const r = parseInt(hexColor.substr(1, 2), 16);
-        const g = parseInt(hexColor.substr(3, 2), 16);
-        const b = parseInt(hexColor.substr(5, 2), 16);
-        
-        // Calcular luminancia (fórmula WCAG)
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        
-        // Si el fondo es oscuro (luminancia < 0.5), usar texto blanco
-        // Si el fondo es claro (luminancia >= 0.5), usar texto negro
-        return luminance < 0.5 ? '#fff' : '#333';
-    }
-
-    headerRowColor(link_color, value)
-    {
-        return  `
-            <span class='small' style='background-color:${link_color};color:${headerRowContrastColor(link_color)};padding:2px 8px;border-radius:4px;'>
-                ${value}
-            </span>
-        `;
     }
 }
