@@ -28,6 +28,7 @@ export class BaseController {
 
     init() {
         this.bindEvents();
+        this.build();
     }
 
     bindEvents() {
@@ -75,6 +76,9 @@ export class BaseController {
 
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
+    }
+    build(){
+
     }
     
     handleError(error) {

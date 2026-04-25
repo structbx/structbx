@@ -14,24 +14,8 @@ export class StartController extends BaseController {
     }
 
     bindEvents() {
-        // Wait animation
-        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-
         super.bindEvents();
         
-        this.verifySession();
-
-        new DOME.Sidebars().SidebarMenu_();
-        new DOME.Headers().Header_();
-        new DOME.Footers().Footer_();
-        new wtools.MenuManager('#menu_main', true);
-
-        super.hideWithoutPermission();
-
-        super.readInstanceName();
-        super.readCurrentDatabase();
-        super.readCurrentUser();
-
         // SELECT options
         const options_states = new wtools.SelectOptions
         ([
@@ -49,6 +33,35 @@ export class StartController extends BaseController {
         options_privacity.Build_('#component_tables_add select[name="privacity"]');
         options_privacity.Build_('#component_tables_modify select[name="privacity"]');
 
+        // Click on Add Button
+        const click_add_button = () =>
+        {
+            $('#component_tables_add .notifications').html('');
+            $('#component_tables_add').modal('show');
+        }
+        $(document).on('click', '.table_add', () => click_add_button());
+        $('#component_tables_add form').submit((e) =>
+        {
+            e.preventDefault();
+            this.addTable(e);
+        });
+    }
+
+    build(){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        this.verifySession();
+
+        new DOME.Sidebars().SidebarMenu_();
+        new DOME.Headers().Header_();
+        new DOME.Footers().Footer_();
+        new wtools.MenuManager('#menu_main', true);
+
+        super.hideWithoutPermission();
+        super.readInstanceName();
+        super.readCurrentDatabase();
+        super.readCurrentUser();
         this.readTables();
 
         wait.Off_();
@@ -71,7 +84,7 @@ export class StartController extends BaseController {
         let wait = new wtools.ElementState('#component_tables_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
         // Request
-        const response_data = this.table.read();
+        const response_data = await this.table.read();
     
         // Clean
         wait.Off_();
@@ -147,4 +160,37 @@ export class StartController extends BaseController {
         await super.hideTablesWithoutPermission();
         $('#component_tables_read .contents').show();
     };
+
+    async addTable(e){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_tables_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check)
+        {
+            $('#component_tables_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_tables_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Request
+        const name = $('#component_tables_add form input[name=name]').val();
+        const description = $('#component_tables_add form input[name=name]').val();
+        const response_data = await this.table.add(name, description)
+    
+        wait.Off_();
+
+        // Manage error
+        const result = new ResponseManager(response_data, '#component_tables_add .notifications', 'Tablas: A&ntilde;adir');
+        if(!result.Verify_())
+            return;
+        
+        new wtools.Notification('SUCCESS').Show_('Tabla creado exitosamente.');
+        $('#component_tables_add').modal('hide');
+        wtools.CleanForm('#component_tables_add form');
+        $('#component_tables_add form').removeClass('was-validated');
+        this.readTables();
+    }
 }

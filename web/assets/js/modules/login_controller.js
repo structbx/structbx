@@ -12,13 +12,8 @@ export class LoginController extends BaseController {
     }
 
     async bindEvents() {
-        // Wait animation
-        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-
         super.bindEvents();
         
-        this.verifySession();
-
         // Toggle password visibility
         $('#togglePassword').click(function()
         {
@@ -47,50 +42,15 @@ export class LoginController extends BaseController {
         $('#component_login form').submit(async (e) =>
         {
             e.preventDefault();
-
-            // Wait animation
-            let wait = new wtools.ElementState('#component_login form button[type=submit]'
-                , true, 'button', new wtools.WaitAnimation().for_button);
-
-            // Form check
-            const check = new wtools.FormChecker(e.target).Check_();
-            if(!check)
-            {
-                $('#component_login .notifications').html('');
-                wait.Off_();
-                new wtools.Notification('WARNING', 5000, '#component_login .notifications')
-                    .Show_('Hay campos inv&aacute;lidos.');
-                return;
-            }
-
-            // Data collection
-            const username = $('#component_login form #user').val();
-            const password = $('#component_login form #password').val();
-
-            // Request
-            const response_data = await this.session.login(username, password);
-            wait.Off_();
-            $('#component_login .notifications').html('');
-
-            // Notifications
-            if(response_data.status == 200)
-            {
-                new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
-                this.setupDatabaseIdentifier();
-                window.location.href = "/start/"
-                return;
-            }
-            else if(response_data.status == 401)
-            {
-                $('#component_login form input[name=password]').val('');
-                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Usuario o contrase&ntilde;a incorrectos.");
-            }
-            else
-            {
-                $('#component_login form input[name=password]').val('');
-                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
-            }
+            this.login();
         });
+    }
+
+    build(){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        this.verifySession();
 
         wait.Off_();
     }
@@ -135,4 +95,49 @@ export class LoginController extends BaseController {
             return;
         }
     };
+
+    async login(){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_login form button[type=submit]'
+            , true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check)
+        {
+            $('#component_login .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_login .notifications')
+                .Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        const username = $('#component_login form #user').val();
+        const password = $('#component_login form #password').val();
+
+        // Request
+        const response_data = await this.session.login(username, password);
+        wait.Off_();
+        $('#component_login .notifications').html('');
+
+        // Notifications
+        if(response_data.status == 200)
+        {
+            new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
+            this.setupDatabaseIdentifier();
+            window.location.href = "/start/"
+            return;
+        }
+        else if(response_data.status == 401)
+        {
+            $('#component_login form input[name=password]').val('');
+            new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Usuario o contrase&ntilde;a incorrectos.");
+        }
+        else
+        {
+            $('#component_login form input[name=password]').val('');
+            new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
+        }
+    }
 }
