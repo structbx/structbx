@@ -1,4 +1,4 @@
-class CustomSelect
+export class CustomSelect
 {
     constructor(element)
     {
@@ -244,7 +244,7 @@ class CustomSelect
     }
 };
 
-class Footers
+export class Footers
 {
     constructor()
     {
@@ -273,7 +273,7 @@ class Footers
     }
 }
 
-class Headers
+export class Headers
 {
     constructor(){}
     Header_()
@@ -375,7 +375,7 @@ class Headers
     }
 }
 
-class Sidebars
+export class Sidebars
 {
     constructor() {}
     SidebarMenu_ ()
