@@ -1,5 +1,7 @@
 import { BaseController } from './base_controller.js';
 import * as Tools from '../classes/tools.js';
+import * as DOME from '../classes/dom_elements.js';
+import { ResponseManager } from '../classes/response_manager.js';
 
 import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
@@ -16,6 +18,9 @@ export class TableController extends BaseController {
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         this.verifySession();
+        new DOME.Headers().Header_();
+        this.readCurrentTableInfo();
+        this.readSidebarTables();
 
         wait.Off_();
     }
@@ -73,4 +78,49 @@ export class TableController extends BaseController {
             $('.table_title').html(table_name);
         }
     }
+
+    async readSidebarTables(){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_sidebar_tables .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Get Form identifier
+        const table_identifier = super.getTableIdentifier();
+
+        // Request
+        const response_data = await this.table.readAll();
+    
+        // Clean
+        wait.Off_();
+
+        // Manage response
+        const result = new ResponseManager(response_data, '#notifications', '');
+        if(!result.Verify_())
+            return;
+
+        // Handle zero results
+        if(response_data.body.data == undefined || response_data.body.data.length < 1)
+        {
+            new wtools.Notification('SUCCESS', 0, '#component_sidebar_tables .notifications').Show_('Sin resultados.');
+            return;
+        }
+
+        // Results elements creator: Sidebar
+        $('#component_sidebar_tables .contents').html('');
+        $('#component_sidebar_tables .contents').hide();
+        let elements = [];
+        for(let row of response_data.body.data)
+        {
+            elements.push(`
+                <a class="menu_data nav-link mb-2 ${row.identifier == table_identifier ? "active" : ""}" href="/table?t=${row.identifier}" table-identifier="${row.identifier}">
+                    <i class="fas fa-table"></i>
+                    <span class="ms-2">${row.name}</span>
+                </a>
+            `);
+        }
+        let ui_element = new wtools.UIElementsPackage('<div class="nav-item"></div>', elements).Pack_();
+        $('#component_sidebar_tables .contents').append(ui_element);
+
+        await super.hideTablesWithoutPermission();
+        $('#component_sidebar_tables .contents').show();
+    };
 }
