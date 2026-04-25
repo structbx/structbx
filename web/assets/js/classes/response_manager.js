@@ -1,3 +1,6 @@
+
+import * as tools from '../classes/tools.js';
+
 export class ResponseManager
 {
     constructor(response, component, target)
@@ -11,7 +14,7 @@ export class ResponseManager
     }
     Verify_()
     {
-        let randomSuffix = GenerateRandomName(5);
+        let randomSuffix = tools.randomGenerator(5);
         if(this.response.status >= 200 && this.response.status < 300)
         {
             return true;
