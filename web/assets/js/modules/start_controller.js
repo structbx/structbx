@@ -1,4 +1,4 @@
-import { BaseController } from '../classes/base_controller.js';
+import { BaseController } from './base_controller.js';
 import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 
