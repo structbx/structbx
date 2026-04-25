@@ -84,7 +84,7 @@ export class StartController extends BaseController {
         let wait = new wtools.ElementState('#component_tables_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
         // Request
-        const response_data = await this.table.read();
+        const response_data = await this.table.readAll();
     
         // Clean
         wait.Off_();
@@ -121,7 +121,7 @@ export class StartController extends BaseController {
                     <div class="col-md-4 col-lg-3 mb-4" table-identifier="${row.identifier}">
                         <div class="card card-table-item h-100 shadow-sm d-flex flex-column">
                             
-                            <a href="/table?identifier=${row.identifier}" class="p-3 flex-grow-1 text-decoration-none text-dark">
+                            <a href="/table?t=${row.identifier}" class="p-3 flex-grow-1 text-decoration-none text-dark">
                                 <div class="border-start border-3 border-primary ps-2">
                                     <h5 class="mb-1">${row.name}</h5>
                                     <p class="text-muted small mb-3">${row.description}</p>
@@ -131,15 +131,6 @@ export class StartController extends BaseController {
                                     <span class="badge rounded-pill bg-dark me-2"><i class="fas fa-pen fa-fw"></i> ${row.total}</span>
                                 </div>
                             </a>
-                            
-                            <div class="card-footer d-flex justify-content-end bg-light border-0 pt-0">
-                                <a href="/table/columns?identifier=${row.identifier}" class="btn btn-outline-secondary btn-sm me-2" title="Columnas">
-                                    <i class="fas fa-columns"></i>
-                                </a>
-                                <a href="/table/settings?identifier=${row.identifier}" class="btn btn-outline-secondary btn-sm" title="Ajustes">
-                                    <i class="fas fa-cog"></i>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 `);
