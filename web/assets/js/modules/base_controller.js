@@ -397,4 +397,26 @@ export class BaseController {
             new wtools.Notification('WARNING', 0, target).Show_(error);
         }
     }
+
+    getTableIdentifier(){
+        const table_identifier = wtools.GetUrlSearchParam('t');
+        if(table_identifier == undefined)
+        {
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            window.location.href = "/start/";
+            return;
+        }
+        return table_identifier;
+    }
+
+    getViewIdentifier(){
+        const view_identifier = wtools.GetUrlSearchParam('v');
+        if(view_identifier == undefined)
+        {
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            window.location.href = "/start/";
+            return;
+        }
+        return view_identifier;
+    }
 }
