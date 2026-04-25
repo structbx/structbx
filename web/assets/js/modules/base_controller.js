@@ -31,6 +31,10 @@ export class BaseController {
         this.build();
     }
 
+    build(){
+
+    }
+    
     bindEvents() {
         $(document).on('click', '#logout-button', (e) =>
         {
@@ -77,10 +81,7 @@ export class BaseController {
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
     }
-    build(){
 
-    }
-    
     handleError(error) {
         console.error(error);
     }

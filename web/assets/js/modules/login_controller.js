@@ -11,6 +11,15 @@ export class LoginController extends BaseController {
         this.database = new Database;
     }
 
+    build(){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        this.verifySession();
+
+        wait.Off_();
+    }
+
     async bindEvents() {
         super.bindEvents();
         
@@ -44,15 +53,6 @@ export class LoginController extends BaseController {
             e.preventDefault();
             this.login();
         });
-    }
-
-    build(){
-        // Wait animation
-        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-
-        this.verifySession();
-
-        wait.Off_();
     }
 
     async verifySession()

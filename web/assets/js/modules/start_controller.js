@@ -13,6 +13,26 @@ export class StartController extends BaseController {
         this.table = new Table;
     }
 
+    build(){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        this.verifySession();
+
+        new DOME.Sidebars().SidebarMenu_();
+        new DOME.Headers().Header_();
+        new DOME.Footers().Footer_();
+        new wtools.MenuManager('#menu_main', true);
+
+        super.hideWithoutPermission();
+        super.readInstanceName();
+        super.readCurrentDatabase();
+        super.readCurrentUser();
+        this.readTables();
+
+        wait.Off_();
+    }
+
     bindEvents() {
         super.bindEvents();
         
@@ -45,26 +65,6 @@ export class StartController extends BaseController {
             e.preventDefault();
             this.addTable(e);
         });
-    }
-
-    build(){
-        // Wait animation
-        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-
-        this.verifySession();
-
-        new DOME.Sidebars().SidebarMenu_();
-        new DOME.Headers().Header_();
-        new DOME.Footers().Footer_();
-        new wtools.MenuManager('#menu_main', true);
-
-        super.hideWithoutPermission();
-        super.readInstanceName();
-        super.readCurrentDatabase();
-        super.readCurrentUser();
-        this.readTables();
-
-        wait.Off_();
     }
 
     async verifySession()
