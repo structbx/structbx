@@ -1,5 +1,5 @@
 export class User{
     async current(){
-        return new wtools.Request("/api/general/users/current/read").Exec_();
+        return await new wtools.Request("/api/general/users/current/read").Exec_();
     }
 }

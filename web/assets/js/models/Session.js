@@ -6,9 +6,9 @@ export class Session{
         data.append('password', password);
 
         // Request
-        return new wtools.Request("/api/auth/login", "POST", data, false).Exec_();
+        return await new wtools.Request("/api/auth/login", "POST", data, false).Exec_();
     }
     async logout(){
-        return new wtools.Request("/api/auth/logout", "POST").Exec_();
+        return await new wtools.Request("/api/auth/logout", "POST").Exec_();
     }
 }
