@@ -12,6 +12,9 @@ export class LoginController extends BaseController {
     }
 
     async bindEvents() {
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
         super.bindEvents();
         
         this.verifySession();
@@ -74,8 +77,7 @@ export class LoginController extends BaseController {
             {
                 new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
                 this.setupDatabaseIdentifier();
-                //window.location.href = "/start/"
-                console.log("callback")
+                window.location.href = "/start/"
                 return;
             }
             else if(response_data.status == 401)
@@ -89,6 +91,8 @@ export class LoginController extends BaseController {
                 new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
             }
         });
+
+        wait.Off_();
     }
 
     async verifySession()
