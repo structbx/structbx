@@ -82,8 +82,24 @@ export class BaseController {
         });
     }
 
-    handleError(error) {
-        console.error(error);
+    handleError(error_message, type = "warning") {
+        switch(type){
+            case "warning":{
+                new wtools.Notification('WARNING').Show_(message);
+            }
+            case "error":{
+                new wtools.ElementState('#wait_animation_page', true, 'block', 
+                    `
+                        <div class="d-flex justify-content-center align-items-center position-fixed top-0 w-100 h-100 bg-white" style="z-index: 100000;">
+                            <p class="ms-4">
+                                <i class="fas fa-users me-2"></i>
+                                ${error_message}
+                            </p>
+                        </div>
+                    `
+                );
+            }
+        }
     }
 
     readCurrentUserPermissions (callback){
@@ -98,7 +114,7 @@ export class BaseController {
                 this.user_permissions.push(response_data.body.data[i].endpoint);
 
             callback();
-        })
+        });
     }
 
     verifyUserHasPermission(permission_endpoint){
