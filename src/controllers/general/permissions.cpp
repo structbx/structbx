@@ -65,7 +65,7 @@ void Permissions::ReadCurrent::A1(StructBX::Functions::Action::Ptr action)
         "SELECT ng.* "
         "FROM permissions ng "
         "JOIN users u ON u.id_group = ng.id_group "
-        "WHERE u.id = ? "
+        "WHERE u.identifier = ? "
     );
     action->AddParameter_("id_user", get_id_user(), false);
 }
@@ -242,7 +242,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT id "
         "FROM permissions "
-        "WHERE id = ?"
+        "WHERE identifier = ?"
     );
     action->SetupCondition_("condition-permission-exists", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -255,12 +255,12 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de permiso no puede estar vacío");
+            param->set_error("El identificador de permiso no puede estar vacío");
             return false;
         }
         return true;
@@ -269,7 +269,6 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
 
 void Permissions::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM permissions WHERE id = ?");
-    action->AddParameter_("id", "", true);
-
+    action->set_sql_code("DELETE FROM permissions WHERE identifier = ?");
+    action->AddParameter_("identifier", "", true);
 }
