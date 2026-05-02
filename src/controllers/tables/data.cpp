@@ -26,9 +26,9 @@ Tables::Data::VerifyPermissionsRead::VerifyPermissionsRead(Tools::FunctionData& 
 void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.read = 1 AND fp.id_user = ?"
@@ -66,13 +66,13 @@ Tables::Data::VerifyPermissionsReadFromLink::VerifyPermissionsReadFromLink(Tools
 void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.id_user = ? " \
-            "AND (SELECT COUNT(1) FROM tables_columns fc WHERE fc.link_to = f.id) > 0"
+            "AND (SELECT COUNT(1) FROM tables_columns fc WHERE fc.link_to = f.identifier) > 0"
     );
     action->SetupCondition_("verify-permissions", Query::ConditionType::kError, [](StructBX::Functions::Action& action)
     {
@@ -107,9 +107,9 @@ Tables::Data::VerifyPermissionsAdd::VerifyPermissionsAdd(Tools::FunctionData& fu
 void Tables::Data::VerifyPermissionsAdd::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.add = 1 AND fp.id_user = ?"
@@ -147,9 +147,9 @@ Tables::Data::VerifyPermissionsModify::VerifyPermissionsModify(Tools::FunctionDa
 void Tables::Data::VerifyPermissionsModify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.modify = 1 AND fp.id_user = ?"
@@ -187,9 +187,9 @@ Tables::Data::VerifyPermissionsDelete::VerifyPermissionsDelete(Tools::FunctionDa
 void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.delete = 1 AND fp.id_user = ?"
@@ -229,7 +229,7 @@ void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::P
     action->set_sql_code(
         "SELECT fp.just_owner AS just_owner " \
         "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.id " \
+        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "WHERE f.identifier = ? " \
             "AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) " \
             "AND fp.id_user = ?"
@@ -449,10 +449,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 // Get table link identifier and display_value
                 auto action1_1 = self.AddAction_("a1_1");
                 action1_1->set_sql_code(
-                    "SELECT t.identifier AS identifier, tc.id AS id_display_value "
+                    "SELECT t.identifier AS identifier, tc.identifier AS id_display_value "
                     "FROM tables t "
                     "LEFT JOIN tables_columns tc ON tc.identifier = t.id_display_value "
-                    "WHERE t.id = ? "
+                    "WHERE t.identifier = ? "
                 );
                 action1_1->AddParameter_("id", link_to->Int_(), false);
                 if(!action1_1->Work_())
@@ -483,7 +483,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                     // Get table columns (link)
                     auto action1_2 = self.AddAction_("a1_2");
                     action1_2->set_sql_code(
-                        "SELECT tc.id "
+                        "SELECT tc.identifier "
                         "FROM tables_columns tc "
                         "WHERE tc.id_table = ? LIMIT 1 "
                     );
@@ -509,7 +509,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
                 // Setup new join
                 joins += " LEFT JOIN " + id_database + "." + table_link->ToString_() +
-                " AS _" + table_link->ToString_() + " ON _" + table_link->ToString_() + ".id = _" + 
+                " AS _" + table_link->ToString_() + " ON _" + table_link->ToString_() + ".identifier = _" + 
                 table_identifier->get()->ToString_() + "._structbx_column_" + id->ToString_();
             }
 
@@ -534,7 +534,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         auto record_id = self.GetParameter_("id");
         if(record_id != self.get_parameters().end() && record_id->get()->ToString_() != "")
         {
-            std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".id = " + record_id->get()->ToString_();
+            std::string record_id_condition = "_"+ table_identifier->get()->ToString_() + ".identifier = " + record_id->get()->ToString_();
             if(filters_query == "")
                 filters_query = " WHERE " + record_id_condition;
             else
@@ -559,7 +559,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         }
         if(is_just_owner == 1)
         {
-            std::string just_owner_condition = "_" + table_identifier->get()->ToString_() + "._structbx_column_user_owner = " + std::to_string(self.get_current_user().get_id());
+            std::string just_owner_condition = "_" + table_identifier->get()->ToString_() + "._structbx_column_user_owner = " + self.get_current_user().get_id();
             if(filters_query == "")
                 filters_query = " WHERE " + just_owner_condition;
             else
@@ -615,7 +615,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Action 2: Get Table data
         auto action2 = self.AddAction_("a2");
         std::string sql_code = 
-            "SELECT _" + table_identifier->get()->ToString_() + ".id " + columns + " " \
+            "SELECT _" + table_identifier->get()->ToString_() + ".identifier " + columns + " " \
             "FROM " + id_database + "." + table_identifier->get()->ToString_() + 
                 " AS _" + table_identifier->get()->ToString_()
         ;
@@ -725,9 +725,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 void Tables::Data::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id, fc.id AS column_id " \
+        "SELECT f.identifier, fc.identifier AS column_id " \
         "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.id " \
+        "JOIN tables_columns fc ON fc.id_table = f.identifier " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
     );
     action->set_final(false);
@@ -749,15 +749,15 @@ void Tables::Data::Read::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "fc.id, fc.identifier, fc.name, fc.position, fc.length, fc.required, fc.default_value, fc.description, link_to " \
-            ",fct.identifier AS column_type, fct.name AS column_type_name, f.id AS table_id " \
+            "fc.identifier, fc.identifier, fc.name, fc.position, fc.length, fc.required, fc.default_value, fc.description, link_to " \
+            ",fct.identifier AS column_type, fct.name AS column_type_name, f.identifier AS table_id " \
             ",(SELECT identifier FROM tables WHERE id = fc.link_to) AS link_to_table " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
             ",vc.visible AS visible " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "JOIN views_columns vc ON vc.id_column = fc.id " \
+        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
+        "JOIN views_columns vc ON vc.id_column = fc.identifier " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND vc.id_view = ? " \
         "ORDER BY vc.position ASC"
     );
@@ -890,7 +890,7 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
 void Tables::Data::ReadFile::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id " \
+        "SELECT f.identifier " \
         "FROM tables f " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
@@ -1043,8 +1043,8 @@ void Tables::Data::Add::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT fc.*, fct.identifier AS column_type " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
+        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
         "WHERE f.identifier = ? "
     );
     action->set_final(false);
@@ -1228,8 +1228,8 @@ void Tables::Data::Import::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT fc.*, fct.identifier AS column_type " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
+        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
     );
     action->set_final(false);
@@ -1367,7 +1367,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         }
         if(is_just_owner == 1)
         {
-            std::string just_owner_condition = "_structbx_column_user_owner = " + std::to_string(self.get_current_user().get_id());
+            std::string just_owner_condition = "_structbx_column_user_owner = " + self.get_current_user().get_id();
             action3->set_sql_code(action3->get_sql_code() + " AND " + just_owner_condition);
         }
 
@@ -1394,9 +1394,9 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
 void Tables::Data::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id, fc.id AS column_id " \
+        "SELECT f.identifier, fc.identifier AS column_id " \
         "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.id " \
+        "JOIN tables_columns fc ON fc.id_table = f.identifier " \
         "WHERE f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
     );
     action->set_final(false);
@@ -1430,8 +1430,8 @@ void Tables::Data::Modify::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT fc.*, fct.identifier AS column_type " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
+        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
     );
     action->set_final(false);
@@ -1601,9 +1601,9 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
 void Tables::Data::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.id, fc.id AS column_id " \
+        "SELECT f.identifier, fc.identifier AS column_id " \
         "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.id " \
+        "JOIN tables_columns fc ON fc.id_table = f.identifier " \
         "WHERE f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
     );
     action->set_final(false);
@@ -1637,8 +1637,8 @@ void Tables::Data::Delete::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT fc.*, fct.identifier AS column_type " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.id = fc.id_column_type " \
-        "JOIN tables f ON f.id = fc.id_table " \
+        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
         "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
     );
     action->set_final(false);
