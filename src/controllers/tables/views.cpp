@@ -174,11 +174,11 @@ void Views::Add::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "INSERT INTO views_columns (id_view, id_column, position, visible) "
         "SELECT "
-            "?, tc.id "
-            ",ROW_NUMBER() OVER (PARTITION BY t.id ORDER BY tc.id) * 10.0 "
+            "?, tc.identifier "
+            ",ROW_NUMBER() OVER (PARTITION BY t.identifier ORDER BY tc.identifier) * 10.0 "
             ", 1 "
         "FROM tables_columns tc "
-        "JOIN tables t ON t.id = tc.id_table "
+        "JOIN tables t ON t.identifier = tc.id_table "
         "WHERE t.identifier = ? "
     );
     action->AddParameter_("identifier", "", false);
