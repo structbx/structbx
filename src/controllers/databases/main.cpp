@@ -125,10 +125,10 @@ void Main::Read::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ?"
+        "JOIN databases_users su ON su.id_database = s.identifier " \
+        "WHERE su.id_user = ?"
     );
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
@@ -162,10 +162,10 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
+        "JOIN databases_users su ON su.id_database = s.identifier " \
+        "WHERE su.id_user = ? AND s.identifier = ?" \
     );
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("identifier", get_database_id(), true);
 }
 
@@ -283,7 +283,7 @@ Main::Add::Add(Tools::FunctionData& function_data) :
 
 void Main::Add::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT s.id FROM `databases` s WHERE s.identifier = ?");
+    action->set_sql_code("SELECT s.identifier FROM `databases` s WHERE s.identifier = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
@@ -325,10 +325,10 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 void Main::Add::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO databases_users (id_naf_user, id_database) " \
-        "SELECT ?, s.id FROM `databases` s WHERE identifier = ?"
+        "INSERT INTO databases_users (id_user, id_database) " \
+        "VALUES (?, ?)"
     );
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("identifier", "", false);
 }
 
@@ -384,12 +384,12 @@ Main::Change::Change(Tools::FunctionData& function_data) :
 void Main::Change::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.id, s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
+        "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
         "FROM `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)" \
+        "JOIN databases_users su ON su.id_database = s.identifier " \
+        "WHERE su.id_user = ? AND s.identifier = ?" \
     );
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("id_database", StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue()), true)
     ->SetupCondition_("condition-id_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -427,10 +427,10 @@ Main::Modify::Modify(Tools::FunctionData& function_data) :
 void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.id " \
+        "SELECT s.identifier " \
         "FROM `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ?"
+        "JOIN databases_users su ON su.id_database = s.identifier " \
+        "WHERE su.id_user = ?"
     );
     action->SetupCondition_("verify-user-in-database", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -443,7 +443,7 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
@@ -488,9 +488,9 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
+        "JOIN databases_users su ON su.id_database = s.identifier " \
         "SET s.name = ?, s.description = ? " \
-        "WHERE su.id_naf_user = ? AND s.identifier = ?"
+        "WHERE su.id_user = ? AND s.identifier = ?"
     );
 
     action->AddParameter_("name", "", true)
@@ -514,7 +514,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("description", "", true);
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -552,10 +552,10 @@ Main::Delete::Delete(Tools::FunctionData& function_data) :
 void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT s.id " \
+        "SELECT s.identifier " \
         "FROM `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
-        "WHERE su.id_naf_user = ?"
+        "JOIN databases_users su ON su.id_database = s.identifier " \
+        "WHERE su.id_user = ?"
     );
     action->SetupCondition_("verify-user-in-database", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -568,19 +568,19 @@ void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
-        "JOIN databases_users su ON su.id_database = s.id " \
+        "JOIN databases_users su ON su.id_database = s.identifier " \
         "SET s.state = 'DELETED' " \
-        "WHERE su.id_naf_user = ? AND s.id = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "WHERE su.id_user = ? AND s.identifier = ?"
     );
 
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -595,7 +595,7 @@ void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
 
 void Main::Delete::A3(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM databases_users WHERE id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("DELETE FROM databases_users WHERE id_database = ?");
 
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
