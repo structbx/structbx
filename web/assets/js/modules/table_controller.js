@@ -17,7 +17,14 @@ export class TableController extends BaseController {
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
-        this.verifySession();
+        super.verifySession().then((result) => {
+            if(!result){
+                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+                window.location.href = "/login/";
+                return;
+            }
+        });
+
         new DOME.Headers().Header_();
         this.readCurrentTableInfo();
         this.readSidebarTables();
@@ -27,17 +34,6 @@ export class TableController extends BaseController {
 
     bindEvents() {
         super.bindEvents();
-    }
-
-    verifySession(){
-        // Request
-        this.session.login().then((response_data) => {
-            if(response_data.status != 200){
-                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-                window.location.href = "/login/";
-                return;
-            }
-        });
     }
 
     readCurrentTableInfo(){

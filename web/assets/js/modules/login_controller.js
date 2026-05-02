@@ -15,7 +15,13 @@ export class LoginController extends BaseController {
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
-        this.verifySession();
+        super.verifySession().then((result) => {
+            if(result){
+                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+                window.location.href = "/start/";
+                return;
+            }
+        });
 
         wait.Off_();
     }
@@ -55,23 +61,6 @@ export class LoginController extends BaseController {
         });
     }
 
-    verifySession()
-    {
-        // Wait animation
-        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-
-        // Request
-        this.session.login(undefined, undefined).then((response_data) => {
-            if(response_data.status == 200){
-                new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-                window.location.href = "/start/";
-                return;
-            }
-
-            wait.Off_();
-        });
-    }
-
     setupDatabaseIdentifier(){
         // Request
         this.database.current().then((response_data) => {
@@ -94,6 +83,8 @@ export class LoginController extends BaseController {
                     return;
                 })
             }
+            else
+                window.location.href = "/start/";
         });
 
     };
@@ -127,7 +118,6 @@ export class LoginController extends BaseController {
             if(response_data.status == 200){
                 new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
                 this.setupDatabaseIdentifier();
-                window.location.href = "/start/"
                 return;
             } else if(response_data.status == 401){
                 $('#component_login form input[name=password]').val('');
