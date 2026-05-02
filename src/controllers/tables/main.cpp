@@ -85,12 +85,10 @@ Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(funct
 void Main::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT " \
-            "f.* " \
-        "FROM tables f " \
-        "JOIN `databases` d ON f.id_database = d.id " \
+        "SELECT identifier, name, state, public_form, description, id_column_display " \
+        "FROM tables " \
         "WHERE " \
-            "d.identifier = ? "
+            "id_database = ?"
     );
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
@@ -112,10 +110,10 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "f.identifier, f.name, f.public_form, f.description " \
-        "FROM tables f " \
+            "identifier, name, state, public_form, description, id_column_display " \
+        "FROM tables " \
         "WHERE " \
-            "f.identifier = ? "
+            "identifier = ? "
     );
 
     action->AddParameter_("identifier", "", true)
@@ -156,6 +154,10 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     auto action2 = function->AddAction_("a2");
     A2(action2);
     
+    // Action: Add default view
+    auto add_view = function->AddAction_("add_view");
+    AddView(add_view);
+
     // Action 3_1: Add table permissions to current user
     auto action3_1 = function->AddAction_("a3_1");
     A3(action3_1);
@@ -165,7 +167,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3_1, action4](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3_1, action4, add_view](StructBX::Functions::Function& self)
     {
         Tools::RandomGenerator rg;
         auto table_identifier = rg.GenerateAlphanumericID_(20);
@@ -189,6 +191,14 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         if(!action3_1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3_1->get_identifier() + ": " + action3_1->get_custom_error());
+            return;
+        }
+
+        // Action: Add default view
+        add_view->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
+        if(!add_view->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + add_view->get_identifier() + ": " + add_view->get_custom_error());
             return;
         }
 
@@ -288,7 +298,7 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
 
 void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, (SELECT id FROM `databases` WHERE identifier = ?))");
+    action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
 
     action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "", true)
@@ -320,11 +330,26 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
 void Main::Add::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, id_user, id_table) " \
-        "SELECT 1, 1, 1, 1, ?, (SELECT id FROM tables WHERE identifier = ?)"
+        "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, id_user, id_table) " \
+        "SELECT ?, 1, 1, 1, 1, ?, ?"
     );
 
+    auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+    action->AddParameter_("identifier", identifier, false);
     action->AddParameter_("user_id", get_id_user(), false);
+    action->AddParameter_("table_identifier", 0, false);
+}
+
+void Main::Add::AddView(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "INSERT INTO views (identifier, name, id_table) " \
+        "VALUES (?, ?, ?)"
+    );
+
+    auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+    action->AddParameter_("identifier", identifier, false);
+    action->AddParameter_("name", "Default", false);
     action->AddParameter_("table_identifier", 0, false);
 }
 
