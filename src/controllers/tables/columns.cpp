@@ -40,7 +40,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
             ",vc.visible AS visible " \
         "FROM tables_columns tc " \
         "JOIN tables t ON t.identifier = tc.id_table " \
-        "JOIN views_columns vc ON vc.id_column = tc.id " \
+        "JOIN views_columns vc ON vc.id_column = tc.identifier " \
         "WHERE " \
             "t.identifier = ? AND vc.id_view = ? " \
         "ORDER BY vc.position ASC"
