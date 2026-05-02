@@ -47,7 +47,7 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
             CreateSystemUser();
             void DeleteSystemUser();
 
-            int user_id;
+            std::string user_id;
             std::string  session_id;
             bool error;
         };
