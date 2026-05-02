@@ -62,8 +62,8 @@ bool UsersManager::AuthenticateUser_()
 void UsersManager::ReloadCurrentUser_(std::string user_id)
 {
     // Query process
-        Functions::Action action("update_user");
-        action.set_sql_code("SELECT id, username, id_group, status, type FROM users WHERE id = ?");
+        Functions::Action action("reload_user");
+        action.set_sql_code("SELECT identifier, username, id_group, status, type FROM users WHERE identifier = ?");
         action.AddParameter_("id", user_id, false);
         action.Work_();
 
@@ -72,7 +72,7 @@ void UsersManager::ReloadCurrentUser_(std::string user_id)
         {
             // Set current user
             auto row = action.get_results()->front();
-            auto id = row->ExtractField_("id");
+            auto id = row->ExtractField_("identifier");
             auto username = row->ExtractField_("username");
             auto id_group = row->ExtractField_("id_group");
             auto status = row->ExtractField_("status");
