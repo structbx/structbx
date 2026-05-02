@@ -119,11 +119,51 @@ export class ViewsController extends BaseController{
                     //dataObject.Clear_();
                     //columnsObject.Clear_();
                     new wtools.Notification('WARNING').Show_('No se encontr&oacute; ninguna vista disponible.');
+                    
+                    // Create default view...
                 }
-                /*else
-                    this.selectView(view_identifier);*/
+                else
+                    this.selectView(view_identifier);
             }
 
         });
     }
+    
+    selectView(view_identifier){
+        // Get table identifier
+        const table_identifier = super.getTableIdentifier();
+
+        // Request
+        this.view.readByIdentifier(view_identifier, table_identifier).then((response_data) => {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
+            if(!result.Verify_())
+                return;
+
+            // Handle zero results
+            if(response_data.body.data.length < 1){
+                // Set the first view as active
+                const view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                this.selectView(view_identifier);
+                return;
+            }
+            const row = response_data.body.data[0];
+
+            // Build URL params
+            const url = new URL(window.location.href);
+            url.searchParams.set('t', table_identifier);
+            url.searchParams.set('v', row.identifier);
+            history.pushState({}, '', url.toString());
+
+            // Set view name in dropdown
+            $('.view_name').html(row.name);
+
+            // New data object
+            /*dataObject = new Data();
+            dataObject.Start_();
+            columnsObject.read();
+            filtersObject.read();*/
+        });
+    }
+
 }
