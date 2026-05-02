@@ -28,12 +28,46 @@ export class TableController extends BaseController {
         new DOME.Headers().Header_();
         this.readCurrentTableInfo();
         this.readSidebarTables();
+        super.hideWithoutPermission();
 
         wait.Off_();
     }
 
     bindEvents() {
         super.bindEvents();
+
+        // Go to table
+        $(document).on('click', '.go_table', (e) => {
+            e.preventDefault();
+
+            const table_identifier = super.getTableIdentifier();
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            document.location.href = `/table?t=${table_identifier}`;
+        });
+
+        // Click on TABLE (sidebar menu)
+        $(document).on('click', '#component_sidebar_tables .contents a.menu_table', (e) => {
+            e.preventDefault();
+
+            // Get Form identifier
+            const new_table_identifier = $(e.currentTarget).attr('table-identifier');
+
+            // Reset URL parameters and set new form identifier
+            const url = new URL(window.location.href);
+            url.searchParams.delete('v');
+            url.searchParams.set('t', new_table_identifier);
+            history.pushState({}, '', url.toString());
+
+            // Reset views
+            //viewsObject.readCurrentTableInfo();
+
+            // Read Table
+            //objectTableGeneral.readCurrentTableInfo();
+
+            // Set to active current tab
+            $('#component_sidebar_tables .contents a.menu_table').removeClass('active');
+            $(e.currentTarget).addClass('active');
+        });
     }
 
     readCurrentTableInfo(){
@@ -98,7 +132,7 @@ export class TableController extends BaseController {
             let elements = [];
             for(let row of response_data.body.data){
                 elements.push(`
-                    <a class="menu_data nav-link mb-2 ${row.identifier == table_identifier ? "active" : ""}" href="/table?t=${row.identifier}" table-identifier="${row.identifier}">
+                    <a class="menu_table nav-link mb-2 ${row.identifier == table_identifier ? "active" : ""}" href="/table?t=${row.identifier}" table-identifier="${row.identifier}">
                         <i class="fas fa-table"></i>
                         <span class="ms-2">${row.name}</span>
                     </a>
