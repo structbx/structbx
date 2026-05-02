@@ -102,6 +102,11 @@ export class BaseController {
         }
     }
 
+    async verifySession(){
+        const response_data = await this.session.login()
+        return response_data.status == 200;
+    };
+
     readCurrentUserPermissions (callback){
         // Request
         this.permission.currentUser().then((response_data) => {
