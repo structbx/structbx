@@ -9,12 +9,10 @@ export class ViewsController extends BaseController{
     constructor() {
         super();
         this.view = new View;
-        this.notification = {
-            read: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
-            ,add: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
-            ,modify: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
-            ,delete: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
-        };
+        this.notification.read = new wtools.Notification('WARNING', 5000, '#component_views_read .notifications');
+        this.notification.add = new wtools.Notification('WARNING', 5000, '#component_views_add .notifications');
+        this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications');
+        this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_views_delete .notifications');
     }
 
     build(){
@@ -23,14 +21,14 @@ export class ViewsController extends BaseController{
 
     bindEvents(){
         // Select a view
-        $(document).on('click', '#component_views .dropdown-item a', (e) => {
+        $(document).on('click', '#component_views_read .dropdown-item a', (e) => {
             e.preventDefault();
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             this.selectView(view_identifier);
         });
 
         // Add a view
-        $('#component_views .add').click(() => {
+        $('#component_views_read .add').click(() => {
             $('#component_views_add').modal('show');
         });
         
@@ -40,11 +38,11 @@ export class ViewsController extends BaseController{
         });
 
         // Modify a view
-        $(document).on('click', '#component_views .contents .modify', (e) => {
+        $(document).on('click', '#component_views_read .contents .modify', (e) => {
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                super.notification.error.Show_('No se encontr&oacute; la vista.');
+                this.notification.error.Show_('No se encontr&oacute; la vista.');
                 return;
             }
             $('#component_views_modify input[name="name"]').val(view_name);
@@ -58,11 +56,11 @@ export class ViewsController extends BaseController{
         });
 
         // Delete a view
-        $(document).on('click', '#component_views .contents .delete', (e) => {
+        $(document).on('click', '#component_views_read .contents .delete', (e) => {
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                super.notification.error.Show_('No se encontr&oacute; la vista.');
+                this.notification.error.Show_('No se encontr&oacute; la vista.');
                 return;
             }
             $('#component_views_delete .name').text(view_name);
@@ -77,27 +75,27 @@ export class ViewsController extends BaseController{
     }
     read(){
         // Wait animation
-        let wait = new wtools.ElementState('#component_views .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        let wait = new wtools.ElementState('#component_views_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
-        const table_identifier = super.getTableIdentifier();
+        const table_identifier = this.getTableIdentifier();
 
         // Request
         this.view.readAll(table_identifier).then((response_data) => {
             // Clean
             wait.Off_();
-            $('#component_views .notifications').html('');
-            $('#component_views .contents').html('');
+            $('#component_views_read .notifications').html('');
+            $('#component_views_read .contents').html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'Vistas: Leer');
             if(!result.Verify_())
                 return;
 
             // Results elements creator
             wait.Off_();
-            $('#component_views .notifications').html('');
-            $('#component_views .contents').html('');
-            new wtools.UIElementsCreator('#component_views .contents', response_data.body.data).Build_((row) => {
+            $('#component_views_read .notifications').html('');
+            $('#component_views_read .contents').html('');
+            new wtools.UIElementsCreator('#component_views_read .contents', response_data.body.data).Build_((row) => {
                 return `
                     <div class="p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
                         <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" view-identifier="${row.identifier}" href="#">
@@ -120,11 +118,11 @@ export class ViewsController extends BaseController{
                 this.selectView(view_identifier);
             } else {
                 // Set the first view as active
-                const first_view_identifier = $('#component_views .contents .dropdown-item a').first().attr('view-identifier');
+                const first_view_identifier = $('#component_views_read .contents .dropdown-item a').first().attr('view-identifier');
                 if(first_view_identifier == undefined) {
                     //dataObject.Clear_();
                     //columnsObject.Clear_();
-                    super.notification.warning.Show_('No se encontr&oacute; ninguna vista disponible.');
+                    this.notification.warning.Show_('No se encontr&oacute; ninguna vista disponible.');
                     
                     // Create default view...
                 }
@@ -137,19 +135,19 @@ export class ViewsController extends BaseController{
     
     selectView(view_identifier){
         // Get table identifier
-        const table_identifier = super.getTableIdentifier();
+        const table_identifier = this.getTableIdentifier();
 
         // Request
         this.view.readByIdentifier(view_identifier, table_identifier).then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'Vistas: Leer');
             if(!result.Verify_())
                 return;
 
             // Handle zero results
             if(response_data.body.data.length < 1){
                 // Set the first view as active
-                const view_identifier = $('#component_views .contents .dropdown-item a')
+                const view_identifier = $('#component_views_read .contents .dropdown-item a')
                     .first().attr('view-identifier');
                 this.selectView(view_identifier);
                 return;
@@ -195,7 +193,7 @@ export class ViewsController extends BaseController{
 
         // Data collection
         const view_name = $('#component_views_add input[name=name]').val();
-        const table_identifier = super.getTableIdentifier();
+        const table_identifier = this.getTableIdentifier();
 
         // Request
         this.view.add(view_name, table_identifier).then((response_data) =>
@@ -207,10 +205,84 @@ export class ViewsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            super.notification.ok.Show_('Vista creada exitosamente.');
+            this.notification.ok.Show_('Vista creada exitosamente.');
             $('#component_views_add').modal('hide');
             this.read();
         });
     }
 
+    modify(e){
+        // Clean notifications
+        $('#component_views_modify .notifications').html('');
+
+        // Wait animation
+        let wait = new wtools.ElementState('#component_views_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_views_modify .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        const view_identifier = $('#component_views_modify input[name=identifier]').val();
+        const view_name = $('#component_views_modify input[name=name]').val();
+    
+        // Request
+        this.view.modify(view_name, view_identifier).then((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_views_modify .notifications', 'Vistas: Modificar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Vista modificada exitosamente.');
+            $('#component_views_modify').modal('hide');
+            this.read();
+        });
+    }
+
+    delete(e)
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#component_views_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_views_delete .notifications').html('');
+            wait.Off_();
+            this.notification.warning.Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Request
+        const current_view = wtools.GetUrlSearchParam('v');
+        const view_identifier = $('#component_views_delete input[name="identifier"]').val();
+        this.view.delete(view_identifier).then((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_views_delete .notifications', 'Vistas: Modificar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Vista eliminada exitosamente.');
+            $('#component_views_delete').modal('hide');
+            this.read();
+            if(current_view == view_identifier)
+            {
+                const url = new URL(window.location.href);
+                url.searchParams.set('t', this.getTableIdentifier());
+                history.pushState({}, '', url.toString());
+            }
+
+        });
+    }
 }

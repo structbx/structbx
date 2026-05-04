@@ -6,11 +6,15 @@ import { ResponseManager } from '../classes/response_manager.js';
 import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
 
+import { ViewsController } from '../submodules/views_controller.js';
+
 export class TableController extends BaseController {
     constructor() {
         super();
         this.session = new Session;
         this.table = new Table;
+
+        this.views_controller = new ViewsController;
     }
 
     build(){
@@ -26,15 +30,23 @@ export class TableController extends BaseController {
         });
 
         new DOME.Headers().Header_();
+
+        super.hideWithoutPermission();
+        super.readInstanceName();
+        super.readCurrentDatabase();
+        super.readCurrentUser();
+
         this.readCurrentTableInfo();
         this.readSidebarTables();
-        super.hideWithoutPermission();
+        
+        this.views_controller.read();
 
         wait.Off_();
     }
 
     bindEvents() {
         super.bindEvents();
+        this.views_controller.bindEvents();
 
         // Go to table
         $(document).on('click', '.go_table', (e) => {
