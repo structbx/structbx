@@ -166,4 +166,44 @@ export class ViewsController extends BaseController{
         });
     }
 
+    add(e)
+    {
+        // Clean notifications
+        $('#component_views_add .notifications').html('');
+
+        // Wait animation
+        let wait = new wtools.ElementState(
+            '#component_views_add form button[type=submit]'
+            , true, 'button', new wtools.WaitAnimation().for_button
+        );
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_views_add .notifications').html('');
+            wait.Off_();
+            this.notification.add.Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        const view_name = $('#component_views_add input[name=name]').val();
+        const table_identifier = super.getTableIdentifier();
+
+        // Request
+        this.view.add(view_name, table_identifier).then((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_views_add .notifications', 'Vistas: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            super.notification.ok.Show_('Vista creada exitosamente.');
+            $('#component_views_add').modal('hide');
+            this.read();
+        });
+    }
+
 }
