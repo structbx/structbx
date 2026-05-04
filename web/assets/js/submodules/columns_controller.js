@@ -85,7 +85,7 @@ export class ColumnsController extends BaseController{
         // Set visible column in view
         $(document).on('change'
             ,`#component_columns_read .contents input.form-check-input`, function(e){
-            this.setVisible(e);
+                this.setVisible(e);
         });
 
         // Click on Add Button
@@ -103,19 +103,19 @@ export class ColumnsController extends BaseController{
         // Add Column
         $('#component_columns_add form').submit((e) => {
             e.preventDefault();
-            columnsObject.add();
+            this.add(e);
         });
 
         // Read column to modify
         $(document).on("click", '#component_columns_read a', (e) => {
             e.preventDefault();
-            columnsObject.preModify(e);
+            this.preModify(e);
         });
 
         // Modify column
         $('#component_columns_modify form').submit((e) => {
             e.preventDefault();
-            columnsObject.modify(e);
+            this.modify(e);
         });
         
         // Read column to Delete
@@ -182,8 +182,52 @@ export class ColumnsController extends BaseController{
                     </div>
                 `;
             });
+        });
+    }
 
-            //filtersObject.Read_();
+    add(e){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_columns_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_columns_add .notifications').html('');
+            wait.Off_();
+            this.notification.add.Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        const column_name = $('#component_columns_add input[name=name]').val();
+        const column_type = $('#component_columns_add select[name=column_type]').val();
+        const description = $('#component_columns_add textarea[name=description]').val();
+        const required = $('#component_columns_add select[name=required]').val();
+        const default_value = $('#component_columns_add input[name=default_value]').val();
+        const link_to = $('#component_columns_add select[name=link_to]').val();
+
+        // Verify if column type is selection then link_to is required
+        if(column_type == "selection" && (link_to == null || link_to == "" || link_to == undefined)){
+            wait.Off_();
+            this.notification.add.Show_('Debe especificar la tabla a enlazar.');
+            return;
+        }
+
+        // Request
+        this.tableColumn.add(this.getTableIdentifier(), column_name, column_type, description, required, default_value, link_to).then((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_columns_add .notifications', 'Columnas: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            this.notification.ok.Show_('Columna creada exitosamente.');
+            $('#component_columns_add').modal('hide');
+            $('#component_columns_add form input[name="name"]').val("Nueva columna");
+            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
+            this.read();
         });
     }
 

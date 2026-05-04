@@ -5,14 +5,19 @@ import { ResponseManager } from '../classes/response_manager.js';
 
 import { View } from '../models/View.js';
 
+import { ColumnsController } from '../submodules/columns_controller.js';
+
 export class ViewsController extends BaseController{
     constructor() {
         super();
         this.view = new View;
+
         this.notification.read = new wtools.Notification('WARNING', 5000, '#component_views_read .notifications');
         this.notification.add = new wtools.Notification('WARNING', 5000, '#component_views_add .notifications');
         this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications');
         this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_views_delete .notifications');
+
+        this.columns_controller = new ColumnsController;
     }
 
     build(){
@@ -20,6 +25,10 @@ export class ViewsController extends BaseController{
     }
 
     bindEvents(){
+        super.bindEvents();
+
+        this.columns_controller.bindEvents();
+
         // Select a view
         $(document).on('click', '#component_views_read .dropdown-item a', (e) => {
             e.preventDefault();
@@ -163,6 +172,8 @@ export class ViewsController extends BaseController{
             // Set view name in dropdown
             $('.view_name').html(row.name);
 
+            // Read columns
+            this.columns_controller.read();
             // New data object
             /*dataObject = new Data();
             dataObject.Start_();

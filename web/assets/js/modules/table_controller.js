@@ -7,7 +7,6 @@ import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
 
 import { ViewsController } from '../submodules/views_controller.js';
-import { ColumnsController } from '../submodules/columns_controller.js';
 
 export class TableController extends BaseController {
     constructor() {
@@ -16,7 +15,6 @@ export class TableController extends BaseController {
         this.table = new Table;
 
         this.views_controller = new ViewsController;
-        this.columns_controller = new ColumnsController;
     }
 
     build(){
@@ -42,7 +40,6 @@ export class TableController extends BaseController {
         this.readSidebarTables();
         
         this.views_controller.read();
-        this.columns_controller.read();
 
         wait.Off_();
     }
