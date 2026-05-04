@@ -34,34 +34,33 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "tc.identifier, tc.name, tc.position, tc.length, tc.required, tc.default_value, tc.description, tc.link_to, tc.column_type, " \
-            "f.identifier AS table_identifier " \
+            "tc.identifier, tc.name, tc.required, tc.default_value, tc.description, tc.link_to, tc.column_type, " \
+            "t.identifier AS table_identifier " \
             ",(SELECT name FROM tables WHERE identifier = tc.link_to) AS link_to_table_name " \
-            ",vc.visible AS visible " \
+            ",COALESCE(vc.position, tc.position) AS final_position " \
+            ",COALESCE(vc.visible, 1) AS visible " \
         "FROM tables_columns tc " \
         "JOIN tables t ON t.identifier = tc.id_table " \
-        "JOIN views_columns vc ON vc.id_column = tc.identifier " \
+        "LEFT JOIN views_columns vc ON vc.id_column = tc.identifier AND vc.id_view = ? " \
         "WHERE " \
-            "t.identifier = ? AND vc.id_view = ? " \
-        "ORDER BY vc.position ASC"
+            "t.identifier = ?"
     );
-
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
     action->AddParameter_("view-identifier", "", true)
     ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("El identificador de vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de formulario no puede estar vacío");
             return false;
         }
         return true;
@@ -84,7 +83,7 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "tc.identifier, tc.name, tc.position, tc.length, tc.required, tc.default_value, tc.description, tc.link_to, tc.column_type, " \
+            "tc.identifier, tc.name, tc.required, tc.default_value, tc.description, tc.link_to, tc.column_type, " \
             "f.identifier AS table_identifier " \
             ",(SELECT name FROM tables WHERE identifier = tc.link_to) AS link_to_table_name " \
         "FROM tables_columns tc " \
@@ -185,8 +184,8 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         // Action 4: Add the column in the table
         action4->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "ADD " + column_identifier + " " + variables.column_type + variables.length + " " +
-            variables.required + " " + variables.default_value
+            "ADD " + column_identifier + " " + variables.column_type + " " +
+            + " NULL " + variables.default_value
         );
         if(!action4->Work_())
         {
@@ -231,8 +230,12 @@ void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
 void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_columns (identifier, name, length, required, default_value, description, column_type, link_to, id_table) " \
-        "VALUES (?,?,?,?,?,?,?,?,?)"
+        "INSERT INTO tables_columns (identifier, name, position "
+            ",required, default_value, description, column_type, link_to, id_table) "
+        "SELECT ?,? "
+            ",MAX(position) + 10 "
+            ",?,?,?,?,?,id_table "
+        "FROM tables_columns WHERE id_table = ?"
     );
 
     action->AddParameter_("identifier", "", false);
@@ -257,7 +260,6 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("length", "", true);
     action->AddParameter_("required", "", true)
     ->SetupCondition_("condition-required", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -298,7 +300,7 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("El identificador de tabla no puede estar vacío");
             return false;
         }
         return true;
@@ -363,7 +365,7 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
         action_alter_table->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
             "CHANGE COLUMN `" + column + "` " + column + 
-            " " + variables.column_type + variables.length + " " + variables.required +
+            " " + variables.column_type + " " + variables.required +
             " " + variables.default_value
         );
         if(!action_alter_table->Work_())
@@ -414,7 +416,7 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables_columns SET " \
-            "name = ?, length = ?, required = ? " \
+            "name = ?, required = ? " \
             ",default_value = ?, description = ?, column_type = ?, link_to = ?, position = ? " \
         "WHERE identifier = ? AND id_table = ?"
     );
@@ -439,7 +441,6 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("length", "", true);
     action->AddParameter_("required", "", true)
     ->SetupCondition_("condition-required", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -522,8 +523,12 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
+    // Action: Insert column override
+    auto insert_column_override = function->AddAction_("insert_column_override");
+    InsertColumnOverride(insert_column_override);
+
     // Setup Custom Process
-    function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([action1, action2, insert_column_override](StructBX::Functions::Function& self)
     {
         // Get columnPrev and columnNext parameters
         auto column_prev_param = self.GetParameter_("columnPrev");
@@ -575,9 +580,24 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
                     new Tools::DValue(new_position->ToString_())), "position");
         }
 
+        auto column_identifier = self.GetParameter_("identifier");
+        auto view_identifier = self.GetParameter_("view-identifier");
+        if(column_identifier == self.get_parameters().end() || view_identifier == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "There is empty parameters.");
+            return;
+        }
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            return;
+        }
+
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier->get()->ToString_())), "identifer2");
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifer2");
+        if(!insert_column_override->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + insert_column_override->get_identifier() + ": " + insert_column_override->get_custom_error());
             return;
         }
 
@@ -591,22 +611,12 @@ void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT AVG(vc.position) "
-        "FROM views_columns vc "
-        "WHERE vc.id_column IN (?, ?) AND vc.id_view = ? "
+        "FROM tables_columns vc "
+        "WHERE vc.identifier IN (?, ?) "
     );
 
     action->AddParameter_("columnPrev", "", true);
     action->AddParameter_("columnNext", "", true);
-    action->AddParameter_("view-identifier", "", true)
-    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de la vista no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
 }
 
 void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
@@ -629,6 +639,32 @@ void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
         return true;
     });
     action->AddParameter_("view-identifier", "", true);
+}
+
+void Columns::ModifyPosition::InsertColumnOverride(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "INSERT INTO views_columns (id_view, id_column, position) "
+        "SELECT ?, ?, ? "
+        "WHERE NOT EXISTS ("
+        "   SELECT 1 FROM views_columns "
+        "   WHERE id_view = ? AND id_column = ?)"
+    );
+
+    action->AddParameter_("view-identifier", "", true);
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de columna no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("position", "", false);
+    action->AddParameter_("view-identifier2", "", true);
+    action->AddParameter_("identifier2", "", true);
 }
 
 Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -830,13 +866,12 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
 
     // Get parameters
     auto name = self.GetParameter_("name");
-    auto length = self.GetParameter_("length");
     auto required = self.GetParameter_("required");
     auto default_value = self.GetParameter_("default_value");
     auto column_type = self.GetParameter_("column_type");
     auto table_identifier = self.GetParameter_("table-identifier");
     if(
-        name == end || length == end || required == end ||
+        name == end || required == end ||
         default_value == end || column_type == end || table_identifier == end
     )
         return false;
@@ -844,12 +879,8 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     // Column Type setup
     std::string column_type_str = column_type->get()->ToString_();
     auto column_type_setup = ColumnTypeSetup();
-    if(!column_type_setup.Setup(column_type_str, variables.column_type, variables.length))
+    if(!column_type_setup.Setup(column_type_str, variables.column_type))
         return false;
-
-    // Length setup
-    if(length->get()->ToString_() != "")
-        variables.length = "(" + length->get()->ToString_() + ")";
 
     // Required setup
     if(required->get()->ToString_() == "1")
@@ -890,54 +921,46 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     return true;
 }
 
-bool Columns::ColumnTypeSetup::Setup(std::string column_type_str, std::string& column_type, std::string& length_value)
+bool Columns::ColumnTypeSetup::Setup(std::string column_type_str, std::string& column_type)
 {
     if(column_type_str == "text" || column_type_str == "user" || column_type_str == "current-user")
     {
-        column_type = "VARCHAR";
-        length_value = "(100)";
+        column_type = "VARCHAR (500)";
         return true;
     }
     else if(column_type_str == "long-text" || column_type_str == "file" || column_type_str == "image")
     {
         column_type = "TEXT";
-        length_value = "";
         return true;
     }
     else if(column_type_str == "int-number")
     {
         column_type = "INT";
-        length_value = "(11)";
         return true;
     }
     else if(column_type_str == "decimal-number")
     {
-        column_type = "DECIMAL";
-        length_value = "(10, 2)";
+        column_type = "DECIMAL (20, 5)";
         return true;
     }
     else if(column_type_str == "date")
     {
         column_type = "DATE";
-        length_value = "";
         return true;
     }
     else if(column_type_str == "time")
     {
         column_type = "TIME";
-        length_value = "";
         return true;
     }
     else if(column_type_str == "selection")
     {
-        column_type = "VARCHAR";
-        length_value = "(20)";
+        column_type = "VARCHAR (20)";
         return true;
     }
     else if(column_type_str == "created-date" || column_type_str == "updated-date")
     {
         column_type = "DATETIME";
-        length_value = "";
         return true;
     }
     else
