@@ -158,6 +158,10 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     auto add_view = function->AddAction_("add_view");
     AddView(add_view);
 
+    // Action: Add default column
+    auto add_default_column = function->AddAction_("add_default_column");
+    AddDefaultColumn(add_default_column);
+
     // Action 3_1: Add table permissions to current user
     auto action3_1 = function->AddAction_("a3_1");
     A3(action3_1);
@@ -167,7 +171,11 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([delete_table, database_id, action1, action2, action3_1, action4, add_view](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_(
+        [
+            add_default_column, delete_table, database_id, action1, action2
+            ,action3_1, action4, add_view
+        ](StructBX::Functions::Function& self)
     {
         Tools::RandomGenerator rg;
         auto table_identifier = rg.GenerateAlphanumericID_(20);
@@ -195,10 +203,22 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
 
         // Action: Add default view
+        auto view_identifier = rg.GenerateAlphanumericID_(20);
+        add_view->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier)), "identifier");
         add_view->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!add_view->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + add_view->get_identifier() + ": " + add_view->get_custom_error());
+            return;
+        }
+
+        // Action: Add default column
+        auto column_identifier = rg.GenerateAlphanumericID_(20);
+        add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier)), "identifier");
+        add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
+        if(!add_default_column->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + add_default_column->get_identifier() + ": " + add_default_column->get_custom_error());
             return;
         }
 
@@ -207,6 +227,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
                 "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
+                "" + column_identifier + " VARCHAR(100) NULL, " \
                 "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
                 "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
                 "_structbx_column_user_owner INT NULL, " \
@@ -347,9 +368,21 @@ void Main::Add::AddView(StructBX::Functions::Action::Ptr action)
         "VALUES (?, ?, ?)"
     );
 
-    auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
-    action->AddParameter_("identifier", identifier, false);
+    action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "Default", false);
+    action->AddParameter_("table_identifier", 0, false);
+}
+
+void Main::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "INSERT INTO tables_columns (identifier, name, column_type, id_table) " \
+        "VALUES (?, ?, ?, ?)"
+    );
+
+    action->AddParameter_("identifier", "", false);
+    action->AddParameter_("name", "Default", false);
+    action->AddParameter_("column_type", "text", false);
     action->AddParameter_("table_identifier", 0, false);
 }
 
