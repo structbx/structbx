@@ -1,6 +1,9 @@
 export class Table{
-    async read(){
+    async readAll(){
         return await new wtools.Request("/api/tables/read").Exec_();
+    }
+    async read(identifier){
+        return await new wtools.Request(`/api/tables/read/identifier?identifier=${identifier}`).Exec_();
     }
     async add(name, description){
         // Data collection

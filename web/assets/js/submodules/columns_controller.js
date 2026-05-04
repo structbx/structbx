@@ -296,4 +296,95 @@ export class ColumnsController extends BaseController{
             viewsObject.Read_();
         });
     }
+
+    preModify(e){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        // Get ID
+        let identifier = $(e.target).attr('column-identifier');
+        if(identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la columna.');
+            return;
+        }
+
+        // Request
+        $('#component_data_modify table tbody').html('');
+        this.tableColumn.readByIdentifier(identifier, this.getTableIdentifier()).then((response_data) => {
+            // Manage response
+            const result = new ResponseManager(response_data, '', 'Columnas: Modificar');
+            if(!result.Verify_())
+                return;
+
+            // Handle no results or zero results
+            if(response_data.body.data.length < 1){
+                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                return;
+            }
+
+            // Set data
+            $('#component_columns_modify input[name="identifier"]').val(response_data.body.data[0].identifier);
+            $('#component_columns_modify input[name="name"]').val(response_data.body.data[0].name);
+            $('#component_columns_modify select[name="required"]').val(response_data.body.data[0].required);
+            $('#component_columns_modify input[name="position"]').val(response_data.body.data[0].position);
+            $('#component_columns_modify input[name="default_value"]').val(response_data.body.data[0].default_value);
+            $('#component_columns_modify textarea[name="description"]').val(response_data.body.data[0].description);
+            $('#component_columns_modify select[name="column_type"]').val(response_data.body.data[0].column_type);
+            $('#component_columns_modify select[name="link_to"]').val(response_data.body.data[0].link_to);
+            if(response_data.body.data[0].link_to == "")
+                $('#component_columns_modify form select[name="link_to"]').prop('disabled', true);
+
+            wait.Off_();
+            $('#component_columns_modify form').removeClass('was-validated');
+            $('#component_columns_modify').modal('show');
+        });
+    }
+
+    modify(e)
+    {
+
+        // Wait animation
+        let wait = new wtools.ElementState('#component_columns_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            wait.Off_();
+            $('#component_columns_modify .notifications').html('');
+            new wtools.Notification('WARNING', 5000, '#component_columns_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        const identifier = $('#component_columns_modify input[name=identifier]').val();
+        const column_name = $('#component_columns_modify input[name=name]').val();
+        const column_type = $('#component_columns_modify select[name=column_type]').val();
+        const description = $('#component_columns_modify textarea[name=description]').val();
+        const required = $('#component_columns_modify select[name=required]').val();
+        const default_value = $('#component_columns_modify input[name=default_value]').val();
+        const link_to = $('#component_columns_modify select[name=link_to]').val();
+
+        // Verify if column type is selection then link_to is required
+        if(column_type == "selection" && (link_to == null || link_to == "" || link_to == undefined)){
+            wait.Off_();
+            this.notification.add.Show_('Debe especificar la tabla a enlazar.');
+            return;
+        }
+
+        // Request
+        this.tableColumn.modify(identifier, this.getTableIdentifier(), column_name, column_type, description, required, default_value, link_to).then((response_data) =>{
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_columns_modify .notifications', 'Columnas: Modificar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Columna modificada exitosamente.');
+            $('#component_columns_modify').modal('hide');
+            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
+            this.read();
+        });
+    }
 }
