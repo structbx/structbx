@@ -34,6 +34,7 @@ export class StartController extends BaseController {
         super.readInstanceName();
         super.readCurrentDatabase();
         super.readCurrentUser();
+        
         this.readTables();
 
         wait.Off_();

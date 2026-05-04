@@ -24,6 +24,16 @@ export class BaseController {
         this.session = new Session;
         this.table_data = new TableData;
         this.database_user = new DatabaseUser;
+
+        this.notification = {
+            warning: new wtools.Notification('WARNING')
+            ,error: new wtools.Notification('ERROR')
+            ,ok: new wtools.Notification('SUCCESS')
+            ,read: new wtools.Notification('WARNING')
+            ,add: new wtools.Notification('WARNING')
+            ,modify: new wtools.Notification('WARNING')
+            ,delete: new wtools.Notification('WARNING')
+        };
     }
 
     init() {
