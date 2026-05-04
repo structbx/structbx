@@ -9,6 +9,12 @@ export class ViewsController extends BaseController{
     constructor() {
         super();
         this.view = new View;
+        this.notification = {
+            read: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
+            ,add: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
+            ,modify: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
+            ,delete: new wtools.Notification('WARNING', 5000, '#component_views_add .notifications')
+        };
     }
 
     build(){
@@ -17,61 +23,61 @@ export class ViewsController extends BaseController{
 
     bindEvents(){
         // Select a view
-        $(document).on('click', '#component_data_views .dropdown-item a', (e) => {
+        $(document).on('click', '#component_views .dropdown-item a', (e) => {
             e.preventDefault();
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             this.selectView(view_identifier);
         });
 
         // Add a view
-        $('#component_data_views .add').click(() => {
-            $('#component_data_views_add').modal('show');
+        $('#component_views .add').click(() => {
+            $('#component_views_add').modal('show');
         });
         
-        $('#component_data_views_add form').submit((e) => {
+        $('#component_views_add form').submit((e) => {
             e.preventDefault();
             this.add(e);
         });
 
         // Modify a view
-        $(document).on('click', '#component_data_views .contents .modify', (e) => {
+        $(document).on('click', '#component_views .contents .modify', (e) => {
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; la vista.');
+                super.notification.error.Show_('No se encontr&oacute; la vista.');
                 return;
             }
-            $('#component_data_views_modify input[name="name"]').val(view_name);
-            $('#component_data_views_modify input[name="identifier"]').val(view_identifier);
-            $('#component_data_views_modify').modal('show');
+            $('#component_views_modify input[name="name"]').val(view_name);
+            $('#component_views_modify input[name="identifier"]').val(view_identifier);
+            $('#component_views_modify').modal('show');
         });
 
-        $('#component_data_views_modify form').submit((e) => {
+        $('#component_views_modify form').submit((e) => {
             e.preventDefault();
             this.modify(e);
         });
 
         // Delete a view
-        $(document).on('click', '#component_data_views .contents .delete', (e) => {
+        $(document).on('click', '#component_views .contents .delete', (e) => {
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; la vista.');
+                super.notification.error.Show_('No se encontr&oacute; la vista.');
                 return;
             }
-            $('#component_data_views_delete .name').text(view_name);
-            $('#component_data_views_delete input[name="identifier"]').val(view_identifier);
-            $('#component_data_views_delete').modal('show');
+            $('#component_views_delete .name').text(view_name);
+            $('#component_views_delete input[name="identifier"]').val(view_identifier);
+            $('#component_views_delete').modal('show');
         });
 
-        $('#component_data_views_delete form').submit((e) => {
+        $('#component_views_delete form').submit((e) => {
             e.preventDefault();
             this.delete(e);
         });
     }
     read(){
         // Wait animation
-        let wait = new wtools.ElementState('#component_data_views .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        let wait = new wtools.ElementState('#component_views .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
         const table_identifier = super.getTableIdentifier();
 
@@ -79,19 +85,19 @@ export class ViewsController extends BaseController{
         this.view.readAll(table_identifier).then((response_data) => {
             // Clean
             wait.Off_();
-            $('#component_data_views .notifications').html('');
-            $('#component_data_views .contents').html('');
+            $('#component_views .notifications').html('');
+            $('#component_views .contents').html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views .notifications', 'Vistas: Leer');
             if(!result.Verify_())
                 return;
 
             // Results elements creator
             wait.Off_();
-            $('#component_data_views .notifications').html('');
-            $('#component_data_views .contents').html('');
-            new wtools.UIElementsCreator('#component_data_views .contents', response_data.body.data).Build_((row) => {
+            $('#component_views .notifications').html('');
+            $('#component_views .contents').html('');
+            new wtools.UIElementsCreator('#component_views .contents', response_data.body.data).Build_((row) => {
                 return `
                     <div class="p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
                         <a class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" view-identifier="${row.identifier}" href="#">
@@ -114,11 +120,11 @@ export class ViewsController extends BaseController{
                 this.selectView(view_identifier);
             } else {
                 // Set the first view as active
-                const first_view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                const first_view_identifier = $('#component_views .contents .dropdown-item a').first().attr('view-identifier');
                 if(first_view_identifier == undefined) {
                     //dataObject.Clear_();
                     //columnsObject.Clear_();
-                    new wtools.Notification('WARNING').Show_('No se encontr&oacute; ninguna vista disponible.');
+                    super.notification.warning.Show_('No se encontr&oacute; ninguna vista disponible.');
                     
                     // Create default view...
                 }
@@ -136,14 +142,15 @@ export class ViewsController extends BaseController{
         // Request
         this.view.readByIdentifier(view_identifier, table_identifier).then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_data_views .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views .notifications', 'Vistas: Leer');
             if(!result.Verify_())
                 return;
 
             // Handle zero results
             if(response_data.body.data.length < 1){
                 // Set the first view as active
-                const view_identifier = $('#component_data_views .contents .dropdown-item a').first().attr('view-identifier');
+                const view_identifier = $('#component_views .contents .dropdown-item a')
+                    .first().attr('view-identifier');
                 this.selectView(view_identifier);
                 return;
             }
