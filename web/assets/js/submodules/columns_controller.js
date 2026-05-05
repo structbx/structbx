@@ -77,7 +77,7 @@ export class ColumnsController extends BaseController{
     bindEvents(){
         // Sort columns position in view
         $(`#component_columns_read .contents`).sortable({
-            update: function( event, ui){
+            update: ( event, ui) => {
                 this.setPosition(ui);
             }
         });
@@ -267,33 +267,14 @@ export class ColumnsController extends BaseController{
         let columnPrev = $(ui.item).prev().attr('column-identifier');
         let columnNext = $(ui.item).next().attr('column-identifier');
 
-        // Get View identifier
-        const view_identifier = wtools.GetUrlSearchParam('v');
-        if(view_identifier == undefined)
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
-            return;
-        }
-
-        // Data collection
-        const new_data = new FormData();
-        new_data.append('view-identifier', view_identifier);
-        new_data.append('identifier', column_identifier);
-        if(columnPrev != undefined)
-            new_data.append('columnPrev', columnPrev);
-        if(columnNext != undefined)
-            new_data.append('columnNext', columnNext);
-
         // Request
-        new wtools.Request(server_config.current.api + "/tables/columns/position/modify", "PUT", new_data, false).Exec_((response_data) =>
-        {
+        this.tableColumn.modifyPosition(column_identifier, this.getViewIdentifier(), columnPrev, columnNext).then((response_data) =>{
             // Manage response
             const result = new ResponseManager(response_data, '#notifications', 'Columnas: Posici&oacute;n: Modificar');
             if(!result.Verify_())
                 return;
 
-            viewsObject.Read_();
+            this.read();
         });
     }
 
