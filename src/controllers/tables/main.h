@@ -10,6 +10,7 @@
 #include "controllers/tables/permissions.h"
 #include "controllers/tables/views.h"
 #include "controllers/tables/filters.h"
+#include "controllers/tables/sorts.h"
 #include "tools/random_generator.h"
 
 namespace StructBX
@@ -76,6 +77,7 @@ class StructBX::Controllers::Tables::Main : public Tools::FunctionData
         Permissions function_permissions_;
         Views function_views_;
         Filters function_filters_;
+        Sorts function_sorts_;
         Read struct_read_;
         ReadSpecific struct_read_specific_;
         Add struct_add_;

@@ -121,7 +121,7 @@ export class FiltersController extends BaseController{
         let filter = this.getFilterElement(type)
 
         // Setup row 'columns'
-        this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier).then((response_data) => {
+        this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) => {
 
             for(let column of response_data.body.data){
                 $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))

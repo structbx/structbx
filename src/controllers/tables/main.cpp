@@ -13,6 +13,7 @@ Main::Main(Tools::FunctionData& function_data) :
     ,function_permissions_(function_data)
     ,function_views_(function_data)
     ,function_filters_(function_data)
+    ,function_sorts_(function_data)
     ,struct_read_(function_data)
     ,struct_read_specific_(function_data)
     ,struct_add_(function_data)
