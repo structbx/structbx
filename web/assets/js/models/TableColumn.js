@@ -28,6 +28,14 @@ export class TableColumn{
         data.append("link_to", link_to);
         return await new wtools.Request("/api/tables/columns/modify", "PUT", data, false).Exec_();
     }
+    async modifyVisible(identifier, view_identifier, visible){
+        let data = new FormData();
+        data.append('identifier', identifier);
+        data.append('view-identifier', view_identifier);
+        data.append('visible', visible);
+
+        return await new wtools.Request("/api/tables/columns/visible/modify", "PUT", data, false).Exec_();
+    }
     async modifyPosition(identifier, view_identifier, columnPrev, columnNext){
         let data = new FormData();
         data.append('identifier', identifier);

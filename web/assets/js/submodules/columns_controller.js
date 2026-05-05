@@ -84,7 +84,7 @@ export class ColumnsController extends BaseController{
 
         // Set visible column in view
         $(document).on('change'
-            ,`#component_columns_read .contents input.form-check-input`, function(e){
+            ,`#component_columns_read .contents input.form-check-input`, (e) => {
                 this.setVisible(e);
         });
 
@@ -235,30 +235,12 @@ export class ColumnsController extends BaseController{
         let column_identifier = $(e.target).attr('column-identifier');
         let visible = $(e.target)[0].checked;
 
-        // Get View identifier
-        const view_identifier = wtools.GetUrlSearchParam('v');
-        if(view_identifier == undefined)
-        {
-            wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
-            return;
-        }
-
-        // Data collection
-        const new_data = new FormData();
-        new_data.append('view-identifier', view_identifier);
-        new_data.append('identifier', column_identifier);
-        new_data.append('visible', visible ? 1 : 0);
-
         // Request
-        new wtools.Request(server_config.current.api + "/tables/columns/visible/modify", "PUT", new_data, false).Exec_((response_data) =>
-        {
+        this.tableColumn.modifyVisible(column_identifier, this.getViewIdentifier(), visible ? 1 : 0).then((response_data) => {
             // Manage response
             const result = new ResponseManager(response_data, '#notifications', 'Columnas: Visible: Modificar');
             if(!result.Verify_())
                 return;
-
-            viewsObject.Read_();
         });
     }
 
@@ -273,8 +255,6 @@ export class ColumnsController extends BaseController{
             const result = new ResponseManager(response_data, '#notifications', 'Columnas: Posici&oacute;n: Modificar');
             if(!result.Verify_())
                 return;
-
-            this.read();
         });
     }
 

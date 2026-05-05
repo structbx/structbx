@@ -566,18 +566,19 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
             // columnNext is null, use /2 logic
             new_position_float = new_position->Float_() / 2.0;
             action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+            insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
         }
         else if(column_next_param == self.get_parameters().end())
         {
             // columnPrev is null, use +5 logic
             new_position_float = new_position->Float_() + 5.0;
             action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
+            insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position_float)), "position");
         }
         else
         {
-            action2->SetValueToParamater_(
-                Tools::DValue::Ptr(
-                    new Tools::DValue(new_position->ToString_())), "position");
+            action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position->ToString_())), "position");
+            insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(new_position->ToString_())), "position");
         }
 
         auto column_identifier = self.GetParameter_("identifier");
@@ -593,8 +594,8 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
             return;
         }
 
-        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier->get()->ToString_())), "identifer2");
-        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifer2");
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier->get()->ToString_())), "identifier2");
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier2");
         if(!insert_column_override->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + insert_column_override->get_identifier() + ": " + insert_column_override->get_custom_error());
@@ -610,11 +611,13 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
 void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT AVG(vc.position) "
+        "SELECT AVG(COALESCE(vc2.position, vc.position)) "
         "FROM tables_columns vc "
+        "LEFT JOIN views_columns vc2 ON vc2.id_column = vc.identifier AND vc2.id_view = ? "
         "WHERE vc.identifier IN (?, ?) "
     );
 
+    action->AddParameter_("view-identifier", "", true);
     action->AddParameter_("columnPrev", "", true);
     action->AddParameter_("columnNext", "", true);
 }
@@ -644,8 +647,8 @@ void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
 void Columns::ModifyPosition::InsertColumnOverride(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO views_columns (id_view, id_column, position) "
-        "SELECT ?, ?, ? "
+        "INSERT INTO views_columns (id_view, id_column, position, visible) "
+        "SELECT ?, ?, ?, NULL "
         "WHERE NOT EXISTS ("
         "   SELECT 1 FROM views_columns "
         "   WHERE id_view = ? AND id_column = ?)"
@@ -673,10 +676,44 @@ Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/columns/visible/modify", HTTP::EnumMethods::kHTTP_PUT);
 
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
     // Action 1: Set visible
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
+    // Action: Insert column override
+    auto insert_column_override = function->AddAction_("insert_column_override");
+    InsertColumnOverride(insert_column_override);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1, insert_column_override](StructBX::Functions::Function& self)
+    {
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            return;
+        }
+
+        auto column_identifier = self.GetParameter_("identifier");
+        auto view_identifier = self.GetParameter_("view-identifier");
+        if(column_identifier == self.get_parameters().end() || view_identifier == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "There is empty parameters.");
+            return;
+        }
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier->get()->ToString_())), "identifier2");
+        insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier2");
+        if(!insert_column_override->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + insert_column_override->get_identifier() + ": " + insert_column_override->get_custom_error());
+            return;
+        }
+
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "OK.");
+    });
+    
     get_functions()->push_back(function);
 }
 
@@ -718,6 +755,32 @@ void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
+}
+
+void Columns::ModifyVisible::InsertColumnOverride(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "INSERT INTO views_columns (id_view, id_column, visible, position) "
+        "SELECT ?, ?, ?, NULL "
+        "WHERE NOT EXISTS ("
+        "   SELECT 1 FROM views_columns "
+        "   WHERE id_view = ? AND id_column = ?)"
+    );
+
+    action->AddParameter_("view-identifier", "", true);
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de columna no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("visible", "", true);
+    action->AddParameter_("view-identifier2", "", true);
+    action->AddParameter_("identifier2", "", true);
 }
 
 Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
