@@ -67,40 +67,9 @@ export class FiltersController extends BaseController{
         });
 
         // Sort filters position in view
-        $(`${component_filters_read.identifier} .contents`).sortable({
+        $(`#component_filters_read .contents`).sortable({
             update: ( event, ui) => {
-                let element = $(ui.item).attr('filter-identifier');
-                let filterPrev = $(ui.item).prev().attr('filter-identifier');
-                let filterNext = $(ui.item).next().attr('filter-identifier');
-
-                // Get View identifier
-                const view_identifier = wtools.GetUrlSearchParam('v');
-                if(view_identifier == undefined)
-                {
-                    wait.Off_();
-                    new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
-                    return;
-                }
-
-                // Data collection
-                const new_data = new FormData();
-                new_data.append('view-identifier', view_identifier);
-                new_data.append('identifier', element);
-                if(filterPrev != undefined)
-                    new_data.append('filterPrev', filterPrev);
-                if(filterNext != undefined)
-                    new_data.append('filterNext', filterNext);
-
-                // Request
-                new wtools.Request(server_config.current.api + "/tables/filters/position/modify", "PUT", new_data, false).Exec_((response_data) =>
-                {
-                    // Manage response
-                    const result = new ResponseManager(response_data, '#notifications', 'Filtros: Posici&oacute;n: Modificar');
-                    if(!result.Verify_())
-                        return;
-
-                    viewsObject.Read_();
-                });
+                this.modifyPosition(ui);
             }
         });
     }
@@ -267,6 +236,24 @@ export class FiltersController extends BaseController{
             const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
             if(!result.Verify_())
                 return;
+        });
+    }
+
+    modifyPosition(ui){
+        let filter_identifier = $(ui.item).attr('filter-identifier');
+        let filterPrev = $(ui.item).prev().attr('filter-identifier');
+        let filterNext = $(ui.item).next().attr('filter-identifier');
+
+        // Request
+        this.viewFilter.modifyPosition(filter_identifier, this.getViewIdentifier(), filterPrev, filterNext).then((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#notifications', 'Filtros: Posici&oacute;n: Modificar');
+            if(!result.Verify_())
+            {
+                this.read();
+                return;
+            }
         });
     }
 
