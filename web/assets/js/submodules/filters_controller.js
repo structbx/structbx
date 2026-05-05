@@ -234,4 +234,39 @@ export class FiltersController extends BaseController{
             $(e.currentTarget).find('i').addClass('fa-pen');
         });
     }
+
+    modify(e){
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        // Get filter identifier from the parent element
+        const filter_element = $(e.currentTarget).parent();
+        const filter_identifier = filter_element.attr('filter-identifier');
+        if(filter_identifier == undefined){
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            return;
+        }
+
+        // Get current values from the filter element
+        const column_identifier = filter_element.find('select[name=column]').val();
+        const op = filter_element.find('select[name=op]').val();
+        const value = filter_element.find('input[name=value]').val();
+        const is_active = filter_element.find('input[name=is_active]')[0].checked;
+
+        // Validate inputs
+        if (column_identifier === "" || op === "" || value === "")
+        {
+            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            return;
+        }
+        
+        this.viewFilter.modify(filter_identifier, this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, op, value, is_active)
+        .then((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
+            if(!result.Verify_())
+                return;
+        });
+    }
 }

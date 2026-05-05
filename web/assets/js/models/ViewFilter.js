@@ -13,4 +13,16 @@ export class ViewFilter{
 
         return await new wtools.Request("/api/tables/filters/add", "POST", data, false).Exec_();
     }
+    async modify(identifier, table_identifier, view_identifier, column_identifier, op, value, is_active){
+        const data = new FormData();
+        data.append('identifier', identifier);
+        data.append('table-identifier', table_identifier);
+        data.append('view-identifier', view_identifier);
+        data.append('column-identifier', column_identifier);
+        data.append('op', op);
+        data.append('value', value);
+        data.append('is-active', is_active ? 1 : 0);
+
+        return await new wtools.Request("/api/tables/filters/modify", "PUT", data, false).Exec_();
+    }
 }
