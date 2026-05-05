@@ -269,4 +269,29 @@ export class FiltersController extends BaseController{
                 return;
         });
     }
+
+    delete(e){
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        // Get filter identifier from the parent element
+        const filter_element = $(e.currentTarget).parent();
+        const filter_identifier = filter_element.attr('filter-identifier');
+        if(filter_identifier == undefined)
+        {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            return;
+        }
+
+        // Request
+        this.viewFilter.delete(filter_identifier, this.getViewIdentifier()).then((response_data) =>
+        {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
+            if(!result.Verify_())
+                return;
+
+            $(filter_element).remove();
+        });
+    }
 }

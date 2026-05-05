@@ -25,4 +25,7 @@ export class ViewFilter{
 
         return await new wtools.Request("/api/tables/filters/modify", "PUT", data, false).Exec_();
     }
+    async delete(identifier, view_identifier){
+        return await new wtools.Request(`/api/tables/filters/delete?identifier=${identifier}&view-identifier=${view_identifier}`, 'DEL').Exec_();
+    }
 }
