@@ -57,9 +57,9 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
 Users::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
-    // Function GET /api/general/users/read/id
+    // Function GET /api/general/users/read/identifier
     StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/general/users/read/id", HTTP::EnumMethods::kHTTP_GET);
+        std::make_shared<StructBX::Functions::Function>("/api/general/users/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "

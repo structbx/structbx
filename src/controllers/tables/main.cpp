@@ -227,7 +227,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
                 "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
-                "" + column_identifier + " VARCHAR(100) NULL, " \
+                "" + column_identifier + " VARCHAR(500) NULL, " \
                 "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
                 "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
                 "_structbx_column_user_owner INT NULL, " \

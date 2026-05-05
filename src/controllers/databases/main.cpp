@@ -134,9 +134,9 @@ void Main::Read::A1(StructBX::Functions::Action::Ptr action)
 Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
-    // Function GET /api/databases/read/id
+    // Function GET /api/databases/read/identifier
     StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/databases/read/id", HTTP::EnumMethods::kHTTP_GET);
+        std::make_shared<StructBX::Functions::Function>("/api/databases/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     auto action = function->AddAction_("a1");

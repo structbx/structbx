@@ -790,9 +790,9 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
 void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.identifier AS column_identifier " \
-        "FROM tables_columns tc " \
-        "WHERE tc.identifier = ? AND tc.id_table = ?"
+        "SELECT identifier AS column_identifier " \
+        "FROM tables_columns " \
+        "WHERE identifier = ? AND id_table = ?"
     );
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)

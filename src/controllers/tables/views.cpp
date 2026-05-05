@@ -51,7 +51,7 @@ void Views::Read::A1(StructBX::Functions::Action::Ptr action)
 
 Views::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
-    // Function GET /api/tables/views/read/id
+    // Function GET /api/tables/views/read/identifier
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 

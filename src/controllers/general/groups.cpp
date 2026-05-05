@@ -36,9 +36,9 @@ void Groups::Read::A1(StructBX::Functions::Action::Ptr action)
 
 Groups::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
-    // Function GET /api/general/groups/read/id
+    // Function GET /api/general/groups/read/identifier
     StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/general/groups/read/id", HTTP::EnumMethods::kHTTP_GET);
+        std::make_shared<StructBX::Functions::Function>("/api/general/groups/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     
     auto action1 = function->AddAction_("a1");
     A1(action1);
