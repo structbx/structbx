@@ -72,6 +72,24 @@ export class FiltersController extends BaseController{
                 this.modifyPosition(ui);
             }
         });
+
+        // Filter field change
+        const changesNotSaved = (e) => {
+            $($(e.currentTarget).parent()).find('.modify').css('background-color', '#bbb');
+        }
+        $(document).on('change', '#component_filters_read input[name=is_active]', e => {
+            changesNotSaved(e);
+        });
+        $(document).on('change', '#component_filters_read select[name=column]', e => {
+            changesNotSaved(e);
+        });
+        $(document).on('change', '#component_filters_read select[name=op]', e => {
+            changesNotSaved(e);
+        });
+        $(document).on('change', '#component_filters_read input[name=value]', e => {
+            changesNotSaved(e);
+        });
+
     }
 
     getFilterElement(type = "modify")
@@ -181,15 +199,14 @@ export class FiltersController extends BaseController{
         const is_active = parent.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
-        if (column_identifier === "" || op === "" || value === "")
-        {
+        if (column_identifier === "" || op === "" || value === ""){
             new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
             return;
         }
         
         // Request
-        this.viewFilter.add(this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, op, value, is_active).then((response_data) =>
-        {
+        this.viewFilter.add(this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, op, value, is_active).
+        then((response_data) => {
             wait.Off_();
 
             // Manage response
@@ -223,19 +240,19 @@ export class FiltersController extends BaseController{
         const is_active = filter_element.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
-        if (column_identifier === "" || op === "" || value === "")
-        {
+        if (column_identifier === "" || op === "" || value === ""){
             new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
             return;
         }
         
         this.viewFilter.modify(filter_identifier, this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, op, value, is_active)
-        .then((response_data) =>
-        {
+        .then((response_data) => {
             // Manage response
             const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
             if(!result.Verify_())
                 return;
+
+            $(filter_element).find('.modify').css('background-color', '#fff');
         });
     }
 
@@ -245,12 +262,10 @@ export class FiltersController extends BaseController{
         let filterNext = $(ui.item).next().attr('filter-identifier');
 
         // Request
-        this.viewFilter.modifyPosition(filter_identifier, this.getViewIdentifier(), filterPrev, filterNext).then((response_data) =>
-        {
+        this.viewFilter.modifyPosition(filter_identifier, this.getViewIdentifier(), filterPrev, filterNext).then((response_data) =>{
             // Manage response
             const result = new ResponseManager(response_data, '#notifications', 'Filtros: Posici&oacute;n: Modificar');
-            if(!result.Verify_())
-            {
+            if(!result.Verify_()){
                 this.read();
                 return;
             }
@@ -264,15 +279,13 @@ export class FiltersController extends BaseController{
         // Get filter identifier from the parent element
         const filter_element = $(e.currentTarget).parent();
         const filter_identifier = filter_element.attr('filter-identifier');
-        if(filter_identifier == undefined)
-        {
+        if(filter_identifier == undefined){
             new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
             return;
         }
 
         // Request
-        this.viewFilter.delete(filter_identifier, this.getViewIdentifier()).then((response_data) =>
-        {
+        this.viewFilter.delete(filter_identifier, this.getViewIdentifier()).then((response_data) => {
             // Manage response
             const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Modificar');
             if(!result.Verify_())
