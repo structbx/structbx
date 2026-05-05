@@ -1,0 +1,197 @@
+import { BaseController } from '../modules/base_controller.js';
+import * as Tools from '../classes/tools.js';
+import * as DOME from '../classes/dom_elements.js';
+import { ResponseManager } from '../classes/response_manager.js';
+import { TableElements } from '../classes/table_elements.js';
+
+import { ViewFilter } from '../models/ViewFilter.js';
+import { TableColumn } from '../models/TableColumn.js';
+
+export class FilterType
+{
+    constructor()
+    {
+        this.like = {title: 'Contiene', value: 'LIKE'};
+        this.equal = {title: 'Igual', value: '='};
+        this.not_equal = {title: 'No igual', value: '!='};
+        this.greater = {title: 'Mayor que', value: '>'};
+        this.less = {title: 'Menor que', value: '<'};
+        this.greater_equal = {title: 'Mayor o igual que', value: '>='};
+        this.less_equal = {title: 'Menor o igual que', value: '<='};
+        this.array = [this.like, this.equal, this.not_equal, this.greater, this.less, this.greater_equal, this.less_equal];
+    }
+}
+
+export class FiltersController extends BaseController{
+    constructor() {
+        super();
+        this.viewFilter = new ViewFilter;
+        this.tableColumn = new TableColumn;
+
+        this.notification.read = new wtools.Notification('WARNING', 5000, '#component_filters_read .notifications');
+        this.notification.add = new wtools.Notification('WARNING', 5000, '#component_filters_add .notifications');
+        this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_filters_modify .notifications');
+        this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_filters_delete .notifications');
+    }
+
+    build(){
+
+    }
+
+    bindEvents(){
+        // Show filter modal
+        const show_filter_modal = (e) => {
+            e.preventDefault();
+            $('#component_filters_read').modal('show');
+        }
+        $('.filters_read').click(e => show_filter_modal(e));
+
+        $('#component_filters_read .add').click(e => {
+            e.preventDefault();
+            this.setupNewFilterElement(undefined, type="save");
+        });
+
+        $(document).on('click', '#component_filters_read .save', e => {
+            e.preventDefault();
+            this.add(e);
+        });
+
+        $(document).on('click', '#component_filters_read .modify', e => {
+            e.preventDefault();
+            this.modify(e);
+        });
+
+        $(document).on('click', '#component_filters_read .delete', e => {
+            e.preventDefault();
+            this.delete(e);
+        });
+
+        // Sort filters position in view
+        $(`${component_filters_read.identifier} .contents`).sortable({
+            update: ( event, ui) => {
+                let element = $(ui.item).attr('filter-identifier');
+                let filterPrev = $(ui.item).prev().attr('filter-identifier');
+                let filterNext = $(ui.item).next().attr('filter-identifier');
+
+                // Get View identifier
+                const view_identifier = wtools.GetUrlSearchParam('v');
+                if(view_identifier == undefined)
+                {
+                    wait.Off_();
+                    new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la vista.');
+                    return;
+                }
+
+                // Data collection
+                const new_data = new FormData();
+                new_data.append('view-identifier', view_identifier);
+                new_data.append('identifier', element);
+                if(filterPrev != undefined)
+                    new_data.append('filterPrev', filterPrev);
+                if(filterNext != undefined)
+                    new_data.append('filterNext', filterNext);
+
+                // Request
+                new wtools.Request(server_config.current.api + "/tables/filters/position/modify", "PUT", new_data, false).Exec_((response_data) =>
+                {
+                    // Manage response
+                    const result = new ResponseManager(response_data, '#notifications', 'Filtros: Posici&oacute;n: Modificar');
+                    if(!result.Verify_())
+                        return;
+
+                    viewsObject.Read_();
+                });
+            }
+        });
+    }
+
+    getFilterElement(type = "modify")
+    {
+        let options = '';
+        for(const option of new FilterType().array){
+            options += `<option value="${option.value}">${option.title}</option>`;
+        }
+        return $(`
+            <div class="input-group ui-state-default mb-2">
+                <a class="btn me-2"><i class="fas fa-sort"></i></a>
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input" type="checkbox" name="is_active"/>
+                </div>
+                <select class="form-select" name="column" required></select>
+                <select class="form-select" name="op" required>
+                    ${options}
+                </select>
+                <input type="text" class="form-control" name="value" placeholder="value" required/>
+                <button type="button" class="btn btn-sm btn-dark-shadow ${type}"><i class="fas fa-${type=="modify" ? "pen" : "save"}"></i></button>
+                <button type="button" class="btn btn-sm btn-dark-shadow me-2 delete"><i class="fas fa-trash"></i></button>
+            </div>
+        `);
+    }
+
+    setupNewFilterElement(filter_row = undefined, type="modify")
+    {
+        // Create filter
+        let filter = this.getFilterElement(type)
+
+        // Setup row 'columns'
+        this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier).then((response_data) => {
+
+            for(let column of response_data.body.data){
+                $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))
+            }
+            if(filter_row){
+                if(filter_row.identifier != undefined){
+                    $(filter).attr('filter-identifier', filter_row.identifier);
+                }
+                if(filter_row.id_column != undefined){
+                    $(filter).find('select[name=column]').val(filter_row.id_column);
+                }
+                if(filter_row.op != undefined){
+                    $(filter).find('select[name=op]').val(filter_row.op);
+                }
+                if(filter_row.value != undefined){
+                    $(filter).find('input[name=value]').val(filter_row.value);
+                }
+                if(filter_row.is_active != undefined){
+                    $(filter).find('input[name=is_active]')[0].checked = filter_row.is_active == 0 ? false : true;
+                }
+            }
+
+            // Add filter
+            $('#component_filters_read .contents').append(filter);
+        });
+    }
+
+    read(){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_filters_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        // Request
+        this.viewFilter.readAll(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) =>
+        {
+            // Clean
+            wait.Off_();
+            $('#component_filters_read .notifications').html('');
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Leer');
+            if(!result.Verify_())
+                return;
+
+            // Handle zero results
+            if(response_data.body.data.length < 1){
+                $(`${component_filters_read.identifier} .contents`).html('<span class="text-muted p-2">No hay filtros</span>');
+                return;
+            }
+
+            // Results elements creator
+            wait.Off_();
+            $('#component_filters_read .notifications').html('');
+            $(`${component_filters_read.identifier} .contents`).html('');
+
+            for(const filter of response_data.body.data){
+                this.setupNewFilterElement(filter, "modify");
+            }
+        });
+    }
+}
