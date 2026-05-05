@@ -28,4 +28,7 @@ export class TableColumn{
         data.append("link_to", link_to);
         return await new wtools.Request("/api/tables/columns/modify", "PUT", data, false).Exec_();
     }
+    async delete(identifier, table_identifier){
+        return await new wtools.Request(`/api/tables/columns/delete?identifier=${identifier}&table-identifier=${table_identifier}`, "DEL").Exec_();
+    }
 }

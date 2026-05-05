@@ -387,4 +387,46 @@ export class ColumnsController extends BaseController{
             this.read();
         });
     }
+
+    preDelete()
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        // Data
+        const identifier = $('#component_columns_modify input[name=identifier]').val();
+        const name = $('#component_columns_modify input[name=name]').val();
+
+        // Setup data to delete
+        $('#component_columns_delete input[name=identifier]').val(identifier);
+        $('#component_columns_delete strong.name').html(name);
+        $('#component_columns_delete').modal('show');
+        wait.Off_();
+    }
+
+    delete()
+    {
+        // Wait animation
+        let wait = new wtools.ElementState('#component_columns_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Data
+        const identifier = $('#component_columns_delete input[name=identifier]').val();
+
+        // Request
+        this.tableColumn.delete(identifier, this.getTableIdentifier()).then((response_data) =>
+        {
+            wait.Off_();
+            
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_columns_delete .notifications', 'Columnas: Eliminar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Columna eliminada.');
+            $('#component_columns_delete').modal('hide');
+            $('#component_columns_modify').modal('hide');
+            this.read();
+            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
+        });
+    }
 }
