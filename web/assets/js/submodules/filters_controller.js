@@ -48,7 +48,7 @@ export class FiltersController extends BaseController{
 
         $('#component_filters_read .add').click(e => {
             e.preventDefault();
-            this.setupNewFilterElement(undefined, type="save");
+            this.setupNewFilterElement("save");
         });
 
         $(document).on('click', '#component_filters_read .save', e => {
@@ -128,7 +128,7 @@ export class FiltersController extends BaseController{
         `);
     }
 
-    setupNewFilterElement(filter_row = undefined, type="modify")
+    setupNewFilterElement(type="modify", filter_row = undefined)
     {
         // Create filter
         let filter = this.getFilterElement(type)
@@ -180,18 +180,58 @@ export class FiltersController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
-                $(`${component_filters_read.identifier} .contents`).html('<span class="text-muted p-2">No hay filtros</span>');
+                $(`#component_filters_read .contents`).html('<span class="text-muted p-2">No hay filtros</span>');
                 return;
             }
 
             // Results elements creator
             wait.Off_();
             $('#component_filters_read .notifications').html('');
-            $(`${component_filters_read.identifier} .contents`).html('');
+            $(`#component_filters_read .contents`).html('');
 
             for(const filter of response_data.body.data){
-                this.setupNewFilterElement(filter, "modify");
+                this.setupNewFilterElement("modify", filter);
             }
+        });
+    }
+
+    add(e){
+        // Wait animation
+        let wait = new wtools.ElementState(
+            e.currentTarget
+            , true, 'button', new wtools.WaitAnimation().for_button
+        );
+
+        // Clean notifications
+        $('#component_filters_read .notifications').html('');
+
+        const parent = $(e.currentTarget).parent();
+        const column_identifier = parent.find('select[name=column]').val();
+        const op = parent.find('select[name=op]').val();
+        const value = parent.find('input[name=value]').val();
+        const is_active = parent.find('input[name=is_active]')[0].checked;
+
+        // Validate inputs
+        if (column_identifier === "" || op === "" || value === "")
+        {
+            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            return;
+        }
+        
+        // Request
+        this.viewFilter.add(this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, op, value, is_active).then((response_data) =>
+        {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            $(e.currentTarget).removeClass('save');
+            $(e.currentTarget).addClass('modify');
+            $(e.currentTarget).find('i').removeClass('fa-save');
+            $(e.currentTarget).find('i').addClass('fa-pen');
         });
     }
 }
