@@ -160,9 +160,6 @@ export class ColumnsController extends BaseController{
             $('#component_columns_read .notifications').html('');
             $(`#component_columns_read .contents`).html('');
 
-            // Sort elements by the position
-            response_data.body.data.sort((a, b) => a.final_position - b.final_position);
-
             new wtools.UIElementsCreator(`#component_columns_read .contents`, response_data.body.data).Build_((row) =>{
                 let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
 

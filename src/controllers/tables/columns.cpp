@@ -43,7 +43,8 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
         "JOIN tables t ON t.identifier = tc.id_table " \
         "LEFT JOIN views_columns vc ON vc.id_column = tc.identifier AND vc.id_view = ? " \
         "WHERE " \
-            "t.identifier = ?"
+            "t.identifier = ? "
+        "ORDER BY COALESCE(vc.position, tc.position) ASC"
     );
     action->AddParameter_("view-identifier", "", true)
     ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)

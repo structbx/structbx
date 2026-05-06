@@ -658,13 +658,15 @@ void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action
 {
     action->set_sql_code(
         "SELECT " \
-            "fc.identifier, fc.identifier, fc.name, fc.column_type, fc.position, fc.required, fc.default_value, fc.description, link_to " \
+            "fc.identifier, fc.identifier, fc.name, fc.column_type, fc.required, fc.default_value, fc.description, link_to " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
             ",COALESCE(vc.visible, 1) AS visible " \
+            ",COALESCE(vc.position, fc.position) AS final_position " \
         "FROM tables_columns fc " \
         "JOIN tables f ON f.identifier = fc.id_table " \
         "LEFT JOIN views_columns vc ON vc.id_column = fc.identifier " \
         "WHERE f.identifier = ? AND f.id_database = ? AND vc.id_view = ? " \
+        "ORDER BY COALESCE(vc.position, fc.position) ASC "
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)

@@ -240,8 +240,6 @@ export class DataController extends BaseController{
     createColumn(response_data){
         // Variables
         let keys = response_data.body.columns_meta.data;
-        this.data_read_columns = [];
-        let it = 0;
 
         // Setup columns meta
         new wtools.UIElementsCreator('#component_data_read #headerRow', keys)
@@ -256,10 +254,6 @@ export class DataController extends BaseController{
             let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, "text"), column, this.getTableIdentifier());
             let table_icon = table_element_object.GetIcon_(false);
 
-            // Add column to array
-            this.data_read_columns.push({identifier: column.identifier, name: column.name});
-
-            it++;
             return [`
                 <div class="header-cell" column-identifier="${column.identifier}" style="width: 200px; flex: 0 0 200px;">
                     <div class="header-content">
