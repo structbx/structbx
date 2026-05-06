@@ -251,22 +251,37 @@ table.table_data td:first-child {
     color: #fff !important;
     border-color: var(--primary) !important;
 }
+
+/*.sidebar .nav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    position: relative;
+    max-width: 200px;
+    min-width: 120px;
+}
+.sidebar .nav-link:hover {
+    background-color: #e1e9f7;
+}
+.sidebar .nav-link.active {
+}*/
+
 #menu_main .nav-link {
     background: none;
     color:#333;
 }
 #menu_main .nav-link:hover {
-    background-color: #d8d8d8;
+    background-color: #e1e9f7;
 }
 #menu_main .nav-link.active {
-    background: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
-    color:#fff;
-    text-decoration: none;
+    background-color: #e1e9f7 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    color: #2267d4 !important;
+    font-weight: bold !important;
 }
 #menu_main .nav-link.active:hover{
     text-decoration: none;
-    color: #fff !important;
-    border-color: var(--primary) !important;
 }
 
 /* Drag and Drop elements */

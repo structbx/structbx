@@ -28,28 +28,31 @@
         <!-- /JS Libraries -->
          
     </head>
-    <body id="structbx" class="bg-light">
+    <body data-page="Table" id="structbx" class="bg-light">
 
         <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
         </header>
 
-        <div class="container-xxl">
+        <div class="">
             <div class="row">
 
+                <!--- Sidebar menu --->
+                <aside id="menu_main" class="sticky-md-top h-100 sidebar col-md-3 col-lg-2 d-md-block bg-light collapse px-4" style="top:5rem">
+                    <nav class="nav nav-pills flex-column justify-contents-between pt-4">
+                        <h5 class="small text-uppercase text-muted">TABLAS</h5>
+                        <div id="component_sidebar_tables">
+                            <div class="notifications"></div>
+                            <div class="contents"></div>
+                        </div>
+                    </nav>
+                </aside>
+                <!-- /Sidebar menu -->
+
                 <!-- Main content -->
-                <main id="contents_main" class="col-md-12 col-lg-12 ms-sm-auto px-md-4 pt-2 pb-5 bg-light">
+                <main id="contents_main" class="col-md-9 col-lg-10 ms-sm-auto px-md-4 pt-2 pb-5 bg-light">
 
                     <!-- Data section -->
                     <section class="section_data">
-
-                        <!-- All tables Nav -->
-                        <div id="component_sidebar_tables_tabs" class="mb-2">
-                            <div class="notifications"></div>
-                            <div class="tab-container">
-                                <div class="tab-scroller"></div>
-                            </div>
-                        </div>
-                        <!-- /All tables Nav -->
 
                         <!-- Data Header -->
                         <div class="border-bottom d-flex">
@@ -67,11 +70,11 @@
                                 <div class="p-2 bd-highlight me-auto">
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-eye me-2"></i>
                                             <b class="view_name"></b>
                                         </button>
                                         <div class="dropdown-menu" style="z-index:1050;">
-                                            <div id="component_data_views">
+                                            <div id="component_views_read">
                                                 <div class="notifications"></div>
                                                 <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
                                                     <i class="fas fa-plus me-2"></i>
@@ -123,6 +126,25 @@
                                                 </div>
                                                 <hr class="dropdown-divider">
                                                 <div class="contents"><span class="text-muted p-2">No hay filtros</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sorts Options -->
+                                <div class="p-2 bd-highlight">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            <i class="fas fa-sort-amount-up"></i>
+                                        </button>
+                                        <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
+                                            <div id="component_sorts_read">
+                                                <div class="notifications"></div>
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                    <i class="fas fa-plus me-2"></i>
+                                                    Agregar ordenamiento
+                                                </div>
+                                                <hr class="dropdown-divider">
+                                                <div class="contents"><span class="text-muted p-2">No hay ordenamientos</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -200,7 +222,7 @@
                                         </table>
                                         <div class="my-2">
                                             <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                Avanzado
+                                                <i class="fas fa-cog me-2"></i>Avanzado
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
@@ -217,12 +239,6 @@
                                                         <td>
                                                             <select class="form-select" name="required">
                                                             </select>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th scope="row">Longitud</th>
-                                                        <td>
-                                                            <input type="text" class="form-control" name="length">
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -281,18 +297,12 @@
                                         </table>
                                         <div class="my-2">
                                             <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                Avanzado
+                                                <i class="fas fa-cog me-2"></i>Avanzado
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
                                             <table class="table">
                                                 <tbody>
-                                                    <tr>
-                                                        <th scope="row">Posici&oacute;n</th>
-                                                        <td>
-                                                            <input type="number" class="form-control" name="position" required>
-                                                        </td>
-                                                    </tr>
                                                     <tr>
                                                         <th scope="row">Descripcion</th>
                                                         <td>
@@ -304,12 +314,6 @@
                                                         <td>
                                                             <select class="form-select" name="required">
                                                             </select>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th scope="row">Longitud</th>
-                                                        <td>
-                                                            <input type="text" class="form-control" name="length">
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -358,7 +362,7 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
-                                        <input type="hidden" name="id" required>
+                                        <input type="hidden" name="identifier" required>
                                         <p>Seguro desea eliminar la columna <strong class="name"></strong></p>
                                     </div>
                                     <div class="modal-footer">
@@ -666,12 +670,12 @@
                         </div>
                         <!-- /Data: Export data -->
 
-                        <!-- Data: Views: Add -->
-                        <div class="modal right-side-modal fade" id="component_data_views_add" tabindex="-1" aria-labelledby="component_data_views_add_label" aria-hidden="true">
+                        <!-- Views: Add -->
+                        <div class="modal right-side-modal fade" id="component_views_add" tabindex="-1" aria-labelledby="component_views_add_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_add_label">
+                                        <h5 class="modal-title" id="component_views_add_label">
                                             <i class="fas fa-plus-circle me-2"></i>Nueva vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -693,14 +697,14 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Add -->
+                        <!-- /Views: Add -->
 
-                        <!-- Data: Views: Modify -->
-                        <div class="modal fade" id="component_data_views_modify" tabindex="-1" aria-labelledby="component_data_views_modify_label" aria-hidden="true">
+                        <!-- Views: Modify -->
+                        <div class="modal fade" id="component_views_modify" tabindex="-1" aria-labelledby="component_views_modify_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_modify_label">
+                                        <h5 class="modal-title" id="component_views_modify_label">
                                             <i class="fas fa-pen me-2"></i>Modificar vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -722,14 +726,14 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Modify -->
+                        <!-- /Views: Modify -->
 
-                        <!-- Data: Views: Delete -->
-                        <div class="modal fade" id="component_data_views_delete" tabindex="-1" aria-labelledby="component_data_views_delete_label" aria-hidden="true">
+                        <!-- Views: Delete -->
+                        <div class="modal fade" id="component_views_delete" tabindex="-1" aria-labelledby="component_views_delete_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_delete_label">
+                                        <h5 class="modal-title" id="component_views_delete_label">
                                             <i class="fas fa-times me-2"></i>Borrar vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -750,7 +754,7 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Delete -->
+                        <!-- /Views: Delete -->
 
                     </section>
                     <!-- /Data section -->
@@ -774,32 +778,7 @@
         <!-- /Wait animation -->
 
         <!-- Javascript -->
-            <!-- General -->
-            <script src="/assets/js/main.js"></script>
-
-            <!-- Classes -->
-            <script src="/assets/js/classes/tools.js"></script>
-            <script src="/assets/js/classes/table_elements.js"></script>
-            <script src="/assets/js/classes/response_manager.js"></script>
-            <script src="/assets/js/classes/csv_reader.js"></script>
-            <script src="/assets/js/classes/component.js"></script>
-
-            <!-- Elements -->
-            <script src="/assets/js/elements/headers.js"></script>
-            <script src="/assets/js/elements/footers.js"></script>
-            <script src="/assets/js/elements/sidebars.js"></script>
-            <script src="/assets/js/elements/custom-select.js"></script>
-
-            <!-- Events -->
-            <script src="/assets/js/events/general.js"></script>
-            <script src="/assets/js/events/table/table_general.js"></script>
-            <script src="/assets/js/events/table/data.js"></script>
-            <script src="/assets/js/events/table/dataImport.js"></script>
-            <script src="/assets/js/events/table/filters.js"></script>
-            <script src="/assets/js/events/table/views.js"></script>
-            <script src="/assets/js/events/table/table_dimensions.js"></script>
-            <script src="/assets/js/events/table/columns.js"></script>
-
+            <script src="/assets/js/structbx.js" type="module"></script>
         <!-- Javascript -->
     </body>
 </html>

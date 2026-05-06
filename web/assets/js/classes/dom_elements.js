@@ -475,18 +475,13 @@ export class Sidebars
     }
     SidebarMenutable_()
     {
-        let sidebar_menu = $('<nav class="nav nav-pills flex-column justify-contents-between pt-4"></nav>');
+        let sidebar_menu = $('');
         sidebar_menu.append($(`
             <div class="nav-item">
                 <a class="nav-link mb-2 go-button" go-path="/start" go-hash="" href="#">
                     <i class="fas fa-arrow-left"></i>
                     <span class="ms-2">Ir a inicio</span>
                 </a>
-            </div>
-            <h5 class="small text-uppercase text-muted">TABLAS</h5>
-            <div id="component_sidebar_tables">
-                <div class="notifications"></div>
-                <div class="contents"></div>
             </div>
         `));
 
