@@ -88,6 +88,48 @@ export class DataController extends BaseController{
         this.row_cell = (contents) => {
             return `<div class="data-cell editable" style="width: 200px; flex: 0 0 200px;">${contents}</div>`;
         }
+        this.column_cell = (identifier, contents) => {
+            return `
+                <div class="header-cell" column-identifier="${identifier}" style="width: 200px; flex: 0 0 200px;">
+                    <div class="header-content">
+                        <span>${contents}</span>
+                    </div>
+                    <div class="resize-handle"></div>
+                </div>`;
+        }
+
+        this.column_placeholder = () => {
+            return `
+                <div class="" style="width: 200px; flex: 0 0 200px;">
+                    <div class="placeholder-glow">
+                        <span class="placeholder col-7 rounded-pill"></span>
+                    </div>
+                </div>`;
+        }
+        this.row_placeholder = () => {
+            let cells = [
+                `<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
+                    <span class="placeholder col-9 rounded-pill"></span>
+                </div>`
+                ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
+                    <span class="placeholder col-5 rounded-pill"></span>
+                </div>`
+                ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
+                    <span class="placeholder col-9 rounded-pill"></span>
+                </div>`
+                ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
+                    <span class="placeholder col-5 rounded-pill"></span>
+                </div>`
+                ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
+                    <span class="placeholder col-9 rounded-pill"></span>
+                </div>`
+            ];
+            cells.sort(() => Math.random() - 0.5);
+            let final = '';
+            for(const cell of cells)
+                final += cell;
+            return `<div class="data-row">${final}</div>`;
+        }
 
         // Basic <td> row - creates a standard text cell with no special formatting.
         this.basic_row = (elements, row, column, link_color = undefined) => {
@@ -150,10 +192,12 @@ export class DataController extends BaseController{
     }
 
     build(){
+        this.clear();
+        this.setupPlaceholders();
+
         this.colorSelectAdd = new DOME.CustomSelect('#component_data_add_colorHeader');
         this.colorSelectModify = new DOME.CustomSelect('#component_data_modify_colorHeader');
 
-        this.clear();
         this.colorSelectAdd.AddOption_('', '-- Ninguno --');
         this.colorSelectModify.AddOption_('', '-- Ninguno --');
         this.colorsSelect.forEach(colorOption => {
@@ -227,8 +271,15 @@ export class DataController extends BaseController{
     clear()
     {
         // Clear previous data
-        $('#component_data_read table thead tr').html("");
-        $('#component_data_read table tbody').html("");
+        $('#component_data_read #headerRow').html("");
+        $('#component_data_read #tableBody').html("");
+    }
+
+    setupPlaceholders(){
+        for(let cont = 0; cont < 5; cont++){
+            $('#component_data_read #headerRow').append($(this.column_placeholder()));
+            $('#component_data_read #tableBody').append($(this.row_placeholder()));
+        }
     }
 
     start()
@@ -254,14 +305,7 @@ export class DataController extends BaseController{
             let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, "text"), column, this.getTableIdentifier());
             let table_icon = table_element_object.GetIcon_(false);
 
-            return [`
-                <div class="header-cell" column-identifier="${column.identifier}" style="width: 200px; flex: 0 0 200px;">
-                    <div class="header-content">
-                        <span>${table_icon}${column.name}</span>
-                    </div>
-                    <div class="resize-handle"></div>
-                </div>
-            `];
+            return [this.column_cell(column.identifier, table_icon + column.name)];
         });
     }
 
@@ -354,15 +398,17 @@ export class DataController extends BaseController{
                 return;
             }
 
+            if(reload){
+                this.clear();
+                this.setupPlaceholders();
+            }
+
             // Get path
             const path = this.getPath(reload);
             if(path == ""){
                 this.freeMutex();
                 return;
             }
-
-            // Wait animation
-            let wait = new wtools.ElementState('#component_data_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
 
             // Request
             this.tableData.readAll(this.getTableIdentifier(), this.getViewIdentifier(), path)
@@ -371,8 +417,9 @@ export class DataController extends BaseController{
                 let data = this.getBodyData(response_data);
 
                 // Clean
-                wait.Off_();
                 $('#component_data_read .notifications').html('');
+                if(reload)
+                    this.clear();
 
                 // Manage response
                 const result = new ResponseManager(response_data, '#component_data_read .notifications', 'Data: Leer');

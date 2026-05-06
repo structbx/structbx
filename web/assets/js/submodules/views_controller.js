@@ -185,10 +185,7 @@ export class ViewsController extends BaseController{
             this.columns_controller.read();
             this.filters_controller.read();
             this.sorts_controller.read();
-            this.data_controller.read();
-            // New data object
-            /*dataObject = new Data();
-            dataObject.Start_();*/
+            this.data_controller.read(true);
         });
     }
 

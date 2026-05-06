@@ -664,29 +664,27 @@ void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action
             ",COALESCE(vc.position, fc.position) AS final_position " \
         "FROM tables_columns fc " \
         "JOIN tables f ON f.identifier = fc.id_table " \
-        "LEFT JOIN views_columns vc ON vc.id_column = fc.identifier " \
-        "WHERE f.identifier = ? AND f.id_database = ? AND vc.id_view = ? " \
+        "LEFT JOIN views_columns vc ON vc.id_column = fc.identifier AND vc.id_view = ? " \
+        "WHERE f.identifier = ? " \
         "ORDER BY COALESCE(vc.position, fc.position) ASC "
     );
     action->set_final(false);
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id_database", get_database_id(), false);
     action->AddParameter_("view-identifier", "", true)
     ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("El identificador de vista no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de formulario no puede estar vacío");
             return false;
         }
         return true;
