@@ -85,6 +85,63 @@ export class DataController extends BaseController{
             {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>Carmesí</span>`}
         ];
 
+        // Basic <td> row - creates a standard text cell with no special formatting.
+        this.basic_row = (elements, row, column, link_color = undefined) => {
+            // Get the header value from the row object using the specified column name.
+            let header = row[column];
+            
+            // If a specific link color is provided and not an empty string, apply it to the header.
+            if(link_color != undefined && link_color != "")
+                header = tools.headerRowColor(link_color, row[column]);
+
+            // Append the formatted header cell to the elements array.
+            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
+        };
+
+        // Header <td> row - creates a cell with styled text and color based on metadata.
+        this.header_row = (elements, row, column) => {
+            // Create a span element for the header.
+            let header = `<span class="row-header">${row[column]}</span>`;
+            
+            // If there's specific color metadata for this column, apply it to the header.
+            if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
+                header = tools.headerRowColor(row["_structbx_column_colorHeader"], row[column]);
+
+            // Append the styled header cell to the elements array.
+            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
+        };
+
+        // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
+        this.user_row = (elements, row, column) => {
+            // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
+            if(this.users_in_database[row[column]] != undefined)
+                elements.push(`<td class="bg-white" scope="row">${this.users_in_database[row[column]]}</td>`);
+            else
+                elements.push(`<td class="bg-white" scope="row">${row[column]}</td>`);
+        };
+
+        // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
+        this.image_row = (elements, row, column) => {
+            // Construct the URL for the image file and append it to the elements array.
+            elements.push(`<td class="bg-white" scope="row"><img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${getTableIdentifier()}" alt="${column}" width="100px"></td>`);
+        };
+
+        // File <td> row - creates a cell with truncated text for files longer than 10 characters.
+        this.file_row = (elements, row, column) => {
+            // If the file length exceeds 10 characters, truncate it and append to the elements array.
+            if(row[column].length > 10){
+                let new_content = "";
+                let max = row[column].length - 1;
+                for(let i = max; i > max - 10; i--)
+                    new_content = row[column][i] + new_content;
+
+                elements.push(`<td class="bg-white" scope="row">...${new_content}</td>`);
+            }
+            else
+                // Otherwise, create a basic row with the file name.
+                this.basic_row(elements, row, column);
+        };
+
         this.build();
     }
 
@@ -232,63 +289,6 @@ export class DataController extends BaseController{
     {
         let elements = [];
 
-        // Basic <td> row - creates a standard text cell with no special formatting.
-        const basic_row = (row, column, link_color = undefined) => {
-            // Get the header value from the row object using the specified column name.
-            let header = row[column];
-            
-            // If a specific link color is provided and not an empty string, apply it to the header.
-            if(link_color != undefined && link_color != "")
-                header = tools.headerRowColor(link_color, row[column]);
-
-            // Append the formatted header cell to the elements array.
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
-        };
-
-        // Header <td> row - creates a cell with styled text and color based on metadata.
-        const header_row = (row, column) => {
-            // Create a span element for the header.
-            let header = `<span class="row-header">${row[column]}</span>`;
-            
-            // If there's specific color metadata for this column, apply it to the header.
-            if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
-                header = tools.headerRowColor(row["_structbx_column_colorHeader"], row[column]);
-
-            // Append the styled header cell to the elements array.
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
-        };
-
-        // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
-        const user_row = (row, column) => {
-            // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
-            if(this.users_in_database[row[column]] != undefined)
-                elements.push(`<td class="bg-white" scope="row">${this.users_in_database[row[column]]}</td>`);
-            else
-                elements.push(`<td class="bg-white" scope="row">${row[column]}</td>`);
-        };
-
-        // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
-        const image_row = (row, column) => {
-            // Construct the URL for the image file and append it to the elements array.
-            elements.push(`<td class="bg-white" scope="row"><img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${getTableIdentifier()}" alt="${column}" width="100px"></td>`);
-        };
-
-        // File <td> row - creates a cell with truncated text for files longer than 10 characters.
-        const file_row = (row, column) => {
-            // If the file length exceeds 10 characters, truncate it and append to the elements array.
-            if(row[column].length > 10){
-                let new_content = "";
-                let max = row[column].length - 1;
-                for(let i = max; i > max - 10; i--)
-                    new_content = row[column][i] + new_content;
-
-                elements.push(`<td class="bg-white" scope="row">...${new_content}</td>`);
-            }
-            else
-                // Otherwise, create a basic row with the file name.
-                basic_row(row, column);
-        };
-
         // Loop through each column in the response_data.body.columns array.
         let key = 0;
         for(let column of response_data.body.columns){
@@ -305,19 +305,19 @@ export class DataController extends BaseController{
 
                 // Determine the appropriate function to create the cell based on the column type.
                 if(column_meta.column_type == "image")
-                    image_row(row, column);
+                    this.image_row(elements, row, column);
                 else if(column_meta.column_type == "file")
-                    file_row(row, column);
+                    this.file_row(elements, row, column);
                 else if(column_meta.column_type == "user" || column_meta.column_type == "current-user")
-                    user_row(row, column);
+                    this.user_row(elements, row, column);
                 else if(key == 0)
-                    header_row(row, column);
+                    this.header_row(elements, row, column);
                 else
-                    basic_row(row, column, link_color);
+                    this.basic_row(elements, row, column, link_color);
             }
             else
                 // If no metadata or the value is empty, create a basic row.
-                basic_row(row, column);
+                this.basic_row(elements, row, column);
 
             key++;
         }

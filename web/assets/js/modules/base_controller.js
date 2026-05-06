@@ -378,7 +378,7 @@ export class BaseController {
                     
                     let final_value = row[col_name];
                     if(row._structbx_column_colorHeader != "")
-                        final_value = headerRowColor(row._structbx_column_colorHeader, row[col_name]);
+                        final_value = tools.headerRowColor(row._structbx_column_colorHeader, row[col_name]);
 
                     element.AddOption_(row[col_id], final_value);
                     if(selected == row[col_name])
