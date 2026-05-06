@@ -103,7 +103,11 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         }
 
         // Send results
-        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+        auto identifier = action1->GetParameter_("identifier");
+        if(identifier == action1->get_parameters().end())
+            self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+        else
+            self.JSONResponse_(HTTP::Status::kHTTP_OK, identifier->get()->ToString_());
     });
 
     get_functions()->push_back(function);

@@ -78,10 +78,7 @@ export class SortsController extends BaseController{
         $(document).on('change', '#component_sorts_read select[name=column]', e => {
             changesNotSaved(e);
         });
-        $(document).on('change', '#component_sorts_read select[name=op]', e => {
-            changesNotSaved(e);
-        });
-        $(document).on('change', '#component_sorts_read input[name=value]', e => {
+        $(document).on('change', '#component_sorts_read select[name=sort]', e => {
             changesNotSaved(e);
         });
 
@@ -100,7 +97,7 @@ export class SortsController extends BaseController{
                     <input class="form-check-input" type="checkbox" name="is_active"/>
                 </div>
                 <select class="form-select" name="column" required></select>
-                <select class="form-select" name="op" required>
+                <select class="form-select" name="sort" required>
                     ${options}
                 </select>
                 <button type="button" class="btn btn-sm btn-dark-shadow ${type}"><i class="fas fa-${type=="modify" ? "pen" : "save"}"></i></button>
@@ -173,6 +170,157 @@ export class SortsController extends BaseController{
             for(const sort of response_data.body.data){
                 this.setupNewSortElement("modify", sort);
             }
+        });
+    }
+
+    add(e){
+        // Wait animation
+        let wait = new wtools.ElementState(
+            e.currentTarget
+            , true, 'button', new wtools.WaitAnimation().for_button
+        );
+
+        // Clean notifications
+        $('#component_sorts_read .notifications').html('');
+
+        const parent = $(e.currentTarget).parent();
+        const column_identifier = parent.find('select[name=column]').val();
+        const sort = parent.find('select[name=sort]').val();
+        const is_active = parent.find('input[name=is_active]')[0].checked;
+
+        // Validate inputs
+        if (column_identifier === "" || sort === ""){
+            new wtools.Notification('WARNING').Show_('Todos los campos del ordenamiento son obligatorios.');
+            wait.Off_();
+            return;
+        }
+        
+        // Validate sort value (ASC or DESC)
+        if (sort !== 'ASC' && sort !== 'DESC'){
+            new wtools.Notification('WARNING').Show_('El tipo de ordenamiento debe ser ASC o DESC.');
+            wait.Off_();
+            return;
+        }
+        
+        // Request
+        this.viewSort.add(this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, sort, is_active).
+        then((response_data) => {
+            wait.Off_();
+
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+            
+            $(e.currentTarget).removeClass('save');
+            $(e.currentTarget).addClass('modify');
+            $(e.currentTarget).find('i').removeClass('fa-save');
+            $(e.currentTarget).find('i').addClass('fa-pen');
+
+            $(parent).attr('sort-identifier', response_data.body.message);
+        });
+    }
+
+    modify(e){
+        // Clean notifications
+        $('#component_sorts_read .notifications').html('');
+
+        // Get sort identifier from the parent element
+        const sort_element = $(e.currentTarget).parent();
+        const sort_identifier = sort_element.attr('sort-identifier');
+        if(sort_identifier === undefined){
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            return;
+        }
+
+        // Get current values from the sort element
+        const column_identifier = sort_element.find('select[name=column]').val();
+        const sort = sort_element.find('select[name=sort]').val();
+        const is_active = sort_element.find('input[name=is_active]')[0].checked;
+
+        // Validate inputs
+        if (column_identifier === "" || sort === ""){
+            new wtools.Notification('WARNING').Show_('Todos los campos del ordenamiento son obligatorios.');
+            return;
+        }
+        
+        // Validate sort value (ASC or DESC)
+        if (sort !== 'ASC' && sort !== 'DESC'){
+            new wtools.Notification('WARNING').Show_('El tipo de ordenamiento debe ser ASC o DESC.');
+            return;
+        }
+        
+        this.viewSort.modify(sort_identifier, this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, sort, is_active)
+        .then((response_data) => {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Modificar');
+            if(!result.Verify_())
+                return;
+
+            $(sort_element).find('.modify').css('background-color', '#fff');
+        });
+    }
+
+    modifyPosition(ui){
+        let sort_identifier = $(ui.item).attr('sort-identifier');
+        let sortPrev = $(ui.item).prev().attr('sort-identifier');
+        let sortNext = $(ui.item).next().attr('sort-identifier');
+
+        // Request
+        this.viewSort.modifyPosition(sort_identifier, this.getViewIdentifier(), sortPrev, sortNext).then((response_data) =>{
+            // Manage response
+            const result = new ResponseManager(response_data, '#notifications', 'Ordenamientos: Posici&oacute;n: Modificar');
+            if(!result.Verify_()){
+                this.read();
+                return;
+            }
+        });
+    }
+
+    modifyVisible(e){
+        // Clean notifications
+        $('#component_sorts_read .notifications').html('');
+
+        // Get sort identifier from the parent element
+        const sort_element = $(e.currentTarget).parent();
+        const sort_identifier = sort_element.attr('sort-identifier');
+        if(sort_identifier === undefined){
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            return;
+        }
+
+        // Get current is_active value
+        const is_active = $(e.currentTarget).prop('checked');
+
+        this.viewSort.modifyVisible(sort_identifier, this.getViewIdentifier(), is_active)
+        .then((response_data) => {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Visibilidad: Modificar');
+            if(!result.Verify_())
+                return;
+        });
+    }
+
+    delete(e){
+        // Clean notifications
+        $('#component_sorts_read .notifications').html('');
+
+        // Get sort identifier from the parent element
+        const sort_element = $(e.currentTarget).parent();
+        const sort_identifier = sort_element.attr('sort-identifier');
+        if(sort_identifier === undefined){
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            return;
+        }
+
+        // Request
+        this.viewSort.delete(sort_identifier, this.getViewIdentifier()).then((response_data) => {
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Eliminar');
+            if(!result.Verify_())
+                return;
+
+            $(sort_element).remove();
         });
     }
 }

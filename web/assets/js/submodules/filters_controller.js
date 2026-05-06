@@ -218,6 +218,8 @@ export class FiltersController extends BaseController{
             $(e.currentTarget).addClass('modify');
             $(e.currentTarget).find('i').removeClass('fa-save');
             $(e.currentTarget).find('i').addClass('fa-pen');
+
+            $(parent).attr('filter-identifier', response_data.body.message);
         });
     }
 
