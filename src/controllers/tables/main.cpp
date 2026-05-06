@@ -214,8 +214,8 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         }
 
         // Action: Add default column
-        auto column_identifier = rg.GenerateAlphanumericID_(20);
-        add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier)), "identifier");
+        auto default_column = rg.GenerateAlphanumericID_(20);
+        add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(default_column)), "identifier");
         add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!add_default_column->Work_())
         {
@@ -228,7 +228,8 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
             "CREATE TABLE " + database_id + "." + table_identifier + " " \
             "(" \
                 "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " \
-                "" + column_identifier + " VARCHAR(500) NULL, " \
+                "identifier VARCHAR(20) NOT NULL UNIQUE, " \
+                "" + default_column + " VARCHAR(500) NULL, " \
                 "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
                 "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
                 "_structbx_column_user_owner INT NULL, " \

@@ -8,6 +8,7 @@ import { View } from '../models/View.js';
 import { ColumnsController } from '../submodules/columns_controller.js';
 import { FiltersController } from '../submodules/filters_controller.js';
 import { SortsController } from '../submodules/sorts_controller.js';
+import { DataController } from '../submodules/data_controller.js';
 
 export class ViewsController extends BaseController{
     constructor() {
@@ -22,6 +23,7 @@ export class ViewsController extends BaseController{
         this.columns_controller = new ColumnsController;
         this.filters_controller = new FiltersController;
         this.sorts_controller = new SortsController;
+        this.data_controller = new DataController;
     }
 
     build(){
@@ -34,6 +36,7 @@ export class ViewsController extends BaseController{
         this.columns_controller.bindEvents();
         this.filters_controller.bindEvents();
         this.sorts_controller.bindEvents();
+        this.data_controller.bindEvents();
 
         // Select a view
         $(document).on('click', '#component_views_read .dropdown-item a', (e) => {
@@ -182,6 +185,7 @@ export class ViewsController extends BaseController{
             this.columns_controller.read();
             this.filters_controller.read();
             this.sorts_controller.read();
+            this.data_controller.read();
             // New data object
             /*dataObject = new Data();
             dataObject.Start_();*/

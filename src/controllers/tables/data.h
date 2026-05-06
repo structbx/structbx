@@ -61,13 +61,11 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         struct ParameterVerification
         {
             ParameterVerification(
-                Query::Field::Ptr length
-                ,Query::Field::Ptr required
+                Query::Field::Ptr required
                 ,Query::Field::Ptr default_value
                 ,Query::Field::Ptr column_type
             ) :
-                length(length)
-                ,required(required)
+                required(required)
                 ,default_value(default_value)
                 ,column_type(column_type)
             {
@@ -75,7 +73,6 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             }
             bool Verify(Query::Parameter::Ptr param);
 
-            Query::Field::Ptr length;
             Query::Field::Ptr required;
             Query::Field::Ptr default_value;
             Query::Field::Ptr column_type;
@@ -131,8 +128,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetTableColumns(StructBX::Functions::Action::Ptr action);
         };
         struct ReadChangeInt : public Tools::FunctionData
         {
