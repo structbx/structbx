@@ -85,6 +85,10 @@ export class DataController extends BaseController{
             {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>Carmesí</span>`}
         ];
 
+        this.row_cell = (contents) => {
+            return `<div class="data-cell editable" style="width: 200px; flex: 0 0 200px;">${contents}</div>`;
+        }
+
         // Basic <td> row - creates a standard text cell with no special formatting.
         this.basic_row = (elements, row, column, link_color = undefined) => {
             // Get the header value from the row object using the specified column name.
@@ -95,7 +99,7 @@ export class DataController extends BaseController{
                 header = tools.headerRowColor(link_color, row[column]);
 
             // Append the formatted header cell to the elements array.
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
+            elements.push(this.row_cell(header));
         };
 
         // Header <td> row - creates a cell with styled text and color based on metadata.
@@ -108,22 +112,22 @@ export class DataController extends BaseController{
                 header = tools.headerRowColor(row["_structbx_column_colorHeader"], row[column]);
 
             // Append the styled header cell to the elements array.
-            elements.push(`<td class="bg-white" scope="row">${header}</td>`);
+            elements.push(this.row_cell(header));
         };
 
         // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
         this.user_row = (elements, row, column) => {
             // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
             if(this.users_in_database[row[column]] != undefined)
-                elements.push(`<td class="bg-white" scope="row">${this.users_in_database[row[column]]}</td>`);
+                elements.push(this.row_cell(this.users_in_database[row[column]]));
             else
-                elements.push(`<td class="bg-white" scope="row">${row[column]}</td>`);
+                elements.push(this.row_cell(row[column]));
         };
 
         // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
         this.image_row = (elements, row, column) => {
             // Construct the URL for the image file and append it to the elements array.
-            elements.push(`<td class="bg-white" scope="row"><img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${getTableIdentifier()}" alt="${column}" width="100px"></td>`);
+            elements.push(this.row_cell(`<img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${this.getTableIdentifier()}" alt="${column}" width="100px">`));
         };
 
         // File <td> row - creates a cell with truncated text for files longer than 10 characters.
@@ -135,7 +139,7 @@ export class DataController extends BaseController{
                 for(let i = max; i > max - 10; i--)
                     new_content = row[column][i] + new_content;
 
-                elements.push(`<td class="bg-white" scope="row">...${new_content}</td>`);
+                elements.push(this.row_cell(new_content));
             }
             else
                 // Otherwise, create a basic row with the file name.
@@ -240,7 +244,7 @@ export class DataController extends BaseController{
         let it = 0;
 
         // Setup columns meta
-        new wtools.UIElementsCreator('#component_data_read table thead tr', keys)
+        new wtools.UIElementsCreator('#component_data_read #headerRow', keys)
         .Build_((column) => {
             if(column.identifier == "identifier")
                 return undefined;
@@ -256,13 +260,20 @@ export class DataController extends BaseController{
             this.data_read_columns.push({identifier: column.identifier, name: column.name});
 
             it++;
-            
             return [`
+                <div class="header-cell" column-identifier="${column.identifier}" style="width: 200px; flex: 0 0 200px;">
+                    <div class="header-content">
+                        <span>${table_icon}${column.name}</span>
+                    </div>
+                    <div class="resize-handle"></div>
+                </div>
+            `];
+            /*return [`
                 <th scope="col" class="user-select-none position-relative" data-col="${column.id}">
                     <span>${table_icon}${column.name}</span>
                     <div class="resize-handle"></div>
                 </th>
-            `];
+            `];*/
         });
 
         // Setup table dimensions
@@ -402,7 +413,7 @@ export class DataController extends BaseController{
                 }
 
                 // Results elements creator (Columns)
-                if($('#component_data_read table thead tr').html() == "" && response_data.body.columns_meta != undefined){
+                if($('#component_data_read #headerRow').html() == "" && response_data.body.columns_meta != undefined){
                     this.createColumn(response_data);
                 }
 
@@ -422,10 +433,11 @@ export class DataController extends BaseController{
                 }
 
                 // Results elements creator (Rows)
-                new wtools.UIElementsCreator('#component_data_read table tbody', data).Build_((row) => {
+                new wtools.UIElementsCreator('#component_data_read #tableBody', data).Build_((row) => {
                     // Create rows
                     const elements = this.createRow(response_data, row);
-                    return new wtools.UIElementsPackage(`<tr identifier="row_${row.identifier}" record-identifier="${row.identifier}"></tr>`, elements).Pack_();
+                    return new wtools.UIElementsPackage(`<div class="data-row" identifier="${row.identifier}"></div>`, elements).Pack_();
+                    //return new wtools.UIElementsPackage(`<tr identifier="row_${row.identifier}" record-identifier="${row.identifier}"></tr>`, elements).Pack_();
                 });
 
                 // Next page if not reload

@@ -190,9 +190,9 @@ export class TableElements
             }
         }
         if(white)
-            return_element += ' me-4 text-white"></i>';
+            return_element += ' me-2 text-white"></i>';
         else
-            return_element += ' me-4 text-secondary"></i>';
+            return_element += ' me-2 text-secondary"></i>';
 
         return return_element;
     }

@@ -17,6 +17,7 @@
         <link rel="stylesheet" href="/assets/css/styles.css">
         <link rel="stylesheet" href="/assets/css/modal.css">
         <link rel="stylesheet" href="/assets/css/custom-select.css">
+        <link rel="stylesheet" href="/assets/css/tableData.css">
         <!-- /CSS files -->
 
         <!-- JS Libraries -->
@@ -382,18 +383,28 @@
                         <!-- Data: Reload button -->
 
                         <!-- Data: Read -->
-                        <article id="component_data_read" class="bg-white">
-                            
+                        <article id="component_data_read">
+                         
                             <!-- Contents -->
-                            <div class="contents container-xxl" style="position:absolute;overflow:scroll;height: calc(100vh - 12rem);width: calc(100% - 3rem);padding:0;">
+                            <div class="contents p-0">
+                           
+                                <div class="dynamic-table-wrapper">
+                                    <div class="dynamic-table" id="dynamicTable">
+                                        <div class="table-header" id="tableHeader">
+                                            <div class="header-row" id="headerRow"></div>
+                                        </div>
+                                        <div class="table-body" id="tableBody"></div>
+                                    </div>
+                                </div>
 
-                                <table id="component_data_read_table" class="table table-hover table-bordered table_data">
+                                <!--<table id="component_data_read_table" class="table table-hover table-bordered table_data">
                                     <thead class="text-center align-middle text-nowrap sticky-top">
                                         <tr></tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
-                                </table>
+                                </table>-->
+                                
                                 <div class="notifications"></div>
 
                             </div>
