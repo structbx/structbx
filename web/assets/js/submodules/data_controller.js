@@ -268,32 +268,7 @@ export class DataController extends BaseController{
                     <div class="resize-handle"></div>
                 </div>
             `];
-            /*return [`
-                <th scope="col" class="user-select-none position-relative" data-col="${column.id}">
-                    <span>${table_icon}${column.name}</span>
-                    <div class="resize-handle"></div>
-                </th>
-            `];*/
         });
-
-        // Setup table dimensions
-        /*let tableD = new TableDimensions(table_identifier, '#component_data_read_table');
-        tableD.Init_();
-        // Prevenir selección de texto durante el redimensionamiento
-        $(document).on('selectstart', function(e)
-        {
-            if (tableD.isResizing)
-            {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // If there is less than 5 columns, add empty column
-        if(it < 5)
-        {
-            $('#component_data_read table thead tr').append($(`<th scope="col"  class="user-select-none" style="width: 50%;background: #f3f3f3;border-top:none !important;"></th>`));
-        }*/
     }
 
     createRow(response_data, row)
@@ -436,8 +411,7 @@ export class DataController extends BaseController{
                 new wtools.UIElementsCreator('#component_data_read #tableBody', data).Build_((row) => {
                     // Create rows
                     const elements = this.createRow(response_data, row);
-                    return new wtools.UIElementsPackage(`<div class="data-row" identifier="${row.identifier}"></div>`, elements).Pack_();
-                    //return new wtools.UIElementsPackage(`<tr identifier="row_${row.identifier}" record-identifier="${row.identifier}"></tr>`, elements).Pack_();
+                    return new wtools.UIElementsPackage(`<div id="${row.identifier}" class="data-row" identifier="${row.identifier}"></div>`, elements).Pack_();
                 });
 
                 // Next page if not reload
@@ -485,9 +459,9 @@ export class DataController extends BaseController{
                 const elements = this.createRow(response_data, response_data.body.data[0]);
 
                 // Update row
-                $('#row_' + row_identifier).html('');
-                for(let td of elements){
-                    $('#row_' + row_identifier).append(td);
+                $('#' + row_identifier).html('');
+                for(let element of elements){
+                    $('#' + row_identifier).append(element);
                 }
             });
 
