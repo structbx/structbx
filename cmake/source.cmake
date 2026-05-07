@@ -33,6 +33,7 @@ set(
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/permissions.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/views.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/filters.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/tables/sorts.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/forms/main.cpp
     ${PROJECT_SOURCE_DIR}/src/core/core.cpp
     ${PROJECT_SOURCE_DIR}/src/core/handler_factory.cpp
