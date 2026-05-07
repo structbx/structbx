@@ -1,5 +1,6 @@
 
 #include "controllers/tables/filters.h"
+#include "tools/dvalue.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -133,6 +134,10 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
         {
             param->set_error("El tipo de operación no puede estar vacío");
             return false;
+        }
+        if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
+        {
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue("=")));
         }
         return true;
     });
@@ -268,6 +273,10 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
         {
             param->set_error("El tipo de operación no puede estar vacío");
             return false;
+        }
+        if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
+        {
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue("=")));
         }
         return true;
     });
