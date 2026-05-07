@@ -130,6 +130,11 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
                 GetSorts(){}
                 std::string Get(Functions::Function& self, std::string view_identifier);
             };
+            struct Export
+            {
+                Export(){}
+                bool Start(Functions::Function& self, Functions::Action::Ptr table_data);
+            };
 
             Read(Tools::FunctionData& function_data);
 

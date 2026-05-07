@@ -369,6 +369,60 @@ std::string Tables::Data::Read::GetSorts::Get(Functions::Function& self, std::st
     return order_clause;
 }
 
+bool Tables::Data::Read::Export::Start(Functions::Function& self, Functions::Action::Ptr table_data)
+{
+    // Setup file
+    auto fm = Files::FileManager();
+    fm.set_operation_type(Files::OperationType::kUpload);
+    fm.AddSupportedFile_("csv", Files::FileProperties{"text/csv", false, {""}});
+    Files::File file_naf("tmp_export", "tmp_export.csv", "", 0);
+
+    // Change filename
+    if(!fm.ChangePathAndFilename_(file_naf, "/tmp"))
+        return false;
+
+    // File setup
+    std::ofstream tmp_file;
+    tmp_file.open (file_naf.get_requested_file()->path());
+
+    // Write file
+    bool first = true;
+    for(auto row : *table_data->get_results())
+    {
+        // Save columns
+        if(first)
+        {
+            for(auto field : *row)
+            {
+                tmp_file << field->get_column_name() + "\t";
+            }
+            tmp_file << "\n";
+            first = false;
+        }
+        else
+        {
+            // Save data
+            for(auto field : *row)
+            {
+                if(field->IsNull_())
+                    tmp_file << "\t";
+                else
+                    tmp_file << field->ToString_() + "\t";
+            }
+            tmp_file << "\n";
+        }
+
+    }
+    tmp_file.close();
+
+    // Send JSON results
+    auto fm2 = Files::FileManager(Files::OperationType::kDownload);
+    fm2.AddSupportedFile_("csv", Files::FileProperties{"text/csv", false, {""}});
+    self.FileResponse_(HTTP::Status::kHTTP_OK, file_naf.get_requested_file()->path(), fm2);
+
+    return true;
+}
+
 Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/data/read
@@ -632,57 +686,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Get export
         if(export_param != self.get_parameters().end() && export_param->get()->ToString_() == "true")
         {
-            // Setup file
-            auto fm = Files::FileManager();
-            fm.set_operation_type(Files::OperationType::kUpload);
-            fm.AddSupportedFile_("csv", Files::FileProperties{"text/csv", false, {""}});
-            Files::File file_naf("tmp_export", "tmp_export.csv", "", 0);
-
-            // Change filename
-            if(!fm.ChangePathAndFilename_(file_naf, "/tmp"))
-            {
+            Export _export;
+            if(!_export.Start(self, table_data))
                 send(self);
-                return;
-            }
-
-            // File setup
-            std::ofstream tmp_file;
-            tmp_file.open (file_naf.get_requested_file()->path());
-
-            // Write file
-            bool first = true;
-            for(auto row : *table_data->get_results())
-            {
-                // Save columns
-                if(first)
-                {
-                    for(auto field : *row)
-                    {
-                        tmp_file << field->get_column_name() + "\t";
-                    }
-                    tmp_file << "\n";
-                    first = false;
-                }
-                else
-                {
-                    // Save data
-                    for(auto field : *row)
-                    {
-                        if(field->IsNull_())
-                            tmp_file << "\t";
-                        else
-                            tmp_file << field->ToString_() + "\t";
-                    }
-                    tmp_file << "\n";
-                }
-
-            }
-            tmp_file.close();
-
-            // Send JSON results
-            auto fm2 = Files::FileManager(Files::OperationType::kDownload);
-            fm2.AddSupportedFile_("csv", Files::FileProperties{"text/csv", false, {""}});
-            self.FileResponse_(HTTP::Status::kHTTP_OK, file_naf.get_requested_file()->path(), fm2);
         }
         else
         {
