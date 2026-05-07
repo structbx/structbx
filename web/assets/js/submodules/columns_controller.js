@@ -8,8 +8,10 @@ import { Table } from '../models/Table.js';
 import { TableColumn } from '../models/TableColumn.js';
 
 export class ColumnsController extends BaseController{
-    constructor() {
+    constructor(onChangedCallback = () => {}) {
         super();
+        this.onChanged = onChangedCallback;
+
         this.table = new Table;
         this.tableColumn = new TableColumn;
 
@@ -223,8 +225,8 @@ export class ColumnsController extends BaseController{
             this.notification.ok.Show_('Columna creada exitosamente.');
             $('#component_columns_add').modal('hide');
             $('#component_columns_add form input[name="name"]').val("Nueva columna");
-            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
             this.read();
+            this.onChanged();
         });
     }
 
@@ -238,6 +240,7 @@ export class ColumnsController extends BaseController{
             const result = new ResponseManager(response_data, '#notifications', 'Columnas: Visible: Modificar');
             if(!result.Verify_())
                 return;
+            this.onChanged();
         });
     }
 
@@ -252,6 +255,7 @@ export class ColumnsController extends BaseController{
             const result = new ResponseManager(response_data, '#notifications', 'Columnas: Posici&oacute;n: Modificar');
             if(!result.Verify_())
                 return;
+            this.onChanged();
         });
     }
 
@@ -301,7 +305,6 @@ export class ColumnsController extends BaseController{
 
     modify(e)
     {
-
         // Wait animation
         let wait = new wtools.ElementState('#component_columns_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
 
@@ -341,7 +344,7 @@ export class ColumnsController extends BaseController{
 
             new wtools.Notification('SUCCESS').Show_('Columna modificada exitosamente.');
             $('#component_columns_modify').modal('hide');
-            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
+            this.onChanged();
             this.read();
         });
     }
@@ -384,7 +387,7 @@ export class ColumnsController extends BaseController{
             $('#component_columns_delete').modal('hide');
             $('#component_columns_modify').modal('hide');
             this.read();
-            //$(`#component_nav_tables .tab-scroller .tab[id="${table_identifier}"]`).click();
+            this.onChanged();
         });
     }
 }

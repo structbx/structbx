@@ -18,8 +18,10 @@ export class SortType
 }
 
 export class SortsController extends BaseController{
-    constructor() {
+    constructor(onChangedCallback = () => {}) {
         super();
+        this.onChanged = onChangedCallback;
+
         this.viewSort = new ViewSort;
         this.tableColumn = new TableColumn;
 
@@ -69,17 +71,17 @@ export class SortsController extends BaseController{
         });
 
         // Filter field change
-        const changesNotSaved = (e) => {
-            $($(e.currentTarget).parent()).find('.modify').css('background-color', '#bbb');
+        const changesNotSaved = (element) => {
+            $(element).find('.modify').css('background-color', '#bbb');
         }
         $(document).on('change', '#component_sorts_read input[name=is_active]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent().parent());
         });
         $(document).on('change', '#component_sorts_read select[name=column]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_sorts_read select[name=sort]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent());
         });
 
     }
@@ -212,12 +214,13 @@ export class SortsController extends BaseController{
             if(!result.Verify_())
                 return;
             
-            $(e.currentTarget).removeClass('save');
-            $(e.currentTarget).addClass('modify');
-            $(e.currentTarget).find('i').removeClass('fa-save');
-            $(e.currentTarget).find('i').addClass('fa-pen');
+            $(e.target).removeClass('save');
+            $(e.target).addClass('modify');
+            $(e.target).find('i').removeClass('fa-save');
+            $(e.target).find('i').addClass('fa-pen');
 
             $(parent).attr('sort-identifier', response_data.body.message);
+            this.onChanged();
         });
     }
 
@@ -258,6 +261,7 @@ export class SortsController extends BaseController{
                 return;
 
             $(sort_element).find('.modify').css('background-color', '#fff');
+            this.onChanged();
         });
     }
 
@@ -274,6 +278,7 @@ export class SortsController extends BaseController{
                 this.read();
                 return;
             }
+            this.onChanged();
         });
     }
 
@@ -298,6 +303,7 @@ export class SortsController extends BaseController{
             const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Visibilidad: Modificar');
             if(!result.Verify_())
                 return;
+            this.onChanged();
         });
     }
 
@@ -321,6 +327,7 @@ export class SortsController extends BaseController{
                 return;
 
             $(sort_element).remove();
+            this.onChanged();
         });
     }
 }

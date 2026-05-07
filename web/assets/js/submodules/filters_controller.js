@@ -23,8 +23,10 @@ export class FilterType
 }
 
 export class FiltersController extends BaseController{
-    constructor() {
+    constructor(onChangedCallback = () => {}) {
         super();
+        this.onChanged = onChangedCallback;
+
         this.viewFilter = new ViewFilter;
         this.tableColumn = new TableColumn;
 
@@ -74,20 +76,20 @@ export class FiltersController extends BaseController{
         });
 
         // Filter field change
-        const changesNotSaved = (e) => {
-            $($(e.currentTarget).parent()).find('.modify').css('background-color', '#bbb');
+        const changesNotSaved = (element) => {
+            $(element).find('.modify').css('background-color', '#bbb');
         }
         $(document).on('change', '#component_filters_read input[name=is_active]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent().parent());
         });
         $(document).on('change', '#component_filters_read select[name=column]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_filters_read select[name=op]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_filters_read input[name=value]', e => {
-            changesNotSaved(e);
+            changesNotSaved($(e.currentTarget).parent());
         });
 
     }
@@ -214,12 +216,13 @@ export class FiltersController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            $(e.currentTarget).removeClass('save');
-            $(e.currentTarget).addClass('modify');
-            $(e.currentTarget).find('i').removeClass('fa-save');
-            $(e.currentTarget).find('i').addClass('fa-pen');
+            $(e.target).removeClass('save');
+            $(e.target).addClass('modify');
+            $(e.target).find('i').removeClass('fa-save');
+            $(e.target).find('i').addClass('fa-pen');
 
             $(parent).attr('filter-identifier', response_data.body.message);
+            this.onChanged();
         });
     }
 
@@ -255,6 +258,7 @@ export class FiltersController extends BaseController{
                 return;
 
             $(filter_element).find('.modify').css('background-color', '#fff');
+            this.onChanged();
         });
     }
 
@@ -271,6 +275,7 @@ export class FiltersController extends BaseController{
                 this.read();
                 return;
             }
+            this.onChanged();
         });
     }
 
@@ -294,6 +299,7 @@ export class FiltersController extends BaseController{
                 return;
 
             $(filter_element).remove();
+            this.onChanged();
         });
     }
 }

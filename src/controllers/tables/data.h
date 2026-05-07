@@ -123,12 +123,18 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             struct GetFilters
             {
                 GetFilters(){}
-                void Get(Functions::Function& self, std::string& conditions, std::string view_identifier) const;
+                std::string Get(Functions::Function& self, std::string view_identifier);
+            };
+            struct GetSorts
+            {
+                GetSorts(){}
+                std::string Get(Functions::Function& self, std::string view_identifier);
             };
 
             Read(Tools::FunctionData& function_data);
 
             void GetTableColumns(StructBX::Functions::Action::Ptr action);
+            void LinkToAction(StructBX::Functions::Action::Ptr action);
         };
         struct ReadChangeInt : public Tools::FunctionData
         {

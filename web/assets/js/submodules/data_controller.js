@@ -8,8 +8,10 @@ import { TableData } from '../models/TableData.js';
 import { TableColumn } from '../models/TableColumn.js';
 
 export class DataController extends BaseController{
-    constructor() {
+    constructor(onChangedCallback = () => {}) {
         super();
+        this.onChanged = onChangedCallback;
+
         this.tableData = new TableData;
         this.tableColumn = new TableColumn;
 
@@ -102,26 +104,26 @@ export class DataController extends BaseController{
             return `
                 <div class="" style="width: 200px; flex: 0 0 200px;">
                     <div class="placeholder-glow">
-                        <span class="placeholder col-7 rounded-pill"></span>
+                        <span class="placeholder col-7 rounded-pill bg-secondary"></span>
                     </div>
                 </div>`;
         }
         this.row_placeholder = () => {
             let cells = [
                 `<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
-                    <span class="placeholder col-9 rounded-pill"></span>
+                    <span class="placeholder col-9 rounded-pill bg-secondary"></span>
                 </div>`
                 ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
-                    <span class="placeholder col-5 rounded-pill"></span>
+                    <span class="placeholder col-5 rounded-pill bg-secondary"></span>
                 </div>`
                 ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
-                    <span class="placeholder col-9 rounded-pill"></span>
+                    <span class="placeholder col-9 rounded-pill bg-secondary"></span>
                 </div>`
                 ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
-                    <span class="placeholder col-5 rounded-pill"></span>
+                    <span class="placeholder col-5 rounded-pill bg-secondary"></span>
                 </div>`
                 ,`<div class="placeholder-glow" style="width: 200px; flex: 0 0 200px;">
-                    <span class="placeholder col-9 rounded-pill"></span>
+                    <span class="placeholder col-9 rounded-pill bg-secondary"></span>
                 </div>`
             ];
             cells.sort(() => Math.random() - 0.5);

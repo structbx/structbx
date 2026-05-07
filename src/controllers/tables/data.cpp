@@ -1,5 +1,6 @@
 
 #include "controllers/tables/data.h"
+#include "tools/dvalue.h"
 #include <string>
 
 using namespace StructBX::Controllers;
@@ -237,8 +238,10 @@ void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::P
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-void Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string& conditions, std::string view_identifier) const
+std::string Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string view_identifier)
 {
+    std::string conditions = "";
+
     // 1. Declaration
     auto get_filters_action = self.AddAction_("get_view_filters");
 
@@ -256,7 +259,7 @@ void Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string&
     if (!get_filters_action->Work_())
     {
         Tools::OutputLogger::Error_("Error to get filters");
-        return;
+        return "";
     }
 
     // 5. Validation
@@ -265,7 +268,7 @@ void Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string&
     {
         // No filters found - set empty condition
         conditions = "";
-        return;
+        return "";
     }
 
     // 6. Result Extraction and condition building
@@ -308,6 +311,62 @@ void Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string&
 
         first_condition = false;
     }
+
+    return conditions;
+}
+
+std::string Tables::Data::Read::GetSorts::Get(Functions::Function& self, std::string view_identifier)
+{
+    std::string order_clause = "";
+
+    // 1. Declaration
+    auto get_sorts_action = self.AddAction_("get_view_sorts");
+
+    // 2. SQL Setup
+    get_sorts_action->set_sql_code(
+        "SELECT id_column, sort FROM views_sorts "
+        "WHERE id_view = ? AND is_active = 1 "
+        "ORDER BY position ASC"
+    );
+
+    // 3. Parameters
+    get_sorts_action->AddParameter_("view_identifier", view_identifier, false);
+
+    // 4. Execution
+    if (!get_sorts_action->Work_())
+    {
+        Tools::OutputLogger::Error_("Error to get sorts");
+        return "";
+    }
+
+    // 5. Validation
+    auto results = get_sorts_action->get_results();
+    if (results->size() < 1)
+        return "";
+
+    // 6. Result Extraction and order building
+    bool first_sort = true;
+    order_clause = " ORDER BY ";
+
+    for (const auto& row : *results)
+    {
+        auto id_column = row->ExtractField_("id_column")->ToString_();
+        auto sort = row->ExtractField_("sort")->ToString_();
+
+        // Validate sort direction to prevent SQL injection
+        if (sort != "ASC" && sort != "DESC")
+            sort = "ASC";
+
+        // Build order clause
+        if (!first_sort)
+            order_clause += ", ";
+
+        order_clause += id_column + " " + sort;
+
+        first_sort = false;
+    }
+
+    return order_clause;
 }
 
 Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -322,6 +381,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     auto table_columns = function->AddAction_("table_columns");
     GetTableColumns(table_columns);
 
+    // Action: Link to table info
+    auto link_to_action = function->AddAction_("link_to_action");
+    LinkToAction(link_to_action);
+
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
     VerifyPermissionsRead(function_data).A1(fpv);
@@ -334,7 +397,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, table_columns, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, link_to_action, table_columns, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
     {
         // Get table IDENTIFIER
         auto table_identifier = self.GetParameter_("table-identifier");
@@ -408,27 +471,18 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 has_link = true;
 
                 // Get table link identifier and display_value
-                auto action1_1 = self.AddAction_("a1_1");
-                action1_1->set_sql_code(
-                    "SELECT "
-                        "COALESCE(tc.identifier, (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) "
-                        "AS identifier " 
-                    "FROM tables t "
-                    "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
-                    "WHERE t.identifier = ?"
-                );
-                action1_1->AddParameter_("identifier", link_to->ToString_(), false);
-                if(!action1_1->Work_())
+                link_to_action->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(link_to->ToString_())), "link_to");
+                if(!link_to_action->Work_())
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error p2j1bX1t3E");
                     return;
                 }
-                if(action1_1->get_results()->size() < 1)
+                if(link_to_action->get_results()->size() < 1)
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error aKX1v3bT9C");
                     return;
                 }
-                auto display_value = action1_1->get_results()->begin()->get()->ExtractField_("identifier");
+                auto display_value = link_to_action->get_results()->begin()->get()->ExtractField_("identifier");
                 if(display_value->IsNull_())
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error fAztExxyqM1X");
@@ -457,10 +511,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             return;
         }
 
-        // Get filters
-        std::string filters_query = "";
-        GetFilters get_filters;
-        get_filters.Get(self, filters_query, view_identifier->get()->ToString_());
+        // Filters and Sorts
+        std::string filters_query = GetFilters().Get(self, view_identifier->get()->ToString_());
+        std::string sorts_query = GetSorts().Get(self, view_identifier->get()->ToString_());
         
         // Set record ID condition if specified
         auto record_identifier = self.GetParameter_("identifier");
@@ -500,18 +553,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Setup color header
         columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
 
-        // Get order
-        auto order = self.GetParameter_("order");
-        std::string order_query = "";
-        if(order != self.get_parameters().end())
-        {
-            if(order->get()->ToString_() != "")
-            {
-                std::string order_decoded =  StructBX::Tools::Base64Tool().Decode_(order->get()->ToString_());
-                order_query = " ORDER BY " + order_decoded;
-            }
-        }
-
         // Get page or limit
         auto page = self.GetParameter_("page");
         auto limit = self.GetParameter_("limit");
@@ -541,9 +582,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             limit_query = "";
         }
 
-        // Export param
-        auto export_param = self.GetParameter_("export");
-
         // Action 2: Get Table data
         auto table_data = self.AddAction_("a2");
         std::string sql_code = 
@@ -556,11 +594,12 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         if(has_link)
             sql_code += joins;
 
-        // Conditions
+        // Filters and sorts
         sql_code += filters_query;
+        sql_code += sorts_query;
 
-        // Order
-        sql_code += order_query;
+        // Export param
+        auto export_param = self.GetParameter_("export");
 
         // Limit
         if(export_param == self.get_parameters().end())
@@ -689,6 +728,19 @@ void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action
         }
         return true;
     });
+}
+
+void Tables::Data::Read::LinkToAction(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT "
+            "COALESCE(tc.identifier, (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) "
+            "AS identifier " 
+        "FROM tables t "
+        "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+        "WHERE t.identifier = ?"
+    );
+    action->AddParameter_("link_to", "", false);
 }
 
 Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

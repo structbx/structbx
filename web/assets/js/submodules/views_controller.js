@@ -20,9 +20,9 @@ export class ViewsController extends BaseController{
         this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications');
         this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_views_delete .notifications');
 
-        this.columns_controller = new ColumnsController;
-        this.filters_controller = new FiltersController;
-        this.sorts_controller = new SortsController;
+        this.columns_controller = new ColumnsController(() => {this.refreshAll()});
+        this.filters_controller = new FiltersController(() => {this.refreshData()});
+        this.sorts_controller = new SortsController(() => {this.refreshData()});
         this.data_controller = new DataController;
     }
 
@@ -91,6 +91,15 @@ export class ViewsController extends BaseController{
             this.delete(e);
         });
     }
+    refreshAll(){
+        this.columns_controller.read();
+        this.filters_controller.read();
+        this.sorts_controller.read();
+        this.data_controller.read(true);
+    }
+    refreshData(){
+        this.data_controller.read(true);
+    }
     read(){
         // Wait animation
         let wait = new wtools.ElementState('#component_views_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
@@ -152,11 +161,9 @@ export class ViewsController extends BaseController{
     }
     
     selectView(view_identifier){
-        // Get table identifier
-        const table_identifier = this.getTableIdentifier();
-
         // Request
-        this.view.readByIdentifier(view_identifier, table_identifier).then((response_data) => {
+        this.view.readByIdentifier(view_identifier, this.getTableIdentifier())
+        .then((response_data) => {
             // Manage response
             const result = new ResponseManager(response_data, '#component_views_read .notifications', 'Vistas: Leer');
             if(!result.Verify_())
@@ -174,7 +181,7 @@ export class ViewsController extends BaseController{
 
             // Build URL params
             const url = new URL(window.location.href);
-            url.searchParams.set('t', table_identifier);
+            url.searchParams.set('t', this.getTableIdentifier());
             url.searchParams.set('v', row.identifier);
             history.pushState({}, '', url.toString());
 
@@ -182,10 +189,7 @@ export class ViewsController extends BaseController{
             $('.view_name').html(row.name);
 
             // Read columns
-            this.columns_controller.read();
-            this.filters_controller.read();
-            this.sorts_controller.read();
-            this.data_controller.read(true);
+            this.refreshAll();
         });
     }
 
