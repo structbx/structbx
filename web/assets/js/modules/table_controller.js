@@ -71,10 +71,7 @@ export class TableController extends BaseController {
             history.pushState({}, '', url.toString());
 
             // Reset views
-            //viewsObject.readCurrentTableInfo();
-
-            // Read Table
-            //objectTableGeneral.readCurrentTableInfo();
+            this.views_controller.read();
 
             // Set to active current tab
             $('#component_sidebar_tables .contents a.menu_table').removeClass('active');
