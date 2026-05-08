@@ -41,7 +41,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
                 ,values(values)
                 ,id_database(id_database)
             {}
-            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
+            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Functions::Action::Ptr action3);
 
             Type type;
             std::string& columns;
@@ -138,6 +138,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             Read(Tools::FunctionData& function_data);
 
+            void GetDefaultView(StructBX::Functions::Action::Ptr action);
             void GetTableColumns(StructBX::Functions::Action::Ptr action);
             void LinkToAction(StructBX::Functions::Action::Ptr action);
         };
@@ -171,8 +172,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetTableColumns(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {

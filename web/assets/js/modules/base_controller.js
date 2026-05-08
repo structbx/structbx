@@ -358,8 +358,8 @@ export class BaseController {
         return table_identifier;
     }
 
-    linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = '', main_table = ''){
-        this.table_data.readToLinkSelectionOptions(form, link_to_table, main_table).then((response_data) => {
+    linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = ''){
+        this.table_data.readToLinkSelectionOptions(link_to_table, form).then((response_data) => {
             try
             {
                 // Add empty <option>

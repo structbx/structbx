@@ -235,7 +235,7 @@ export class DataController extends BaseController{
         });
         
         // Read columns and data to modify
-        $(document).on("click", '#component_data_read table tbody tr', (e) => {
+        $(document).on("click", '#component_data_read .data-row', (e) => {
             e.preventDefault();
             this.preModify(e);
         });
@@ -566,9 +566,9 @@ export class DataController extends BaseController{
         // If column type is SELECTION
         if(row.column_type == "selection"){
             table_element = $('<td></td>');
-            let customSelect = new CustomSelect(table_element);
+            let customSelect = new DOME.CustomSelect(table_element);
             customSelect.hiddenInput.attr('name', row.identifier);
-            this.linkSelectionOptions(customSelect, row.link_to_table, row.name, `${target} .notifications`, value);
+            this.linkSelectionOptions(customSelect, row.link_to, row.name, `${target} .notifications`, value);
         }
         else if(row.column_type == "user")
             this.linkUsersInDatabaseOptions(table_element, `${target} .notifications`, value);
@@ -668,6 +668,106 @@ export class DataController extends BaseController{
 
             new wtools.Notification('SUCCESS').Show_('Registro guardado.');
             $('#component_data_add').modal('hide');
+            this.changeIntVerification();
+        });
+    }
+
+    preModify(e){
+        try{
+            // Wait animation   
+            let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+            // Get Data ID
+            let identifier = $(e.currentTarget).attr('identifier');
+            if(identifier == undefined){
+                wait.Off_();
+                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del registro.');
+                return;
+            }
+            $('#component_data_modify input[name="identifier"]').val(identifier);
+
+            // Setup form to modify
+            $('#component_data_modify .form_input_header').html('');
+            $('#component_data_modify table tbody').html('');
+            $('#component_data_modify .notifications').html('');
+            
+            // Read form to modify
+            this.tableData.readByIdentifier(identifier, this.getTableIdentifier(), this.getViewIdentifier())
+            .then((response_data) => {
+                // Manage response
+                const result = new ResponseManager(response_data, '', 'Data: Modificar');
+                if(!result.Verify_()){
+                    wait.Off_();
+                    return;
+                }
+    
+                // Handle no results or zero results
+                if(response_data.body.data.length < 1){
+                    wait.Off_();
+                    new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                    return;
+                }
+
+                // Add values to columns_data
+                let data = response_data.body.columns_meta.data;
+                for(let it of data)
+                    it.value = response_data.body.data[0][it.name];
+
+                // Setup color header
+                this.colorSelectModify.setValue(response_data.body.data[0]._structbx_column_colorHeader);
+
+                // Results elements creator
+                let first = true;
+                new wtools.UIElementsCreator('#component_data_modify table tbody', data)
+                .Build_((row) => {
+                    let elements = [];
+                    if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value)){
+                        first = false;
+                        return;
+                    }
+                    
+                    return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
+                });
+
+                wait.Off_();
+                $('#component_data_modify form').removeClass('was-validated');
+                $('#component_data_modify').modal('show');
+            });
+
+        } catch(error) {
+            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error: ${error}.`);
+            return;
+        }
+    }
+
+    modify(e){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_data_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            wait.Off_();
+            $('#component_data_modify .notifications').html('');
+            new wtools.Notification('WARNING', 5000, '#component_data_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        let data = new FormData($('#component_data_modify form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        // Request
+        this.tableData.modify(data).then((response_data) => {
+            wait.Off_();
+            
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_data_modify .notifications', 'Data: Modificar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Registro Actualizado.');
+            $('#component_data_modify').modal('hide');
             this.changeIntVerification();
         });
     }

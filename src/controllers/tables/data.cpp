@@ -973,7 +973,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         std::string columns = "";
         std::string values = "";
         ParameterConfiguration pc(ParameterConfiguration::Type::kAdd, columns, values, id_database);
-        pc.Setup(self, table_columns->get_results(), table_identifier->get()->ToString_(), nullptr, save_record);
+        pc.Setup(self, table_columns->get_results(), table_identifier->get()->ToString_(), save_record);
 
         // Verify that columns is not empty
         if(columns == "")
@@ -1133,7 +1133,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
             ParameterConfiguration pc(ParameterConfiguration::Type::kAdd, columns, values, id_database);
 
             // Setup parameters
-            pc.Setup(self, action2->get_results(), table_identifier->get()->ToString_(), nullptr, action3);
+            pc.Setup(self, action2->get_results(), table_identifier->get()->ToString_(), action3);
 
             // Verify that columns is not empty
             if(columns == "")
@@ -1265,16 +1265,12 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1: Verify table existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    // Action: Get table columns
+    auto table_columns = function->AddAction_("table_columns");
+    GetTableColumns(table_columns);
 
-    // Action 2: Get table columns
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
-
-    // Action 3: Update record
-    auto action3 = function->AddAction_("a3");
+    // Action: Update record
+    auto modify_record = function->AddAction_("modify_record");
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
@@ -1285,17 +1281,12 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1, action2, action3, fpv, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, table_columns, modify_record, fpv, just_owner](StructBX::Functions::Function& self)
     {
         // Execute actions
-        if(!action1->Work_())
+        if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": CnMsvrA4aa");
-            return;
-        }
-        if(!action2->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": Fr5MHxX1wQ");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": Fr5MHxX1wQ");
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
@@ -1304,19 +1295,12 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             return;
         }
 
-        // Get table IDENTIFIER
+        // Get table and column identifier
         auto table_identifier = self.GetParameter_("table-identifier");
-        if(table_identifier == self.get_parameters().end())
+        auto column_identifier = self.GetParameter_("identifier");
+        if(table_identifier == self.get_parameters().end() || column_identifier == self.get_parameters().end())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 6KTJ9kfXrGAH");
-            return;
-        }
-
-        // Get Column ID
-        auto column_id = action1->get_results()->front()->ExtractField_("column_id");
-        if(column_id->IsNull_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error FaAMlFeyJC");
             return;
         }
 
@@ -1324,7 +1308,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         std::string columns = "";
         std::string values = "";
         ParameterConfiguration pc(ParameterConfiguration::Type::kModify, columns, values, id_database);
-        pc.Setup(self, action2->get_results(), table_identifier->get()->ToString_(), column_id, action3);
+        pc.Setup(self, table_columns->get_results(), table_identifier->get()->ToString_(), modify_record);
 
         // Verify that columns is not empty
         if(columns == "")
@@ -1340,24 +1324,24 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         {
             color_header = color_header_param->get()->ToString_();
         }
-        action3->AddParameter_("color_header", color_header, false);
+        modify_record->AddParameter_("color_header", color_header, false);
 
         // Action3: Add id parameter
-        action3->AddParameter_("id", "", true)
-        ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+        modify_record->AddParameter_("identifier", "", true)
+        ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
         {
             if(param->get_value()->ToString_() == "")
             {
-                param->set_error("El id no puede estar vacío");
+                param->set_error("El identificador no puede estar vacío");
             }
 
             return true;
         });
 
-        // Set SQL Code to action 3
-        action3->set_sql_code(
+        // Final SQL Code
+        modify_record->set_sql_code(
             "UPDATE " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "SET " + columns + ", _structbx_column_colorHeader = ? WHERE _structbx_column_" + column_id->ToString_() + " = ?");
+            "SET " + columns + ", _structbx_column_colorHeader = ? WHERE identifier = ?");
 
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
@@ -1378,21 +1362,20 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         if(is_just_owner == 1)
         {
             std::string just_owner_condition = "_structbx_column_user_owner = " + self.get_current_user().get_id();
-            action3->set_sql_code(action3->get_sql_code() + " AND " + just_owner_condition);
+            modify_record->set_sql_code(modify_record->get_sql_code() + " AND " + just_owner_condition);
         }
 
         // Execute action 3
-        self.IdentifyParameters_(action3);
-        if(!action3->Work_())
+        self.IdentifyParameters_(modify_record);
+        if(!modify_record->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error UyUKjUef7b: No se pudo guardar el registro.");
             return;
         }
 
         // ChangeInt
-        auto id = action3->GetParameter_("id");
         auto changeInt = ChangeInt();
-        changeInt.Change(id->get()->ToString_(), "update", table_identifier->get()->ToString_());
+        changeInt.Change(column_identifier->get()->ToString_(), "update", table_identifier->get()->ToString_());
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
@@ -1401,48 +1384,13 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
     get_functions()->push_back(function);
 }
 
-void Tables::Data::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Modify::GetTableColumns(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.identifier, fc.identifier AS column_id " \
-        "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.identifier " \
-        "WHERE f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
-    );
-    action->set_final(false);
-    action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
-    {
-        if(self.get_results()->size() != 1)
-        {
-            self.set_custom_error("La tabla solicitada no existe");
-            return false;
-        }
-
-        return true;
-    });
-
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-identifier-table", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de tabla no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Tables::Data::Modify::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT fc.*, fct.identifier AS column_type " \
+        "SELECT fc.* " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
         "JOIN tables f ON f.identifier = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
+        "WHERE f.identifier = ? "
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)
@@ -1455,8 +1403,6 @@ void Tables::Data::Modify::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -1732,7 +1678,7 @@ bool Tables::Data::ParameterVerification::Verify(Query::Parameter::Ptr param)
     return true;
 }
 
-void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3)
+void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Functions::Action::Ptr action3)
 {
     // Setp 1: Iterate over columns
     for(auto it : *results)
@@ -1806,7 +1752,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 action2_1->set_sql_code(
                     "SELECT " + identifier->ToString_() + " "
                     "FROM " + id_database + "." + table_id + " " \
-                    "WHERE " + column_id->ToString_() + " = ?"
+                    "WHERE identifier = ?"
                 );
                 action2_1->AddParameter_("identifier", "", true)
                 ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
