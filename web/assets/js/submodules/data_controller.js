@@ -523,22 +523,22 @@ export class DataController extends BaseController{
             if(data != undefined && data.length > 0){
                 if(!this.changeIntInit){
                     // Firs init of changeInit (only update changeInt value to the last element id)
-                    this.changeInt = data[data.length - 1].identifier;
+                    this.changeInt = data[data.length - 1].id;
                     this.changeIntInit = true;
                 } else {
                     // If there is new changeInt, refresh rows
                     let reload = false;
                     for(let row of data) {
-                        this.changeInt = row.identifier;
+                        this.changeInt = row.id;
                         switch(row.operation){
                             case "insert":
                                 reload = true;
                                 break;
                             case "update":
-                                this.updateRow(row.row_identifier);
+                                this.updateRow(row.id_row);
                                 break;
                             case "delete":
-                                $(`#row_${row.row_identifier}`).remove();
+                                $(`#${row.id_row}`).remove();
                                 break;
                             case "import":
                                 reload = true;
@@ -551,4 +551,124 @@ export class DataController extends BaseController{
             }
         });
     };
+
+    setupColumn(row, elements, first, target, value = undefined){
+        // If column type is a NORMAL type
+        let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, "text"), row, this.getTableIdentifier());
+        let table_element = $(table_element_object.Get_());
+        let table_icon = table_element_object.GetIcon_();
+
+        if(table_element == undefined){
+            new wtools.Notification('ERROR').Show_('Error al crear un elemento de tabla.');
+            return false;
+        }
+
+        // If column type is SELECTION
+        if(row.column_type == "selection"){
+            table_element = $('<td></td>');
+            let customSelect = new CustomSelect(table_element);
+            customSelect.hiddenInput.attr('name', row.identifier);
+            this.linkSelectionOptions(customSelect, row.link_to_table, row.name, `${target} .notifications`, value);
+        }
+        else if(row.column_type == "user")
+            this.linkUsersInDatabaseOptions(table_element, `${target} .notifications`, value);
+
+        // Final elements
+        elements.push(`<th scope="row">${table_icon}${row.name}</th>`);
+        elements.push(table_element);
+
+        if(first){
+            $(`${target} .form_input_header`).append(`<h5 class="mb-2">${table_icon}${row.name}</h5>`);
+            $(`${target} .form_input_header`).append($(table_element).children().first());
+            return false;
+        }
+
+        return true;
+    }
+
+    preAdd(){
+        try{
+            $('#component_data_add .notifications').html('');
+
+            // Wait animation
+            let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+            // Setup data columns
+            $('#component_data_add .form_input_header').html('');
+            $('#component_data_add table tbody').html('');
+            
+            // Read and setup columns
+            this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier())
+            .then((response_data) => {
+                // Manage response
+                const result = new ResponseManager(response_data, '', 'Data: Columnas: Leer');
+                if(!result.Verify_())
+                    return;    
+
+                // Handle zero results
+                if(response_data.body.data.length < 1){
+                    wait.Off_();
+                    new wtools.Notification('WARNING').Show_('Debe crear columnas para agregar registros.');
+                    return;
+                }
+                
+                // Results elements creator
+                let first = true;
+                new wtools.UIElementsCreator('#component_data_add table tbody', response_data.body.data)
+                .Build_((row) => {
+                    if(row.identifier == "identifier")
+                        return undefined;
+
+                    let elements = [];
+                    if(!this.setupColumn(row, elements, first, '#component_data_add')){
+                        first = false;
+                        return;
+                    }
+                    
+                    return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
+                });
+
+                wait.Off_();
+                $('#component_data_add form').removeClass('was-validated');
+                $('#component_data_add').modal('show');
+            });
+
+        } catch(error) {
+            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error: ${error}.`);
+            return;
+        }
+    };
+
+    add(e){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_data_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            wait.Off_();
+            $('#component_data_add .notifications').html('');
+            new wtools.Notification('WARNING', 5000, '#component_data_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        // Data collection
+        let data = new FormData($('#component_data_add form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        // Request
+        this.tableData.add(data).then((response_data) =>
+        {
+            wait.Off_();
+            
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_data_add .notifications', 'Data: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Registro guardado.');
+            $('#component_data_add').modal('hide');
+            this.changeIntVerification();
+        });
+    }
 }

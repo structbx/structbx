@@ -79,7 +79,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         };
         struct ChangeInt
         {
-            void Change(std::string row_id, std::string operation, std::string table_identifier, std::string database_id);
+            void Change(std::string row_id, std::string operation, std::string table_identifier);
         };
 
         struct VerifyPermissionsRead : public Tools::FunctionData
@@ -157,8 +157,8 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetTableInfo(StructBX::Functions::Action::Ptr action);
+            void GetTableColumnsInfo(StructBX::Functions::Action::Ptr action);
         };
         struct Import : public Tools::FunctionData
         {

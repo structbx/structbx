@@ -232,7 +232,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
                 "" + default_column + " VARCHAR(500) NULL, " \
                 "_structbx_column_created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " \
                 "_structbx_column_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " \
-                "_structbx_column_user_owner INT NULL, " \
+                "_structbx_column_user_owner VARCHAR(20) NULL, " \
                 "_structbx_column_colorHeader VARCHAR(100) DEFAULT NULL, " \
                 "INDEX (_structbx_column_created_at) USING BTREE, " \
                 "INDEX (_structbx_column_updated_at) USING BTREE, " \

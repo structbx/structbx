@@ -1,6 +1,7 @@
 
 #include "controllers/tables/data.h"
 #include "tools/dvalue.h"
+#include "tools/random_generator.h"
 #include <string>
 
 using namespace StructBX::Controllers;
@@ -765,11 +766,11 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
 void Tables::Data::ReadChangeInt::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT id, row_id, operation, id_table "
+        "SELECT id, id_row, operation, id_table "
         "FROM changes "
         "WHERE "
             "id > ? "
-            "AND id_table = (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)) "
+            "AND id_table = ?"
     );
 
     action->AddParameter_("changeInt", "", true)
@@ -792,7 +793,6 @@ void Tables::Data::ReadChangeInt::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
 Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
@@ -889,16 +889,16 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1: Verify table existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    // Action: Get Table info
+    auto table_info = function->AddAction_("table_info");
+    GetTableInfo(table_info);
 
-    // Action 2: Get table columns
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    // Action: Get table columns
+    auto table_columns = function->AddAction_("table_columns");
+    GetTableColumnsInfo(table_columns);
 
-    // Action 3: Save new record
-    auto action3 = function->AddAction_("a3");
+    // Action: Save new record
+    auto save_record = function->AddAction_("save_record");
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
@@ -906,17 +906,17 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1, action2, action3, fpv](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, table_info, table_columns, save_record, fpv](StructBX::Functions::Function& self)
     {
         // Execute actions
-        if(!action1->Work_())
+        if(!table_info->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": nrjlOllSqm");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_info->get_identifier() + ": nrjlOllSqm");
             return;
         }
-        if(!action2->Work_())
+        if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": 9e8LhYKOdu");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": 9e8LhYKOdu");
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
@@ -937,7 +937,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         std::string columns = "";
         std::string values = "";
         ParameterConfiguration pc(ParameterConfiguration::Type::kAdd, columns, values, id_database);
-        pc.Setup(self, action2->get_results(), table_identifier->get()->ToString_(), nullptr, action3);
+        pc.Setup(self, table_columns->get_results(), table_identifier->get()->ToString_(), nullptr, save_record);
 
         // Verify that columns is not empty
         if(columns == "")
@@ -946,6 +946,10 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
             return;
         }
 
+        // Set record identifier
+        auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+        save_record->AddParameter_("identifier", identifier, false);
+
         // Get color header parameter
         auto color_header_param = self.GetParameter_("_structbx_column_colorHeader");
         std::string color_header = "";
@@ -953,39 +957,38 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         {
             color_header = color_header_param->get()->ToString_();
         }
-        action3->AddParameter_("user_id", self.get_current_user().get_id(), false);
-        action3->AddParameter_("color_header", color_header, false);
+        save_record->AddParameter_("user_id", self.get_current_user().get_id(), false);
+        save_record->AddParameter_("color_header", color_header, false);
 
         // Set SQL Code to action 3
-        action3->set_sql_code(
+        save_record->set_sql_code(
             "INSERT INTO " + id_database + "." + table_identifier->get()->ToString_() + " " \
-            "(" + columns + ", _structbx_column_user_owner, _structbx_column_colorHeader) " \
-            " VALUES (" + values + ", ?, ?) "
+            "(" + columns + ", identifier, _structbx_column_user_owner, _structbx_column_colorHeader) " \
+            " VALUES (" + values + ", ?, ?, ?) "
         );
 
         // Execute action 3
-        self.IdentifyParameters_(action3);
-        if(!action3->Work_())
+        self.IdentifyParameters_(save_record);
+        if(!save_record->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error fECruxvqCZ: No se pudo guardar el registro. " + action3->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error fECruxvqCZ: No se pudo guardar el registro. " + save_record->get_custom_error());
             return;
         }
 
         // ChangeInt
-        std::string row_id = std::to_string(action3->get_last_insert_id());
         auto changeInt = ChangeInt();
-        changeInt.Change(row_id, "insert",table_identifier->get()->ToString_(), id_database);
+        changeInt.Change(identifier, "insert",table_identifier->get()->ToString_());
 
         // Send results
-        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, identifier);
     });
 
     get_functions()->push_back(function);
 }
 
-void Tables::Data::Add::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Add::GetTableInfo(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ?");
+    action->set_sql_code("SELECT * FROM tables WHERE identifier = ?");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -1010,12 +1013,11 @@ void Tables::Data::Add::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Tables::Data::Add::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Add::GetTableColumnsInfo(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.*, fct.identifier AS column_type " \
+        "SELECT fc.* " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
         "JOIN tables f ON f.identifier = fc.id_table " \
         "WHERE f.identifier = ? "
     );
@@ -1150,7 +1152,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
 
         // ChangeInt
         auto changeInt = ChangeInt();
-        changeInt.Change("1", "import", table_identifier->get()->ToString_(), id_database);
+        changeInt.Change("1", "import", table_identifier->get()->ToString_());
 
         // Send results
         auto json_result = JSON::Object::Ptr(new JSON::Object());
@@ -1354,7 +1356,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         // ChangeInt
         auto id = action3->GetParameter_("id");
         auto changeInt = ChangeInt();
-        changeInt.Change(id->get()->ToString_(), "update", table_identifier->get()->ToString_(), id_database);
+        changeInt.Change(id->get()->ToString_(), "update", table_identifier->get()->ToString_());
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
@@ -1561,7 +1563,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
         // ChangeInt
         auto id = action2->GetParameter_("id");
         auto changeInt = ChangeInt();
-        changeInt.Change(id->get()->ToString_(), "delete", table_identifier->get()->ToString_(), id_database);
+        changeInt.Change(id->get()->ToString_(), "delete", table_identifier->get()->ToString_());
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
@@ -1700,7 +1702,6 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
     for(auto it : *results)
     {
         // Get column
-        auto id = it.get()->ExtractField_("id");
         auto identifier = it.get()->ExtractField_("identifier");
         auto column_type = it.get()->ExtractField_("column_type");
         auto name = it.get()->ExtractField_("name");
@@ -1709,10 +1710,6 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
 
         // Verify identifier is not null
         if(identifier->IsNull_())
-            continue;
-
-        // Verify identifier is not the id
-        if(identifier->ToString_() == "id")
             continue;
 
         // Step 2: Search column type image or file
@@ -1748,12 +1745,12 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 // Setup columns and values string
                 if(columns == "")
                 {
-                    columns = "_structbx_column_" + id->ToString_();
+                    columns = identifier->ToString_();
                     values = "?";
                 }
                 else
                 {
-                    columns += ",_structbx_column_" + id->ToString_();
+                    columns += "," + identifier->ToString_();
                     values += ", ?";
                 }
             }
@@ -1761,26 +1758,26 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
             {
                 if(columns == "")
                 {
-                    columns = "_structbx_column_" + id->ToString_() + " = ?";
+                    columns = "" + identifier->ToString_() + " = ?";
                 }
                 else
                 {
-                    columns += ",_structbx_column_" + id->ToString_() + " = ?";
+                    columns += "," + identifier->ToString_() + " = ?";
                 }
 
                 // Step 5: Verify old file saved
                 auto action2_1 = StructBX::Functions::Action::Ptr(new StructBX::Functions::Action("a2_1"));
                 action2_1->set_sql_code(
-                    "SELECT _structbx_column_" + id->ToString_() + " "
+                    "SELECT " + identifier->ToString_() + " "
                     "FROM " + id_database + "." + table_id + " " \
-                    "WHERE _structbx_column_" + column_id->ToString_() + " = ?"
+                    "WHERE " + column_id->ToString_() + " = ?"
                 );
-                action2_1->AddParameter_("id", "", true)
-                ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+                action2_1->AddParameter_("identifier", "", true)
+                ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
                 {
                     if(param->get_value()->ToString_() == "")
                     {
-                        param->set_error("El id no puede estar vacío");
+                        param->set_error("El identificador no puede estar vacío");
                     }
 
                     return true;
@@ -1837,12 +1834,12 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 // Setup columns and values string
                 if(columns == "")
                 {
-                    columns = "_structbx_column_" + id->ToString_();
+                    columns = identifier->ToString_();
                     values = "?";
                 }
                 else
                 {
-                    columns += ",_structbx_column_" + id->ToString_();
+                    columns += "," + identifier->ToString_();
                     values += ", ?";
                 }
             }
@@ -1851,11 +1848,11 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 // Setup columns and values string
                 if(columns == "")
                 {
-                    columns = "_structbx_column_" + id->ToString_() + " = ?";
+                    columns = "" + identifier->ToString_() + " = ?";
                 }
                 else
                 {
-                    columns += ",_structbx_column_" + id->ToString_() + " = ?";
+                    columns += "," + identifier->ToString_() + " = ?";
                 }
             }
             
@@ -1920,19 +1917,18 @@ bool Tables::Data::FileProcessing::Delete()
     return true;
 }
 
-void Tables::Data::ChangeInt::Change(std::string row_id, std::string operation, std::string table_identifier, std::string database_id)
+void Tables::Data::ChangeInt::Change(std::string row_id, std::string operation, std::string table_identifier)
 {
     // Action 1: Get Change int
     auto action1 = StructBX::Functions::Action("a1");
     action1.set_sql_code(
-        "INSERT INTO changes (row_id, operation, id_table) "
-        "VALUES (?, ?, (SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)))"
+        "INSERT INTO changes (id_row, operation, id_table) "
+        "VALUES (?, ?, ?)"
     );
 
-    action1.AddParameter_("row_id", row_id, false);
+    action1.AddParameter_("id_row", row_id, false);
     action1.AddParameter_("operation", operation, false);
     action1.AddParameter_("table-identifier", table_identifier, false);
-    action1.AddParameter_("id_database", database_id, false);
 
     // Execute action
     action1.Work_();
