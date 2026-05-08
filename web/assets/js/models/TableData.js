@@ -17,4 +17,7 @@ export class TableData{
     async modify(data){
         return await new wtools.Request("/api/tables/data/modify", "PUT", data, false).Exec_();
     }
+    async delete(identifier, table_identifier){
+        return await new wtools.Request(`/api/tables/data/delete?identifier=${identifier}&table-identifier=${table_identifier}`, "DEL").Exec_();
+    }
 }

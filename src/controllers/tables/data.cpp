@@ -1413,17 +1413,13 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Action 1: Verify table existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    // Action: Get table columns
+    auto table_columns = function->AddAction_("table_columns");
+    GetTableColumns(table_columns);
 
-    // Action 2_0: Get table columns
-    auto action2_0 = function->AddAction_("a2_0");
-    A2(action2_0);
-
-    // Action 2: Delete record from table
-    auto action2 = function->AddAction_("a2");
-    A3(action2);
+    // Action: Delete record from table
+    auto delete_record = function->AddAction_("delete_record");
+    SetIdentifierParam(delete_record);
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
@@ -1431,17 +1427,12 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, action1, action2_0, action2, fpv](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, table_columns, delete_record, fpv](StructBX::Functions::Function& self)
     {
         // Execute actions
-        if(!action1->Work_())
+        if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": twQ1cxcgZs");
-            return;
-        }
-        if(!action2_0->Work_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2_0->get_identifier() + ": PYaZ1nddvm");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": PYaZ1nddvm");
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
@@ -1458,19 +1449,10 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             return;
         }
 
-        // Get Column ID
-        auto column_id = action1->get_results()->front()->ExtractField_("column_id");
-        if(column_id->IsNull_())
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error LbunnRyAm2");
-            return;
-        }
-
         // Delete record files
-        for(auto it : *action2_0->get_results())
+        for(auto it : *table_columns->get_results())
         {
             // Get column
-            auto id = it.get()->ExtractField_("id");
             auto identifier = it.get()->ExtractField_("identifier");
             auto column_type = it.get()->ExtractField_("column_type");
 
@@ -1490,33 +1472,35 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             // Get file manager
             auto file_manager = self.get_file_manager();
             file_manager->set_directory_base(
-                StructBX::Tools::SettingsManager::GetSetting_("directory_for_uploaded_files", "/var/www/structbx-web-uploaded") + "/" + std::string(id_database) + "/" + table_identifier->get()->ToString_()
+                StructBX::Tools::SettingsManager::GetSetting_(
+                    "directory_for_uploaded_files"
+                    ,"/var/www/structbx-web-uploaded") + "/" + std::string(id_database) + "/" + table_identifier->get()->ToString_()
             );
 
             // Request filepath
-            auto action2_2 = self.AddAction_("a2_2");
-            action2_2->set_sql_code(
-                "SELECT _structbx_column_" + id->ToString_() + " "
+            auto get_filepath = self.AddAction_("get_filepath");
+            get_filepath->set_sql_code(
+                "SELECT " + identifier->ToString_() + " "
                 "FROM " + id_database + "." + table_identifier->get()->ToString_() + " " \
-                "WHERE _structbx_column_" + column_id->ToString_() + " = ?"
+                "WHERE identifier = ?"
             );
-            action2_2->AddParameter_("id", "", true)
-            ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+            get_filepath->AddParameter_("identifier", "", true)
+            ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
             {
                 if(param->get_value()->ToString_() == "")
                 {
-                    param->set_error("El id no puede estar vacío");
+                    param->set_error("El identificador no puede estar vacío");
                 }
 
                 return true;
             });
-            self.IdentifyParameters_(action2_2);
-            if(!action2_2->Work_())
+            self.IdentifyParameters_(get_filepath);
+            if(!get_filepath->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2_2->get_identifier() + ": PIvGrSKDYx");
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + get_filepath->get_identifier() + ": PIvGrSKDYx");
                 return;
             }
-            auto filepath = action2_2->get_results()->First_();
+            auto filepath = get_filepath->get_results()->First_();
 
             // Process file
             FileProcessing fp;
@@ -1528,24 +1512,24 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             }
         }
 
-        // Action 2: Delete record from table
-        action2->set_sql_code(
+        // Action: Delete record from table
+        delete_record->set_sql_code(
             "DELETE FROM " + id_database + "." + table_identifier->get()->ToString_() + 
-            " WHERE _structbx_column_" + column_id->ToString_() + " = ?"
+            " WHERE identifier = ?"
         );
 
         // Execute action 2
-        self.IdentifyParameters_(action2);
-        if(!action2->Work_())
+        self.IdentifyParameters_(delete_record);
+        if(!delete_record->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error VF1ACrujc7");
             return;
         }
 
         // ChangeInt
-        auto id = action2->GetParameter_("id");
+        auto identifier = delete_record->GetParameter_("identifier");
         auto changeInt = ChangeInt();
-        changeInt.Change(id->get()->ToString_(), "delete", table_identifier->get()->ToString_());
+        changeInt.Change(identifier->get()->ToString_(), "delete", table_identifier->get()->ToString_());
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
@@ -1554,48 +1538,12 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
     get_functions()->push_back(function);
 }
 
-void Tables::Data::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Delete::GetTableColumns(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT f.identifier, fc.identifier AS column_id " \
-        "FROM tables f " \
-        "JOIN tables_columns fc ON fc.id_table = f.identifier " \
-        "WHERE f.identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND fc.identifier = 'id'"
-    );
-    action->set_final(false);
-    action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
-    {
-        if(self.get_results()->size() != 1)
-        {
-            self.set_custom_error("La tabla solicitada no existe");
-            return false;
-        }
-
-        return true;
-    });
-
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-identifier-table", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de tabla no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-
-    action->AddParameter_("id_database", get_database_id(), false);
-}
-
-void Tables::Data::Delete::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT fc.*, fct.identifier AS column_type " \
-        "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
-        "JOIN tables f ON f.identifier = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
+        "SELECT * " \
+        "FROM tables_columns " \
+        "WHERE id_table = ?"
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)
@@ -1608,18 +1556,16 @@ void Tables::Data::Delete::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-
-    action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Tables::Data::Delete::A3(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Delete::SetIdentifierParam(StructBX::Functions::Action::Ptr action)
 {
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de registro no puede estar vacío");
+            param->set_error("El identifier de registro no puede estar vacío");
             return false;
         }
         return true;

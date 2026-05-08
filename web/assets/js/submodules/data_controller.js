@@ -771,4 +771,43 @@ export class DataController extends BaseController{
             this.changeIntVerification();
         });
     }
+
+    preDelete(){
+        // Wait animation
+        let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        // Data
+        let data = new FormData($('#component_data_modify form')[0]);
+        const identifier = data.get('identifier');
+
+        // Setup data to delete
+        $('#component_data_delete input[name=identifier]').val(identifier);
+        $('#component_data_delete strong.identifier').html(identifier);
+        $('#component_data_delete').modal('show');
+        wait.Off_();
+    }
+
+    delete(){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_data_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Data
+        const identifier = $('#component_data_delete input[name=identifier]').val();
+
+        // Request
+        this.tableData.delete(identifier, this.getTableIdentifier())
+        .then((response_data) => {
+            wait.Off_();
+            
+            // Manage response
+            const result = new ResponseManager(response_data, '#component_data_delete .notifications', 'Data: Eliminar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Registro eliminado.');
+            $('#component_data_delete').modal('hide');
+            $('#component_data_modify').modal('hide');
+            this.changeIntVerification();
+        });
+    }
 }
