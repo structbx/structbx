@@ -90,6 +90,25 @@ export class ColumnsController extends BaseController{
                 this.setVisible(e);
         });
 
+        // Column type selection on/off
+        const change_column_type = (target) => {
+            if($(`${target} select[name=column_type]`).val() == "selection")
+            {
+                $(`${target} .link_to_tr`).removeClass('d-none');
+                $(`${target} form select[name="link_to"]`).prop('disabled', false);
+            } else {
+                $(`${target} .link_to_tr`).addClass('d-none');
+                $(`${target} form select[name="link_to"]`).val("");
+                $(`${target} form select[name="link_to"]`).prop('disabled', true);
+            }
+        }
+        $(document).on('change', `#component_columns_add select[name=column_type]`, () => {
+            change_column_type('#component_columns_add');
+        });
+        $(document).on('change', `#component_columns_modify select[name=column_type]`, () => {
+            change_column_type('#component_columns_modify');
+        });
+
         // Click on Add Button
         const read_table_columns_add = () => {
             $('#component_columns_add .notifications').html('');

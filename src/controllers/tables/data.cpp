@@ -1,8 +1,5 @@
 
 #include "controllers/tables/data.h"
-#include "tools/dvalue.h"
-#include "tools/random_generator.h"
-#include <string>
 
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
@@ -440,6 +437,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     auto link_to_action = function->AddAction_("link_to_action");
     LinkToAction(link_to_action);
 
+    // Action: Get default view
+    auto default_view = function->AddAction_("default_view");
+    GetDefaultView(default_view);
+
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
     VerifyPermissionsRead(function_data).A1(fpv);
@@ -452,7 +453,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, link_to_action, table_columns, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, default_view, link_to_action, table_columns, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
     {
         // Get table IDENTIFIER
         auto table_identifier = self.GetParameter_("table-identifier");
@@ -466,8 +467,23 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         auto view_identifier = self.GetParameter_("view-identifier");
         if(view_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error i0p2hoyosbsL");
-            return;
+            if(!default_view->Work_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error i0p2hoyosbsL");
+                return;
+            }
+            auto default_view_identifier = default_view->get_results()->First_();
+            if(default_view_identifier->IsNull_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 64vv3gtgM8dI");
+                return;
+            }
+            Query::Parameter::Ptr param(
+                new Query::Parameter("view-identifier", Tools::DValue::Ptr(new Tools::DValue(default_view_identifier->ToString_())), false));
+            self.get_parameters().push_back(param);
+            view_identifier = self.GetParameter_("view-identifier");
+            table_identifier = self.GetParameter_("table-identifier");
+            table_columns->ReplaceParamater_(param);
         }
 
         if(!table_columns->Work_())
@@ -546,7 +562,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 
                 // Setup column link
                 column = "_" + link_to->ToString_() + "." + display_value->ToString_() + " AS '" + name->ToString_() + "'" +
-                    ", _" + link_to->ToString_() + "._structbx_column_colorHeader AS '" + identifier->ToString_() + "_colorHeader'";
+                    ", _" + link_to->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + identifier->ToString_() + "_colorHeader'";
 
                 // Setup new join
                 joins += " LEFT JOIN " + id_database + "." + link_to->ToString_() +
@@ -570,17 +586,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         std::string filters_query = GetFilters().Get(self, view_identifier->get()->ToString_());
         std::string sorts_query = GetSorts().Get(self, view_identifier->get()->ToString_());
         
-        // Set record ID condition if specified
-        auto record_identifier = self.GetParameter_("identifier");
-        if(record_identifier != self.get_parameters().end() && record_identifier->get()->ToString_() != "")
-        {
-            std::string record_identifier_condition = "_"+ table_identifier->get()->ToString_() + ".identifier = " + record_identifier->get()->ToString_();
-            if(filters_query == "")
-                filters_query = " WHERE " + record_identifier_condition;
-            else
-                filters_query += " AND " + record_identifier_condition;
-        }
-
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
         {
@@ -637,8 +642,23 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             limit_query = "";
         }
 
-        // Action 2: Get Table data
-        auto table_data = self.AddAction_("a2");
+        // Action: Table data
+        auto table_data = self.AddAction_("table_data");
+
+        // Set record identifier if specified
+        auto record_identifier = self.GetParameter_("identifier");
+        if(record_identifier != self.get_parameters().end() && record_identifier->get()->ToString_() != "")
+        {
+            std::string record_identifier_condition = "_"+ table_identifier->get()->ToString_() + ".identifier = ?";
+            if(filters_query == "")
+                filters_query = " WHERE " + record_identifier_condition;
+            else
+                filters_query += " AND " + record_identifier_condition;
+
+            table_data->AddParameter_("identifier", record_identifier->get()->ToString_(), false);
+        }
+
+        // Final SQL Code
         std::string sql_code = 
             "SELECT _" + table_identifier->get()->ToString_() + ".identifier " + columns + " " \
             "FROM " + id_database + "." + table_identifier->get()->ToString_() + 
@@ -700,11 +720,27 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     get_functions()->push_back(function);
 }
 
+void Tables::Data::Read::GetDefaultView(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code("SELECT identifier FROM views WHERE id_table = ? LIMIT 1");
+
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-identifier-table", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("El identificador de tabla no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+}
+
 void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
-            "fc.identifier, fc.identifier, fc.name, fc.column_type, fc.required, fc.default_value, fc.description, link_to " \
+            "fc.identifier, fc.name, fc.column_type, fc.required, fc.default_value, fc.description, link_to " \
             ",(SELECT name FROM tables WHERE id = fc.link_to) AS link_to_table_name " \
             ",COALESCE(vc.visible, 1) AS visible " \
             ",COALESCE(vc.position, fc.position) AS final_position " \
