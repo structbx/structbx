@@ -1,4 +1,8 @@
 
+@import '/node_modules/@fontsource/inter/200.css';
+@import '/node_modules/@fontsource/inter/400.css';
+@import '/node_modules/@fontsource/inter/700.css';
+
 :root {
     --primary: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
     --primary-dark: linear-gradient(135deg, #49475f 0%, #302f2e 100%) !important;

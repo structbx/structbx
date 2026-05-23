@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fortawesome/fontawesome-free": "^5.9.0",
+    "@josefelixrc72/wtools": "^0.1.1",
+    "jquery-ui": "^1.14.2"
+  }
+}
