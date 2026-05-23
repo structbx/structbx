@@ -18,7 +18,7 @@ export class LoginController extends BaseController {
         super.verifySession().then((result) => {
             if(result){
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-                window.location.href = "/start/";
+                window.location.href = "/";
                 return;
             }
         });
@@ -84,7 +84,7 @@ export class LoginController extends BaseController {
                 })
             }
             else
-                window.location.href = "/start/";
+                window.location.href = "/";
         });
 
     };

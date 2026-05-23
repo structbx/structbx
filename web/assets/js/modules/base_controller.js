@@ -301,7 +301,7 @@ export class BaseController {
                 return;
             
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-            location.href = "/start/";
+            location.href = "/";
 
             wait.Off_();
         });
@@ -437,7 +437,7 @@ export class BaseController {
         if(table_identifier == undefined)
         {
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-            window.location.href = "/start/";
+            window.location.href = "/";
             return;
         }
         return table_identifier;
@@ -448,7 +448,7 @@ export class BaseController {
         if(view_identifier == undefined)
         {
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-            window.location.href = "/start/";
+            window.location.href = "/";
             return;
         }
         return view_identifier;
