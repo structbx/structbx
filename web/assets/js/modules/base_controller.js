@@ -12,7 +12,7 @@ import { TableData } from '../models/TableData.js';
 import { DatabaseUser } from '../models/DatabaseUser.js';
 
 export class BaseController {
-    constructor() {
+    constructor(){
         this.apiBase = "/api";
         this.user_permissions = [];
         this.tables_permissions = [];
@@ -36,7 +36,7 @@ export class BaseController {
         };
     }
 
-    init() {
+    init(){
         this.bindEvents();
         this.build();
     }
@@ -45,47 +45,38 @@ export class BaseController {
 
     }
     
-    bindEvents() {
-        $(document).on('click', '#logout-button', (e) =>
-        {
+    bindEvents(){
+        $(document).on('click', '#logout-button', (e) => {
             e.preventDefault();
-
             this.logout();
         });
         
-        $(document).on('click', '.go-button', function(e)
-        {
+        $(document).on('click', '.go-button', function(e){
             e.preventDefault();
             let path = $(e.currentTarget).attr('go-path');
             let hash = $(e.currentTarget).attr('go-hash');
-            if(window.location.pathname == path || window.location.pathname == path + "/")
-            {
+            if(window.location.pathname == path || window.location.pathname == path + "/"){
                 location.hash = hash;
                 location.reload();
-            }
-            else
-            {
+            } else {
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
                 window.location.href = path + hash;
             }
         });
 
-        $(document).on('click', '.go-form-button', function(e)
-        {
+        $(document).on('click', '.go-form-button', function(e){
             e.preventDefault();
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             window.location.href = `/table?identifier=${wtools.GetUrlSearchParam('identifier')}`;
         });
 
         // Change current database
-        $(document).on("click", '#component_sidebar_databases .contents a', (e) =>
-        {
+        $(document).on("click", '#component_sidebar_databases .contents a', (e) => {
             e.preventDefault();
 
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
-        $(document).on("click", '#component_databases_selector li a', (e) =>
-        {
+        $(document).on("click", '#component_databases_selector li a', (e) => {
             e.preventDefault();
 
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
@@ -138,8 +129,7 @@ export class BaseController {
 
     hideWithoutPermission(){
         this.readCurrentUserPermissions(() => {
-            $('[permission-endpoint]').each((index, element) =>
-            {
+            $('[permission-endpoint]').each((index, element) => {
                 let endpoint = $(element).attr('permission-endpoint');
                 if(!this.verifyUserHasPermission(endpoint))
                     $(element).remove();
@@ -166,12 +156,9 @@ export class BaseController {
         return this.tables_permissions.includes(permission_endpoint);
     }
 
-    hideTablesWithoutPermission()
-    {
-        this.readCurrentUserTablePermissions(() =>
-        {
-            $('[table-identifier]').each((index, element) =>
-            {
+    hideTablesWithoutPermission(){
+        this.readCurrentUserTablePermissions(() => {
+            $('[table-identifier]').each((index, element) => {
                 let table_identifier = $(element).attr('table-identifier');
                 if(!this.verifyUserHasTablePermission(table_identifier))
                     $(element).remove();
@@ -183,14 +170,12 @@ export class BaseController {
         // Wait animation
         let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
 
-        this.setting.readName().then(response_data =>
-        {
+        this.setting.readName().then(response_data => {
             // Clean
             wait.Off_();
 
             // Manage error
-            if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
-            {
+            if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1){
                 new wtools.Notification('WARNING').Show_('No se pudo acceder al nombre de la instancia.');
                 return;
             }
@@ -210,8 +195,8 @@ export class BaseController {
             wait.Off_();
 
             // Manage error
-            if(response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
-            {
+            if(response_data.status == 401 || response_data.status != 200 
+                || response_data.body.data == undefined || response_data.body.data.length < 1){
                 new wtools.Notification('WARNING').Show_('No se pudo acceder a la base de datos.');
                 return;
             }
@@ -243,11 +228,10 @@ export class BaseController {
                 return;
             
             // Results elements creator (Sidebar)
-            new wtools.UIElementsCreator('#component_sidebar_databases .contents', response_data.body.data).Build_((row) =>
-            {
+            new wtools.UIElementsCreator('#component_sidebar_databases .contents', response_data.body.data)
+            .Build_((row) => {
                 let element = '';
-                if($('.database_name').html() == row.name)
-                {
+                if($('.database_name').html() == row.name){
                     element = `
                         <div class="nav-item">
                             <a class="nav-link mb-2 active" href="#" database_id="${row.identifier}">
@@ -255,9 +239,7 @@ export class BaseController {
                                 <span class="ms-2">${row.name}</span>
                             </a>
                         </div>`
-                }
-                else
-                {
+                } else {
                     element = `
                         <div class="nav-item">
                             <a class="nav-link mb-2" href="#" database_id="${row.identifier}">
@@ -271,11 +253,13 @@ export class BaseController {
             });
 
             // Results elements creator (Header)
-            new wtools.UIElementsCreator('#component_databases_selector', response_data.body.data).Build_((row) =>
-            {
+            if(response_data.body.data.length < 2)
+                $('#component_databases_selector').append('<li class="p-2"><span class="text-white">No hay m&aacute;s bases de datos</span></li>');
+
+            new wtools.UIElementsCreator('#component_databases_selector', response_data.body.data)
+            .Build_((row) => {
                 let element = '';
-                if($('.database_name').html() != row.name)
-                {
+                if($('.database_name').html() != row.name){
                     element = `
                         <li>
                             <a class="dropdown-item btn btn-ligth" href="#" database_id="${row.identifier}">
@@ -318,8 +302,9 @@ export class BaseController {
             wait.Off_();
 
             // Manage error
-            if(response_data.status == 403 || response_data.status == 401 || response_data.status != 200 || response_data.body.data == undefined || response_data.body.data.length < 1)
-            {
+            if(response_data.status == 403 || response_data.status == 401 
+                || response_data.status != 200 || response_data.body.data == undefined 
+                || response_data.body.data.length < 1){
                 this.logout();
                 return;
             }
@@ -339,8 +324,7 @@ export class BaseController {
             wait.Off_();
 
             // Notifications
-            if(response_data.status == 200)
-            {
+            if(response_data.status == 200){
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
                 window.location.href = "/login/";
             }
@@ -359,9 +343,9 @@ export class BaseController {
     }
 
     linkSelectionOptions(element, link_to_table, column_name, target, selected = undefined, form = ''){
-        this.table_data.readToLinkSelectionOptions(link_to_table, form).then((response_data) => {
-            try
-            {
+        this.table_data.readToLinkSelectionOptions(link_to_table, form)
+        .then((response_data) => {
+            try{
                 // Add empty <option>
                 element.AddOption_('', '-- Ninguno --');
 
@@ -384,9 +368,7 @@ export class BaseController {
                     if(selected == row[col_name])
                         element.setValue(row[col_id]);
                 }
-            }
-            catch(error)
-            {
+            }catch(error){
                 new wtools.Notification('WARNING', 0, target).Show_(error);
             }
         });
@@ -396,8 +378,7 @@ export class BaseController {
         this.database_user.current(form).then((response_data) => {
             let options = new wtools.SelectOptions();
 
-            try
-            {
+            try{
                 let tmp_options = [];
 
                 // Add empty <option>
@@ -412,8 +393,7 @@ export class BaseController {
                 if(response_data.body == undefined || response_data.body.data == undefined) throw new Error(`No se encontraron datos al consultar los usuarios de la base de datos`);
 
                 // Add select or not selected <option>
-                for(let row of response_data.body.data)
-                {
+                for(let row of response_data.body.data){
                     if(selected == row.id)
                         tmp_options.push(new wtools.OptionValue(row.id, row.username, true));
                     else
@@ -425,8 +405,7 @@ export class BaseController {
                 let element_building = $(element).find('select');
                 options.Build_(element_building);
             }
-            catch(error)
-            {
+            catch(error){
                 new wtools.Notification('WARNING', 0, target).Show_(error);
             }
         });
@@ -434,8 +413,7 @@ export class BaseController {
 
     getTableIdentifier(){
         const table_identifier = wtools.GetUrlSearchParam('t');
-        if(table_identifier == undefined)
-        {
+        if(table_identifier == undefined){
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             window.location.href = "/";
             return;
@@ -445,8 +423,7 @@ export class BaseController {
 
     getViewIdentifier(){
         const view_identifier = wtools.GetUrlSearchParam('v');
-        if(view_identifier == undefined)
-        {
+        if(view_identifier == undefined){
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             window.location.href = "/";
             return;
