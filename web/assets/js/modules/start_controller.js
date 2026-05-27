@@ -25,10 +25,13 @@ export class StartController extends BaseController {
             }
         });
 
-        new DOME.Sidebars().SidebarMenu_();
-        new DOME.Headers().Header_();
-        new DOME.Footers().Footer_();
+        new DOME.Sidebars().sidebarMenu();
+        new DOME.Sidebars().sidebarSettings();
+        new DOME.Headers().header();
+        new DOME.Footers().footer();
+        new DOME.SettingsSection().build();
         new wtools.MenuManager('#menu_main', true);
+        new wtools.MenuManager('#section_settings .sidebar', true);
 
         super.hideWithoutPermission();
         super.readInstanceName();

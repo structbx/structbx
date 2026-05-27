@@ -29,7 +29,7 @@ export class TableController extends BaseController {
             }
         });
 
-        new DOME.Headers().Header_();
+        new DOME.Headers().header();
 
         super.hideWithoutPermission();
         super.readInstanceName();
