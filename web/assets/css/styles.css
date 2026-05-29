@@ -267,20 +267,23 @@ table.table_data td:first-child {
 .sidebar .nav-link.active {
 }*/
 
-#menu_main .nav-link {
+#menu_main .nav-link
+,#section_settings .sidebar .nav-link{
     background: none;
     color:#333;
 }
-#menu_main .nav-link:hover {
+#menu_main .nav-link:hover
+,#section_settings .sidebar .nav-link:hover{
     background-color: #e1e9f7;
 }
-#menu_main .nav-link.active {
+#menu_main .nav-link.active
+,#section_settings .sidebar .nav-link.active{
     background-color: #e1e9f7 !important;
-    border-bottom: 1px solid #dee2e6 !important;
     color: #2267d4 !important;
     font-weight: bold !important;
 }
-#menu_main .nav-link.active:hover{
+#menu_main .nav-link.active:hover
+,#section_settings .sidebar .nav-link.active:hover{
     text-decoration: none;
 }
 

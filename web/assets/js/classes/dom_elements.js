@@ -407,7 +407,7 @@ export class SettingsSection{
             <section class="section_databases d-none" permission-endpoint="/api/databases/read">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Bases de datos</li>
                     </ol>
                 </div>
@@ -499,7 +499,7 @@ export class SettingsSection{
             <section class="section_my_account d-none">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Mi cuenta</li>
                     </ol>
                 </div>
@@ -585,7 +585,7 @@ export class SettingsSection{
             <section class="section_instance d-none" permission-endpoint="/api/general/instanceName/read">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Instancia</li>
                     </ol>
                 </div>
@@ -670,7 +670,7 @@ export class SettingsSection{
             <section class="section_users d-none" permission-endpoint="/api/general/users/read">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Usuarios</li>
                     </ol>
                 </div>
@@ -850,7 +850,7 @@ export class SettingsSection{
             <section class="section_groups d-none" permission-endpoint="/api/general/groups/read">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Grupos</li>
                     </ol>
                 </div>
@@ -1003,7 +1003,7 @@ export class SettingsSection{
             <section class="section_permissions d-none" permission-endpoint="/api/general/permissions/read">
                 <div class="pb-2 mb-3 border-bottom">
                     <ol class="breadcrumb h4">
-                        <li class="breadcrumb-item">Administraci&oacute;n</li>
+                        <li class="breadcrumb-item">Configuraciones</li>
                         <li class="breadcrumb-item active" aria-current="page">Permisos</li>
                     </ol>
                 </div>
