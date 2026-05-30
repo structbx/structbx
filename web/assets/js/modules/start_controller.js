@@ -6,11 +6,15 @@ import { ResponseManager } from '../classes/response_manager.js';
 import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
 
+import { SettingsController } from '../submodules/settings_controller.js';
+
 export class StartController extends BaseController {
     constructor() {
         super();
         this.session = new Session;
         this.table = new Table;
+
+        this.settings_controller = new SettingsController;
     }
 
     build(){
@@ -45,6 +49,7 @@ export class StartController extends BaseController {
 
     bindEvents() {
         super.bindEvents();
+        this.settings_controller.bindEvents();
         
         // SELECT options
         const options_states = new wtools.SelectOptions
