@@ -2,9 +2,9 @@ import * as tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import {ResponseManager} from '../classes/response_manager.js';
 
+import { Instance } from '../models/Instance.js';
 import { Permission } from '../models/Permission.js';
 import { TablePermission } from '../models/TablePermission.js';
-import { Setting } from '../models/Setting.js';
 import { Database } from '../models/Database.js';
 import { User } from '../models/User.js';
 import { Session } from '../models/Session.js';
@@ -16,9 +16,10 @@ export class BaseController {
         this.apiBase = "/api";
         this.user_permissions = [];
         this.tables_permissions = [];
+
+        this.instance = new Instance;
         this.permission = new Permission;
         this.table_permission = new TablePermission;
-        this.setting = new Setting;
         this.database = new Database;
         this.user = new User;
         this.session = new Session;
@@ -170,7 +171,7 @@ export class BaseController {
         // Wait animation
         let wait = new wtools.ElementState('#instance_name', false, 'button', new wtools.WaitAnimation().for_button);
 
-        this.setting.readName().then(response_data => {
+        this.instance.readName().then(response_data => {
             // Clean
             wait.Off_();
 
