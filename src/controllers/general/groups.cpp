@@ -107,8 +107,8 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         }
 
         // Add All endpoints by default
-        action3->set_sql_code("INSERT INTO permissions (endpoint, action, identifier_group) SELECT endpoint, action, ? FROM endpoints");
-        action3->AddParameter_("identifier_group", identifier, false);
+        action3->set_sql_code("INSERT INTO permissions (endpoint, action, id_group) SELECT endpoint, action, ? FROM endpoints");
+        action3->AddParameter_("id_group", identifier, false);
         if(!action3->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
@@ -181,9 +181,9 @@ Groups::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData
 void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT id "
+        "SELECT identifier "
         "FROM groups "
-        "WHERE id = ?"
+        "WHERE identifier = ?"
     );
     action->SetupCondition_("condition-group-exists", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -196,8 +196,8 @@ void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
@@ -211,7 +211,7 @@ void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
 void Groups::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT id "
+        "SELECT identifier "
         "FROM groups "
         "WHERE `group` = ?"
     );
@@ -252,45 +252,11 @@ Groups::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    // Verify if group don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
-
     // Delete group
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
     get_functions()->push_back(function);
-}
-
-void Groups::Delete::A1(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT id "
-        "FROM groups "
-        "WHERE identifier = ?"
-    );
-    action->SetupCondition_("condition-group-exists", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
-    {
-        if(self.get_results()->size() < 1)
-        {
-            self.set_custom_error("El grupo al que intenta borrar no existe");
-            return false;
-        }
-
-        return true;
-    });
-
-    action->AddParameter_("identifier", "", true)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de grupo no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
 }
 
 void Groups::Delete::A2(StructBX::Functions::Action::Ptr action)
