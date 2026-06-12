@@ -12,5 +12,19 @@
             "args": ["--config", "${workspaceFolder}/build/Debug/config-files/properties.yaml"],
             "cwd": "${workspaceFolder}/build/Debug"
         }
+        ,{
+            "name": "structbx (frontend)",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "url": "https://localhost:3001",
+            "webRoot": "${workspaceFolder}/web",
+            "pathMappings": [
+                {
+                    "url": "http://localhost:3001",
+                    "path": "${workspaceFolder}/web" 
+                }
+            ]
+        }
     ]
 }
