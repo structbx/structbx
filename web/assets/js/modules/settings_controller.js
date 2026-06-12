@@ -35,7 +35,6 @@ export class SettingsController extends BaseController{
             permissions: {
                 read: new wtools.Notification('WARNING', 5000, '#component_permissions_read .notifications'),
                 add: new wtools.Notification('WARNING', 5000, '#component_permissions_add .notifications'),
-                modify: new wtools.Notification('WARNING', 5000, '#component_permissions_modify .notifications'),
                 delete: new wtools.Notification('WARNING', 5000, '#component_permissions_delete .notifications')
             },
             users: {
@@ -51,6 +50,15 @@ export class SettingsController extends BaseController{
                 add: new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications')
             }
         }
+
+        this.options_user_status = new wtools.SelectOptions
+        ([
+            new wtools.OptionValue("active", "Activo", true)
+            ,new wtools.OptionValue("inactive", "Inactivo")
+        ]);
+        this.options_user_status.Build_('#component_users_add select[name="status"]');
+        this.options_user_status.Build_('#component_users_modify select[name="status"]');
+
     }
 
     build() {
@@ -78,9 +86,10 @@ export class SettingsController extends BaseController{
         this.readGroups();
         this.readUsers();
         this.readCurrentUser();
+        this.readDatabases();
+        this.initPermissionsGroupSelect();
 
         wait.Off_();
-        
     }
 
     bindEvents(){
@@ -93,7 +102,7 @@ export class SettingsController extends BaseController{
             e.preventDefault();
             this.modifyInstanceLogo();
         });
-        
+
         // ---- USERS ----
         $(document).on('click', '#component_users_read .add', () => {
             this.initGroupSelect('#component_users_add form select[name=id_group]', () => {
@@ -134,7 +143,28 @@ export class SettingsController extends BaseController{
             this.preDeleteGroup();
         });
         $(document).on('submit', '#component_groups_delete form', e => this.deleteGroup(e));
-        
+
+        // ---- DATABASES ----
+        $(document).on('click', '#component_databases_read .add', (e) => {
+            e.preventDefault();
+            $('#component_databases_add').modal('show');
+        });
+        $(document).on('submit', '#component_databases_add form', e => this.addDatabase(e));
+
+        // ---- PERMISSIONS ----
+        $(document).on('change', '#component_permissions_read select[name=id_group]', () => {
+            this.readPermissions();
+        });
+        $(document).on('click', '#component_permissions_read .add', (e) => {
+            e.preventDefault();
+            this.preAddPermission();
+        });
+        $(document).on('submit', '#component_permissions_add form', e => this.addPermission(e));
+        $(document).on('click', '#component_permissions_read table tbody tr', e => {
+            e.preventDefault();
+            this.preDeletePermission(e);
+        });
+        $(document).on('submit', '#component_permissions_delete form', e => this.deletePermission(e));
     }
 
     // --------------------------------------------------
@@ -152,7 +182,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'Nombre de instancia: Leer');
             if(!result.Verify_())
                 return;
-            
+
             // Handle zero results
             if(response_data.body.data.length < 1){
                 new wtools.Notification('WARNING', '#component_instance_name_read .notifications').Show_('No se pudo acceder al nombre de la instancia.');
@@ -162,7 +192,7 @@ export class SettingsController extends BaseController{
             $('#component_instance_name_read input[name="name"]').val(response_data.body.data[0].value);
         });
     }
-    
+
     modifyInstanceName(){
         // Wait animation
         let wait = new wtools.ElementState('#component_instance_name_read form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
@@ -188,7 +218,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'Nombre de instancia: Modificar');
             if(!result.Verify_())
                 return;
-            
+
             new wtools.Notification('SUCCESS').Show_('Nombre de instancia modificada exitosamente.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
@@ -220,7 +250,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response_data, '#component_instance_logo_read .notifications', 'Logo de instancia: Modificar');
             if(!result.Verify_())
                 return;
-            
+
             new wtools.Notification('SUCCESS').Show_('Logo de instancia modificada exitosamente.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
@@ -280,12 +310,11 @@ export class SettingsController extends BaseController{
             return;
         }
         const data = new FormData($('#component_my_account_general form')[0]);
-        this.userModel.modifyCurrentUsername(data.get('username')).then(response => {
+        this.user.modifyCurrentUsername(data.get('username')).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Modificar');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_('Usuario actual modificado exitosamente.');
-            this.onChanged();
         });
     }
 
@@ -300,7 +329,7 @@ export class SettingsController extends BaseController{
             return;
         }
         const data = new FormData($('#component_my_account_change_password form')[0]);
-        this.userModel.changePassword(data.get('current_password'), data.get('new_password'), data.get('confirm_password')).then(response => {
+        this.user.changePassword(data.get('current_password'), data.get('new_password'), data.get('new_password2')).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'Contrase&ntilde;a: Modificar');
             if (!result.Verify_()) return;
@@ -321,7 +350,7 @@ export class SettingsController extends BaseController{
             return;
         }
         const data = new FormData($('#component_users_add form')[0]);
-        this.userModel.add(data.get('username'), data.get('password'), data.get('status'), data.get('id_group')).then(response => {
+        this.user.add(data.get('username'), data.get('password'), data.get('id_group')).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_add .notifications', 'Usuarios: A&ntilde;adir');
             if (!result.Verify_()) return;
@@ -329,32 +358,6 @@ export class SettingsController extends BaseController{
             this.readUsers();
             wtools.CleanForm($('#component_users_add form'));
             $('#component_users_add').modal('hide');
-            this.onChanged();
-        });
-    }
-
-    preModifyUser(e){
-        const id = $(e.currentTarget).attr('user-id');
-        if (!id) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de usuario.');
-            return;
-        }
-        const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-        this.userModel.readById(id).then(response => {
-            const result = new ResponseManager(response, '', 'Usuarios: Modificar');
-            if (!result.Verify_()) return;
-            if (response.body.data.length < 1) {
-                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
-                wait.Off_();
-                return;
-            }
-            wtools.CleanForm($('#component_users_modify form'));
-            $('#component_users_modify input[name="id"]').val(response.body.data[0].id);
-            $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
-            $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
-            $('#component_users_modify select[name="id_group"]').val(response.body.data[0].id_group);
-            wait.Off_();
-            $('#component_users_modify').modal('show');
         });
     }
 
@@ -365,21 +368,23 @@ export class SettingsController extends BaseController{
             return;
         }
         const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-        this.user.readByIdentifier(identifier).then(response => {
-            const result = new ResponseManager(response, '', 'Usuarios: Modificar');
-            if (!result.Verify_()) return;
-            if (response.body.data.length < 1) {
-                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+        this.initGroupSelect('#component_users_modify form select[name=id_group]', () => {
+            this.user.readByIdentifier(identifier).then(response => {
+                const result = new ResponseManager(response, '', 'Usuarios: Modificar');
+                if (!result.Verify_()) return;
+                if (response.body.data.length < 1) {
+                    new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                    wait.Off_();
+                    return;
+                }
+                wtools.CleanForm($('#component_users_modify form'));
+                $('#component_users_modify input[name="identifier"]').val(response.body.data[0].identifier);
+                $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
+                $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
+                $('#component_users_modify select[name="id_group"]').val(response.body.data[0].id_group);
                 wait.Off_();
-                return;
-            }
-            wtools.CleanForm($('#component_users_modify form'));
-            $('#component_users_modify input[name="id"]').val(response.body.data[0].id);
-            $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
-            $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
-            $('#component_users_modify select[name="id_group"]').val(response.body.data[0].id_group);
-            wait.Off_();
-            $('#component_users_modify').modal('show');
+                $('#component_users_modify').modal('show');
+            });
         });
     }
 
@@ -394,7 +399,7 @@ export class SettingsController extends BaseController{
             return;
         }
         const data = new FormData($('#component_users_modify form')[0]);
-        this.userModel.modify(data.get('id'), data.get('username'), data.get('status'), data.get('id_group')).then(response => {
+        this.user.modify(data.get('identifier'), data.get('username'), data.get('status'), data.get('id_group'), data.get('password')).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_modify .notifications', 'Usuarios: Modificar');
             if (!result.Verify_()) return;
@@ -402,15 +407,14 @@ export class SettingsController extends BaseController{
             this.readUsers();
             wtools.CleanForm($('#component_users_modify form'));
             $('#component_users_modify').modal('hide');
-            this.onChanged();
         });
     }
 
     deleteUser(e) {
         e.preventDefault();
         const wait = new wtools.ElementState('#component_users_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
-        const id = $('#component_users_delete input[name=id]').val();
-        this.userModel.delete(id).then(response => {
+        const identifier = $('#component_users_delete input[name=identifier]').val();
+        this.user.delete(identifier).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_delete .notifications', 'Usuarios: Eliminar');
             if (!result.Verify_()) return;
@@ -418,7 +422,6 @@ export class SettingsController extends BaseController{
             $('#component_users_delete').modal('hide');
             $('#component_users_modify').modal('hide');
             this.readUsers();
-            this.onChanged();
         });
     }
 
@@ -442,7 +445,7 @@ export class SettingsController extends BaseController{
             }
         });
     }
-    
+
     readGroups() {
         const wait = new wtools.ElementState('#component_groups_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.group.readAll().then(response => {
@@ -548,6 +551,215 @@ export class SettingsController extends BaseController{
             $('#component_groups_modify').modal('hide');
             $('#component_groups_delete').modal('hide');
             this.readGroups();
+        });
+    }
+
+    // --------------------------------------------------
+    // DATABASES
+    // --------------------------------------------------
+    readDatabases() {
+        const wait = new wtools.ElementState('#component_databases_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        this.database.read().then(response => {
+            wait.Off_();
+            $('#component_databases_read .notifications').html('');
+            $('#component_databases_read table tbody').html('');
+
+            const result = new ResponseManager(response, '#component_databases_read .notifications', 'Bases de datos: Leer');
+            if(!result.Verify_())
+                return;
+
+            if(response.body.data.length < 1) {
+                new wtools.Notification('SUCCESS', 0, '#component_databases_read .notifications').Show_('Sin resultados.');
+                return;
+            }
+
+            new wtools.UIElementsCreator('#component_databases_read table tbody', response.body.data).Build_(row => {
+                const elements = [
+                    `<th scope="row"><a href="/database?identifier=${row.identifier}">${row.name}</a></th>`,
+                    `<td scope="row">${row.size} MB</td>`,
+                    `<td scope="row">${row.directory_size} MB</td>`,
+                    `<td scope="row">${row.description}</td>`,
+                    `<td scope="row">${row.created_at}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr database-id="${row.id}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    addDatabase(e) {
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_databases_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check) {
+            $('#component_databases_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        const data = new FormData($('#component_databases_add form')[0]);
+
+        this.database.add(data.get('name'), data.get('description')).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_databases_add .notifications', 'Bases de datos: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Base de datos creada exitosamente.');
+            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+            location.reload();
+        });
+    }
+
+    // --------------------------------------------------
+    // PERMISSIONS
+    // --------------------------------------------------
+    initPermissionsGroupSelect() {
+        const select = new wtools.SelectOptions();
+        this.group.readAll().then(response => {
+            try {
+                const tmp = [];
+                for (const row of response.body.data) {
+                    tmp.push(new wtools.OptionValue(row.identifier, row.group));
+                }
+                select.options = tmp;
+                select.Build_('#component_permissions_read select[name="id_group"]');
+                this.readPermissions();
+            } catch (error) {
+                new wtools.Notification('WARNING').Show_('No se pudo acceder a grupos.');
+            }
+        });
+    }
+
+    readPermissions() {
+        const wait = new wtools.ElementState('#component_permissions_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        const id_group = $('#component_permissions_read select[name=id_group]').val();
+        if (!id_group) {
+            wait.Off_();
+            return;
+        }
+
+        this.permission.readByGroup(id_group).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_permissions_read .notifications', 'Permisos: Leer');
+            if(!result.Verify_())
+                return;
+
+            if(response.body.data.length < 1) {
+                $('#component_permissions_read table tbody').html('');
+                $('#component_permissions_read .notifications').html('');
+                new wtools.Notification('SUCCESS', 0, '#component_permissions_read .notifications').Show_('Sin resultados.');
+                return;
+            }
+
+            $('#component_permissions_read .notifications').html('');
+            $('#component_permissions_read table tbody').html('');
+            new wtools.UIElementsCreator('#component_permissions_read table tbody', response.body.data).Build_(row => {
+                const elements = [
+                    `<td scope="row">${row.title}</td>`,
+                    `<td scope="row">${row.action}</td>`,
+                    `<td scope="row">${row.created_at}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr permission-endpoint="${row.endpoint}" permission-endpoint-name="${row.title}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    preAddPermission() {
+        const id_group = $('#component_permissions_read select[name=id_group]').val();
+        if (!id_group) {
+            new wtools.Notification('WARNING').Show_('Debe seleccionar un grupo primero.');
+            return;
+        }
+
+        const select = new wtools.SelectOptions();
+        this.permission.readAvailableEndpoints(id_group).then(response => {
+            try {
+                const tmp = [];
+                if (response.body.data.length < 1) {
+                    tmp.push(new wtools.OptionValue("", "No hay endpoints disponibles."));
+                } else {
+                    for (const row of response.body.data) {
+                        tmp.push(new wtools.OptionValue(row.endpoint, row.title));
+                    }
+                }
+                select.options = tmp;
+                select.Build_('#component_permissions_add select[name="endpoint"]');
+
+                $('#component_permissions_add input[name=id_group]').val(id_group);
+                $('#component_permissions_add').modal('show');
+            } catch (error) {
+                new wtools.Notification('WARNING').Show_('No se pudo acceder a los endpoints.');
+            }
+        });
+    }
+
+    addPermission(e) {
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_permissions_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check) {
+            $('#component_permissions_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_permissions_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        const data = new FormData($('#component_permissions_add form')[0]);
+
+        this.permission.add(data.get('id_group'), data.get('endpoint')).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_permissions_add .notifications', 'Permisos: A&ntilde;adir');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Permiso agregado exitosamente.');
+            this.readPermissions();
+            wtools.CleanForm($('#component_permissions_add form'));
+            $('#component_permissions_add').modal('hide');
+        });
+    }
+
+    preDeletePermission(e) {
+        const endpoint = $(e.currentTarget).attr('permission-endpoint');
+        const endpoint_name = $(e.currentTarget).attr('permission-endpoint-name');
+        if (!endpoint) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el endpoint de permiso.');
+            return;
+        }
+
+        $('#component_permissions_delete input[name=endpoint]').val(endpoint);
+        $('#component_permissions_delete strong.value').html(endpoint_name);
+        $('#component_permissions_delete').modal('show');
+    }
+
+    deletePermission(e) {
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_permissions_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const endpoint = $('#component_permissions_delete input[name=endpoint]').val();
+        const id_group = $('#component_permissions_read select[name=id_group]').val();
+
+        this.permission.delete(endpoint, id_group).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_permissions_delete .notifications', 'Permisos: Eliminar');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_('Permiso eliminado.');
+            $('#component_permissions_delete').modal('hide');
+            this.readPermissions();
         });
     }
 }

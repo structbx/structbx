@@ -11,4 +11,11 @@ export class Database{
 
         return await new wtools.Request("/api/databases/change", "POST", data).Exec_();
     }
+    async add(name, description){
+        const data = new FormData();
+        data.append('name', name);
+        data.append('description', description);
+
+        return await new wtools.Request("/api/databases/add", "POST", data, false).Exec_();
+    }
 }
