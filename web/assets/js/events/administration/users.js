@@ -240,7 +240,7 @@ $(function()
             }
 
             // Read user to modify
-            new wtools.Request(server_config.current.api + `/general/users/read/id?id=${id}`).Exec_((response_data) =>
+            new wtools.Request(server_config.current.api + `/general/users/read/identifier?id=${id}`).Exec_((response_data) =>
             {
                 // Manage response
                 const result = new ResponseManager(response_data, '', 'Usuarios: Modificar');

@@ -60,7 +60,7 @@ const ReadDataColumns = () =>
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         // Get Form identifier
-        const table_identifier = GetTableIdentifier();
+        const table_identifier = getTableIdentifier();
         if(table_identifier == undefined)
             throw new Error('Identificador de formulario no proporcionado.');
 
@@ -99,10 +99,10 @@ const ReadDataColumns = () =>
                     table_element = $('<td></td>');
                     let customSelect = new CustomSelect(table_element);
                     customSelect.hiddenInput.attr('name', row.identifier);
-                    OptionsLinkSelection(customSelect, row.link_to_table, row.name, '#component_form_addData .notifications', undefined, '/forms', table_identifier);
+                    linkSelectionOptions(customSelect, row.link_to_table, row.name, '#component_form_addData .notifications', undefined, '/forms', table_identifier);
                 }
                 else if(row.column_type == "user")
-                    OptionsLinkUsersInDatabase(table_element, '#component_form_addData .notifications', undefined, '/forms');
+                    linkUsersInDatabaseOptions(table_element, '#component_form_addData .notifications', undefined, '/forms');
 
                 // Final elements
                 let elements = [
@@ -149,7 +149,7 @@ const AddData = async (e) =>
     }
 
     // Get Table identifier
-    const table_identifier = GetTableIdentifier();
+    const table_identifier = getTableIdentifier();
     if(table_identifier == undefined)
     {
         wait.Off_();

@@ -22,9 +22,9 @@ $(function()
     verify_session();
 
     // Elements]
-    new Sidebars().SidebarMenuDatabase_();
-    new Headers().Header_();
-    new Footers().Footer_();
+    new Sidebars().sidebarMenuDatabase();
+    new Headers().header();
+    new Footers().footer();
     new wtools.MenuManager('#menu_main', true);
 
     // Read current database
@@ -42,7 +42,7 @@ $(function()
         }
 
         // Request
-        new wtools.Request(server_config.current.api + `/databases/read/id?identifier=${database_identifier}`).Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/databases/read/identifier?identifier=${database_identifier}`).Exec_((response_data) =>
         {
             // Manage response
             const result = new ResponseManager(response_data, '#component_database_modify .notifications', 'Bases de datos: Modificar');
@@ -152,5 +152,5 @@ $(function()
         });
     });
 
-    hide_elements_without_permission();
+    hideWithoutPermission();
 });
