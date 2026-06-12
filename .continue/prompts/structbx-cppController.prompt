@@ -1,6 +1,6 @@
 ---
 name: structbx-cppController
-description: Genearte a new controller in C++ following the StructBX internal Framework (Actions, Parameters, CustomProcess).
+description: Generate a new controller in C++ following the StructBX internal Framework (Actions, Parameters, CustomProcess).
 ---
 
 Act as a Senior C++ Engineer specializing in the StructBX Framework. 
