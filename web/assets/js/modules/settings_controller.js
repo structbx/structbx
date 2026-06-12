@@ -76,6 +76,8 @@ export class SettingsController extends BaseController{
 
         this.readInstanceName();
         this.readGroups();
+        this.readUsers();
+        this.readCurrentUser();
 
         wait.Off_();
         
@@ -87,11 +89,35 @@ export class SettingsController extends BaseController{
             e.preventDefault();
             this.modifyInstanceName();
         });
-        $(document).on('sbumit', '#component_instance_logo_read form', (e) => {
+        $(document).on('submit', '#component_instance_logo_read form', (e) => {
             e.preventDefault();
             this.modifyInstanceLogo();
         });
         
+        // ---- USERS ----
+        $(document).on('click', '#component_users_read .add', () => {
+            this.initGroupSelect('#component_users_add form select[name=id_group]', () => {
+                $('#component_users_add').modal('show');
+            })
+        });
+        $(document).on('submit', '#component_users_add form', e => this.addUser(e));
+        $(document).on('click', '#component_users_read table tbody tr', e => {
+            this.preModifyUser(e)
+        });
+        $(document).on('submit', '#component_users_modify form', e => this.modifyUser(e));
+        $(document).on('click', '#component_users_modify .delete', e => {
+            e.preventDefault();
+            const data = new FormData($('#component_users_modify form')[0]);
+            $('#component_users_delete input[name=identifier]').val(data.get('identifier'));
+            $('#component_users_delete strong.username').html(data.get('username'));
+            $('#component_users_delete').modal('show');
+        });
+        $(document).on('submit', '#component_users_delete form', e => this.deleteUser(e));
+
+        // My Account
+        $(document).on('submit', '#component_my_account_general form', e => this.modifyCurrentUser(e));
+        $(document).on('submit', '#component_my_account_change_password form', e => this.changePassword(e));
+
         // ---- GROUPS ----
         $(document).on('click', '#component_groups_read .add', (e) => {
             e.preventDefault();
@@ -202,8 +228,221 @@ export class SettingsController extends BaseController{
     }
 
     // --------------------------------------------------
+    // USERS
+    // --------------------------------------------------
+    readUsers() {
+        const wait = new wtools.ElementState('#component_users_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        this.user.readAll().then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_users_read .notifications', 'Usuarios: Leer');
+            if (!result.Verify_()) return;
+            if (response.body.data.length < 1) {
+                new wtools.Notification('WARNING', '#component_users_read .notifications').Show_('No se pudo acceder a los usuarios.');
+                return;
+            }
+            $('#component_users_read .notifications').html('');
+            $('#component_users_read table tbody').html('');
+            new wtools.UIElementsCreator('#component_users_read table tbody', response.body.data).Build_(row => {
+                const statusText = row.status === 'active' ? 'Activo' : 'Inactivo';
+                const elements = [
+                    `<td scope="row">${row.username}</td>`,
+                    `<td scope="row">${statusText}</td>`,
+                    `<td scope="row">${row.group}</td>`,
+                    `<td scope="row">${row.created_at}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr user-identifier="${row.identifier}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    readCurrentUser() {
+        const wait = new wtools.ElementState('#component_my_account_general .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        this.user.current().then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Leer');
+            if (!result.Verify_()) return;
+            if (response.body.data.length < 1) {
+                new wtools.Notification('WARNING', '#component_my_account_general .notifications').Show_('No se pudo acceder al usuario actual.');
+                return;
+            }
+            $('#component_my_account_general input[name="username"]').val(response.body.data[0].username);
+        });
+    }
+
+    modifyCurrentUser(e) {
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_my_account_general form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const check = new wtools.FormChecker(e.target).Check_();
+        if (!check) {
+            $('#component_my_account_general .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_my_account_general .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+        const data = new FormData($('#component_my_account_general form')[0]);
+        this.userModel.modifyCurrentUsername(data.get('username')).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Modificar');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario actual modificado exitosamente.');
+            this.onChanged();
+        });
+    }
+
+    changePassword(e) {
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_my_account_change_password form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const check = new wtools.FormChecker(e.target).Check_();
+        if (!check) {
+            $('#component_my_account_change_password .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_my_account_change_password .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+        const data = new FormData($('#component_my_account_change_password form')[0]);
+        this.userModel.changePassword(data.get('current_password'), data.get('new_password'), data.get('confirm_password')).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'Contrase&ntilde;a: Modificar');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Contrase&ntilde;a modificada exitosamente.');
+            wtools.CleanForm($('#component_my_account_change_password form'));
+            $('#component_my_account_change_password form').removeClass('was-validated');
+        });
+    }
+
+    addUser(e) {
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_users_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const check = new wtools.FormChecker(e.target).Check_();
+        if (!check) {
+            $('#component_users_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_users_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+        const data = new FormData($('#component_users_add form')[0]);
+        this.userModel.add(data.get('username'), data.get('password'), data.get('status'), data.get('id_group')).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_users_add .notifications', 'Usuarios: A&ntilde;adir');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario creado exitosamente.');
+            this.readUsers();
+            wtools.CleanForm($('#component_users_add form'));
+            $('#component_users_add').modal('hide');
+            this.onChanged();
+        });
+    }
+
+    preModifyUser(e){
+        const id = $(e.currentTarget).attr('user-id');
+        if (!id) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de usuario.');
+            return;
+        }
+        const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+        this.userModel.readById(id).then(response => {
+            const result = new ResponseManager(response, '', 'Usuarios: Modificar');
+            if (!result.Verify_()) return;
+            if (response.body.data.length < 1) {
+                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                wait.Off_();
+                return;
+            }
+            wtools.CleanForm($('#component_users_modify form'));
+            $('#component_users_modify input[name="id"]').val(response.body.data[0].id);
+            $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
+            $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
+            $('#component_users_modify select[name="id_group"]').val(response.body.data[0].id_group);
+            wait.Off_();
+            $('#component_users_modify').modal('show');
+        });
+    }
+
+    preModifyUser(e){
+        const identifier = $(e.currentTarget).attr('user-identifier');
+        if (!identifier) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de usuario.');
+            return;
+        }
+        const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+        this.user.readByIdentifier(identifier).then(response => {
+            const result = new ResponseManager(response, '', 'Usuarios: Modificar');
+            if (!result.Verify_()) return;
+            if (response.body.data.length < 1) {
+                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                wait.Off_();
+                return;
+            }
+            wtools.CleanForm($('#component_users_modify form'));
+            $('#component_users_modify input[name="id"]').val(response.body.data[0].id);
+            $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
+            $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
+            $('#component_users_modify select[name="id_group"]').val(response.body.data[0].id_group);
+            wait.Off_();
+            $('#component_users_modify').modal('show');
+        });
+    }
+
+    modifyUser(e) {
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_users_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const check = new wtools.FormChecker(e.target).Check_();
+        if (!check) {
+            $('#component_users_modify .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_users_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+        const data = new FormData($('#component_users_modify form')[0]);
+        this.userModel.modify(data.get('id'), data.get('username'), data.get('status'), data.get('id_group')).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_users_modify .notifications', 'Usuarios: Modificar');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario modificado exitosamente.');
+            this.readUsers();
+            wtools.CleanForm($('#component_users_modify form'));
+            $('#component_users_modify').modal('hide');
+            this.onChanged();
+        });
+    }
+
+    deleteUser(e) {
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_users_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const id = $('#component_users_delete input[name=id]').val();
+        this.userModel.delete(id).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_users_delete .notifications', 'Usuarios: Eliminar');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario eliminado.');
+            $('#component_users_delete').modal('hide');
+            $('#component_users_modify').modal('hide');
+            this.readUsers();
+            this.onChanged();
+        });
+    }
+
+    // --------------------------------------------------
     // GROUPS
     // --------------------------------------------------
+
+    initGroupSelect(selector, callback) {
+        const select = new wtools.SelectOptions();
+        this.group.readAll().then(response => {
+            try {
+                const tmp = [];
+                for (const row of response.body.data) {
+                    tmp.push(new wtools.OptionValue(row.identifier, row.group));
+                }
+                select.options = tmp;
+                select.Build_(selector);
+                if (callback) callback();
+            } catch (error) {
+                new wtools.Notification('WARNING').Show_('No se pudo acceder a grupos.');
+            }
+        });
+    }
+    
     readGroups() {
         const wait = new wtools.ElementState('#component_groups_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.group.readAll().then(response => {

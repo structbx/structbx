@@ -341,7 +341,7 @@ $(function()
         }
 
         // Read form permission to modify
-        new wtools.Request(server_config.current.api + `/tables/permissions/read/id?id=${id}&table-identifier=${table_identifier}`).Exec_((response_data) =>
+        new wtools.Request(server_config.current.api + `/tables/permissions/read/identifier?id=${id}&table-identifier=${table_identifier}`).Exec_((response_data) =>
         {
             // Manage response
             const result = new ResponseManager(response_data, '', 'Permisos de tabla: Modificar');
