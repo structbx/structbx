@@ -1,6 +1,6 @@
 export class Database{
     async current(){
-        return await new wtools.Request("/api/databases/read/id").Exec_();
+        return await new wtools.Request("/api/databases/read/identifier").Exec_();
     }
     async read(){
         return await new wtools.Request("/api/databases/read").Exec_();
