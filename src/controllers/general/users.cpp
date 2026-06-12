@@ -1,5 +1,6 @@
 
 #include "controllers/general/users.h"
+#include "tools/random_generator.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -356,9 +357,12 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
 void Users::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO users (username, password, status, id_group) "
-        "VALUES (?, ?, ?, ?) "
+        "INSERT INTO users (identifier, username, password, status, id_group) "
+        "VALUES (?, ?, ?, ?, ?) "
     );
+
+    auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+    action->AddParameter_("identifier", identifier, false);
 
     action->AddParameter_("username", "", true)
     ->SetupCondition_("condition-username", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -699,5 +703,4 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_user", get_id_user(), false);
 }
