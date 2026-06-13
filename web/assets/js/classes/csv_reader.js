@@ -1,4 +1,4 @@
-class CSVReaderState
+export class CSVReaderState
 {
     constructor()
     {
@@ -7,7 +7,7 @@ class CSVReaderState
     }
 }
 
-class CSVReader
+export class CSVReader
 {
     constructor(file_input, separator = ',')
     {

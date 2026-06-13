@@ -39,7 +39,7 @@ class StructBX::Security::UsersManager
         }
 
         bool AuthenticateUser_();
-        void ReloadCurrentUser_(int user_id);
+        void ReloadCurrentUser_(std::string user_id);
 
     private:
         User current_user_;

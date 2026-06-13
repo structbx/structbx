@@ -6,50 +6,62 @@
         <title>Tabla - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
-        <!-- CSS files -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+        <!-- CSS Libraries -->
+        <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+        <!-- /CSS Libraries -->
 
+        <!-- JS Libraries -->
+        <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="/node_modules/jquery-ui/dist/jquery-ui.min.js"></script>
+        <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/node_modules/@josefelixrc72/wtools/wtools.js"></script>
+        <!-- /JS Libraries -->
+
+        <!-- CSS files -->
         <link rel="stylesheet" href="/assets/css/main.css">
         <link rel="stylesheet" href="/assets/css/styles.css">
         <link rel="stylesheet" href="/assets/css/modal.css">
         <link rel="stylesheet" href="/assets/css/custom-select.css">
+        <link rel="stylesheet" href="/assets/css/tableData.css">
         <!-- /CSS files -->
 
-        <!-- JS Libraries -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"  crossorigin="anonymous"></script>
-        <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-
-        <script src="https://josefelixrc7.github.io/wtools/wtools.js"></script>
-        <!-- /JS Libraries -->
-         
     </head>
-    <body id="structbx" class="bg-light">
+    <body data-page="Table" id="structbx" class="bg-light">
 
         <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
         </header>
 
-        <div class="container-xxl">
+        <div class="">
             <div class="row">
 
+                <!--- Sidebar menu --->
+                <aside id="menu_main" class="sticky-md-top h-100 sidebar col-md-3 col-lg-2 d-md-block bg-light collapse px-4" style="top:5rem">
+                    <nav class="nav nav-pills flex-column justify-contents-between pt-4">
+                        <h5 class="small text-uppercase text-muted">TABLAS</h5>
+
+                        <!-- Sidebar search -->
+                        <div class="input-group input-group-sm mb-2 px-1">
+                            <span class="input-group-text bg-white border-end-0 pe-1">
+                                <i class="fas fa-search text-muted" style="font-size:0.7rem;"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-1" id="sidebar_table_search" placeholder="Buscar..." autocomplete="off">
+                        </div>
+                        <!-- /Sidebar search -->
+
+                        <div id="component_sidebar_tables">
+                            <div class="notifications"></div>
+                            <div class="contents"></div>
+                        </div>
+                    </nav>
+                </aside>
+                <!-- /Sidebar menu -->
+
                 <!-- Main content -->
-                <main id="contents_main" class="col-md-12 col-lg-12 ms-sm-auto px-md-4 pt-2 pb-5 bg-light">
+                <main id="contents_main" class="col-md-9 col-lg-10 ms-sm-auto px-md-4 pt-2 bg-light">
 
                     <!-- Data section -->
                     <section class="section_data">
-
-                        <!-- All tables Nav -->
-                        <div id="component_sidebar_tables_tabs" class="mb-2">
-                            <div class="notifications"></div>
-                            <div class="tab-container">
-                                <div class="tab-scroller"></div>
-                            </div>
-                        </div>
-                        <!-- /All tables Nav -->
 
                         <!-- Data Header -->
                         <div class="border-bottom d-flex">
@@ -67,11 +79,11 @@
                                 <div class="p-2 bd-highlight me-auto">
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-eye me-2"></i>
                                             <b class="view_name"></b>
                                         </button>
                                         <div class="dropdown-menu" style="z-index:1050;">
-                                            <div id="component_data_views">
+                                            <div id="component_views_read">
                                                 <div class="notifications"></div>
                                                 <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
                                                     <i class="fas fa-plus me-2"></i>
@@ -111,8 +123,9 @@
                                 <!-- Filters Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <button id="filters_button" class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                             <i class="fas fa-filter"></i>
+                                            <span id="filters_count" class="badge bg-danger ms-1 d-none"></span>
                                         </button>
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
                                             <div id="component_filters_read">
@@ -123,6 +136,26 @@
                                                 </div>
                                                 <hr class="dropdown-divider">
                                                 <div class="contents"><span class="text-muted p-2">No hay filtros</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sorts Options -->
+                                <div class="p-2 bd-highlight">
+                                    <div class="dropdown">
+                                        <button id="sorts_button" class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                            <i class="fas fa-sort-amount-up"></i>
+                                            <span id="sorts_count" class="badge bg-danger ms-1 d-none"></span>
+                                        </button>
+                                        <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
+                                            <div id="component_sorts_read">
+                                                <div class="notifications"></div>
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                    <i class="fas fa-plus me-2"></i>
+                                                    Agregar ordenamiento
+                                                </div>
+                                                <hr class="dropdown-divider">
+                                                <div class="contents"><span class="text-muted p-2">No hay ordenamientos</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -185,7 +218,7 @@
                                                 <tr>
                                                     <th scope="row">Tipo</th>
                                                     <td>
-                                                        <select class="form-select" name="id_column_type" required>
+                                                        <select class="form-select" name="column_type" required>
                                                         </select>
                                                     </td>
                                                 </tr>
@@ -200,7 +233,7 @@
                                         </table>
                                         <div class="my-2">
                                             <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                Avanzado
+                                                <i class="fas fa-cog me-2"></i>Avanzado
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
@@ -217,12 +250,6 @@
                                                         <td>
                                                             <select class="form-select" name="required">
                                                             </select>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th scope="row">Longitud</th>
-                                                        <td>
-                                                            <input type="text" class="form-control" name="length">
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -261,7 +288,7 @@
                                     <div class="modal-body">
 
                                         <div class="notifications"></div>
-                                        <input type="hidden" name="id" required>
+                                        <input type="hidden" name="identifier" required>
                                         <table class="table">
                                             <tbody>
                                                 <tr>
@@ -273,7 +300,14 @@
                                                 <tr>
                                                     <th scope="row">Tipo</th>
                                                     <td>
-                                                        <select class="form-select" name="id_column_type">
+                                                        <select class="form-select" name="column_type">
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr class="link_to_tr d-none">
+                                                    <th scope="row">Enlazar a</th>
+                                                    <td>
+                                                        <select class="form-select" name="link_to">
                                                         </select>
                                                     </td>
                                                 </tr>
@@ -281,18 +315,12 @@
                                         </table>
                                         <div class="my-2">
                                             <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                Avanzado
+                                                <i class="fas fa-cog me-2"></i>Avanzado
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
                                             <table class="table">
                                                 <tbody>
-                                                    <tr>
-                                                        <th scope="row">Posici&oacute;n</th>
-                                                        <td>
-                                                            <input type="number" class="form-control" name="position" required>
-                                                        </td>
-                                                    </tr>
                                                     <tr>
                                                         <th scope="row">Descripcion</th>
                                                         <td>
@@ -307,22 +335,9 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Longitud</th>
-                                                        <td>
-                                                            <input type="text" class="form-control" name="length">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
                                                         <th scope="row">Valor por defecto</th>
                                                         <td>
                                                             <input type="text" class="form-control" name="default_value">
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th scope="row">Enlazar a</th>
-                                                        <td>
-                                                            <select class="form-select" name="link_to">
-                                                            </select>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -358,7 +373,7 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
-                                        <input type="hidden" name="id" required>
+                                        <input type="hidden" name="identifier" required>
                                         <p>Seguro desea eliminar la columna <strong class="name"></strong></p>
                                     </div>
                                     <div class="modal-footer">
@@ -378,18 +393,20 @@
                         <!-- Data: Reload button -->
 
                         <!-- Data: Read -->
-                        <article id="component_data_read" class="bg-white">
-                            
+                        <article id="component_data_read">
+                         
                             <!-- Contents -->
-                            <div class="contents container-xxl" style="position:absolute;overflow:scroll;height: calc(100vh - 12rem);width: calc(100% - 3rem);padding:0;">
+                            <div class="contents p-0">
+                           
+                                <div class="dynamic-table-wrapper">
+                                    <div class="dynamic-table" id="dynamicTable">
+                                        <div class="table-header" id="tableHeader">
+                                            <div class="header-row" id="headerRow"></div>
+                                        </div>
+                                        <div class="table-body" id="tableBody"></div>
+                                    </div>
+                                </div>
 
-                                <table id="component_data_read_table" class="table table-hover table-bordered table_data">
-                                    <thead class="text-center align-middle text-nowrap sticky-top">
-                                        <tr></tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
                                 <div class="notifications"></div>
 
                             </div>
@@ -461,7 +478,7 @@
                                     <div class="modal-body">
                                         <div class="container-xxl">
                                             <div class="notifications"></div>
-                                            <input type="hidden" name="id">
+                                            <input type="hidden" name="identifier">
 
                                             <!-- Sub header -->
                                             <ul class="nav nav-pills justify-content-end">
@@ -514,8 +531,8 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
-                                        <input type="hidden" name="id" required>
-                                        <p>Seguro desea eliminar el registro ID #<strong class="id"></strong></p>
+                                        <input type="hidden" name="identifier" required>
+                                        <p>Seguro desea eliminar el registro ID <strong class="identifier"></strong></p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -666,12 +683,12 @@
                         </div>
                         <!-- /Data: Export data -->
 
-                        <!-- Data: Views: Add -->
-                        <div class="modal right-side-modal fade" id="component_data_views_add" tabindex="-1" aria-labelledby="component_data_views_add_label" aria-hidden="true">
+                        <!-- Views: Add -->
+                        <div class="modal right-side-modal fade" id="component_views_add" tabindex="-1" aria-labelledby="component_views_add_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_add_label">
+                                        <h5 class="modal-title" id="component_views_add_label">
                                             <i class="fas fa-plus-circle me-2"></i>Nueva vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -693,14 +710,14 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Add -->
+                        <!-- /Views: Add -->
 
-                        <!-- Data: Views: Modify -->
-                        <div class="modal fade" id="component_data_views_modify" tabindex="-1" aria-labelledby="component_data_views_modify_label" aria-hidden="true">
+                        <!-- Views: Modify -->
+                        <div class="modal fade" id="component_views_modify" tabindex="-1" aria-labelledby="component_views_modify_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_modify_label">
+                                        <h5 class="modal-title" id="component_views_modify_label">
                                             <i class="fas fa-pen me-2"></i>Modificar vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -722,14 +739,14 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Modify -->
+                        <!-- /Views: Modify -->
 
-                        <!-- Data: Views: Delete -->
-                        <div class="modal fade" id="component_data_views_delete" tabindex="-1" aria-labelledby="component_data_views_delete_label" aria-hidden="true">
+                        <!-- Views: Delete -->
+                        <div class="modal fade" id="component_views_delete" tabindex="-1" aria-labelledby="component_views_delete_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_views_delete_label">
+                                        <h5 class="modal-title" id="component_views_delete_label">
                                             <i class="fas fa-times me-2"></i>Borrar vista
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -750,7 +767,336 @@
                                 </form>
                             </div>
                         </div>
-                        <!-- /Data: Views: Delete -->
+                        <!-- /Views: Delete -->
+
+                        <!-- Settings -->
+                        <div class="modal fade" id="component_settings" tabindex="-1" aria-labelledby="component_settings_label" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="component_settings_label">
+                                            <i class="fas fa-times me-2"></i>Configuraciones
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        
+                                        <!-- Settings: General -->
+                                        <article id="component_settings_general" class="card p-4 bg-white mb-4">
+                                            <!-- Card header -->
+                                            <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                                <div class="flex-grow-1 align-self-center">
+                                                    <span class="fw-bold">General</span>
+                                                </div>
+                                            </header>
+                                            <!-- /Card header -->
+                                            <!-- Contents -->
+                                            <div class="mb-2">
+
+                                                <div class="notifications"></div>
+                                                <form novalidate>
+                                                    <table class="table">
+                                                        <tbody>
+                                                            <tr>
+                                                                <th scope="row">Nombre</th>
+                                                                <td><input type="text" class="form-control" name="name"/></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row">Formulario p&uacute;blico</th>
+                                                                <td>
+                                                                    <select class="form-select" name="public_form"></select>
+                                                                    <span class="link_form"></span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row">Descripci&oacute;n</th>
+                                                                <td><textarea class="form-control" name="description"></textarea></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <div class="mt-2">
+                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <!-- /Contents -->
+                                        </article>
+                                        <!-- /Settings: General -->
+
+                                        <!-- Settings: Permissions -->
+                                        <article id="component_settings_permissions" class="card p-4 bg-white mb-4">
+                                            <!-- Card header -->
+                                            <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                                <div class="flex-grow-1 align-self-center">
+                                                    <span class="fw-bold">Permisos de la tabla</span>
+                                                </div>
+                                                <div class="p-2 bd-highlight">
+                                                    <div class="dropdown">
+                                                        <a class="btn btn-dark-shadow add">
+                                                            <i class="fas fa-plus"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </header>
+                                            <!-- /Card header -->
+                                            <!-- Contents -->
+                                            <div class="mb-2">
+
+                                                <div class="notifications"></div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover table-bordered">
+                                                        <thead class="table-light text-center align-middle text-nowrap">
+                                                            <tr>
+                                                                <th scope="col">Usuario</th>
+                                                                <th scope="col">Leer</th>
+                                                                <th scope="col">A&ntilde;adir</th>
+                                                                <th scope="col">Modificar</th>
+                                                                <th scope="col">Eliminar</th>
+                                                                <th scope="col">Solo si es due&ntilde;o</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                
+                                            </div>
+                                            <!-- /Contents -->
+                                        </article>
+                                        <!-- /Settings: Permissions -->
+
+                                        <!-- Settings: Permissions: Add -->
+                                        <div id="component_settings_permissions_add" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_settings_permissions_add_label" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <form class="modal-content" novalidate>
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="component_settings_permissions_add_label">
+                                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir permiso de tabla
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="notifications"></div>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th scope="row">Usuario</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="id_user" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso de lectura</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="read" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para crear entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="add" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para modificar entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="modify" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para borrar entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="delete" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso solo si es due&ntilde;o</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="just_owner" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        </button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir permiso
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- /Settings: Permissions: Add -->
+
+                                        <!-- Settings: Permissions: Modify -->
+                                        <div id="component_settings_permissions_modify" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_settings_permissions_modify_label" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <form class="modal-content" novalidate>
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="component_settings_permissions_modify_label">
+                                                            <i class="fas fa-pen me-2"></i>Modificar permiso de tabla
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="notifications"></div>
+                                                        <input type="hidden" name="identifier" required>
+                                                        <table class="table">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th scope="row">Usuario</th>
+                                                                    <td>
+                                                                        <input class="form-control" name="id_user" disabled>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso de lectura</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="read" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para crear entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="add" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para modificar entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="modify" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso para borrar entradas</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="delete" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th scope="row">Permiso solo si es due&ntilde;o</th>
+                                                                    <td>
+                                                                        <select class="form-select" name="just_owner" required>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-danger me-auto delete">
+                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        </button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        </button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="fas fa-pen me-2"></i>Modificar permiso
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- /Settings: Permissions: Modify -->
+
+                                        <!-- Settings: Permissions: Delete -->
+                                        <div id="component_settings_permissions_delete" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_settings_permissions_delete_label" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <form class="modal-content" novalidate>
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="component_settings_permissions_delete_label">
+                                                            <i class="fas fa-times me-2"></i>Eliminar permiso de tabla
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="notifications"></div>
+                                                        <input type="hidden" name="id" required>
+                                                        <span>Seguro desea eliminar este permiso de tabla:</span>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        </button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- /Settings: Permissions: Delete -->
+
+                                        <!-- Settings: General: Delete -->
+                                        <article id="component_settings_general_delete" class="card p-4 bg-white mb-4">
+                                            <!-- Card header -->
+                                            <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                                <div class="flex-grow-1 align-self-center">
+                                                    <span class="fw-bold">Eliminar tabla</span>
+                                                </div>
+                                            </header>
+                                            <!-- /Card header -->
+                                            <!-- Contents -->
+                                            <div class="mb-2">
+
+                                                <div class="notifications"></div>
+                                                <div class="mt-2">
+                                                    <span>Esta acci&oacute;n no se puede deshacer:</span>
+                                                    <button class="btn btn-danger ms-2 delete">Eliminar tabla</button>
+                                                </div>
+                                            </div>
+                                            <!-- /Contents -->
+                                        </article>
+                                        <!-- /Settings: General: Delete -->
+
+                                        <!-- Settings: Delete -->
+                                        <div id="component_settings_delete" class="modal right-side-modal fade" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <form class="modal-content" novalidate>
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            <i class="fas fa-times me-2"></i>Eliminar tabla <strong class="header"></strong>
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="notifications"></div>
+                                                        <p>
+                                                            Seguro desea eliminar la tabla <strong class="name"></strong>, esto eliminar&aacute; todos los registros
+                                                            en &eacute;l
+                                                        </p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        </button>
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- /Settings: Delete -->
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Settings -->
 
                     </section>
                     <!-- /Data section -->
@@ -774,32 +1120,7 @@
         <!-- /Wait animation -->
 
         <!-- Javascript -->
-            <!-- General -->
-            <script src="/assets/js/main.js"></script>
-
-            <!-- Classes -->
-            <script src="/assets/js/classes/tools.js"></script>
-            <script src="/assets/js/classes/table_elements.js"></script>
-            <script src="/assets/js/classes/response_manager.js"></script>
-            <script src="/assets/js/classes/csv_reader.js"></script>
-            <script src="/assets/js/classes/component.js"></script>
-
-            <!-- Elements -->
-            <script src="/assets/js/elements/headers.js"></script>
-            <script src="/assets/js/elements/footers.js"></script>
-            <script src="/assets/js/elements/sidebars.js"></script>
-            <script src="/assets/js/elements/custom-select.js"></script>
-
-            <!-- Events -->
-            <script src="/assets/js/events/general.js"></script>
-            <script src="/assets/js/events/table/table_general.js"></script>
-            <script src="/assets/js/events/table/data.js"></script>
-            <script src="/assets/js/events/table/dataImport.js"></script>
-            <script src="/assets/js/events/table/filters.js"></script>
-            <script src="/assets/js/events/table/views.js"></script>
-            <script src="/assets/js/events/table/table_dimensions.js"></script>
-            <script src="/assets/js/events/table/columns.js"></script>
-
+            <script src="/assets/js/structbx.js" type="module"></script>
         <!-- Javascript -->
     </body>
 </html>

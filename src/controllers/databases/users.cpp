@@ -23,10 +23,10 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username, sp.created_at " \
+        "SELECT nu.identifier, nu.username, sp.created_at " \
         "FROM users nu " \
-        "JOIN databases_users sp ON sp.id_naf_user = nu.id " \
-        "WHERE sp.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND nu.type = 'default'"
+        "JOIN databases_users sp ON sp.id_user = nu.identifier " \
+        "WHERE sp.id_database = ? AND nu.type = 'default'"
     );
     action1->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -51,10 +51,10 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
     
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username, sp.created_at " \
+        "SELECT nu.identifier, nu.username, sp.created_at " \
         "FROM users nu " \
-        "JOIN databases_users sp ON sp.id_naf_user = nu.id " \
-        "WHERE sp.id_database = (SELECT id FROM `databases` WHERE identifier = ?) AND nu.type = 'default'"
+        "JOIN databases_users sp ON sp.id_user = nu.identifier " \
+        "WHERE sp.id_database = ? AND nu.type = 'default'"
     );
     action1->AddParameter_("id_database", get_database_id(), false);
 
@@ -70,13 +70,10 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
     
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username "
+        "SELECT nu.identifier, nu.username "
         "FROM users nu "
-        "LEFT JOIN databases_users su ON "
-            "su.id_naf_user = nu.id AND "
-            "su.id_database = (SELECT s.id FROM `databases` s JOIN databases_users su2 ON su2.id_database = s.id WHERE identifier = ? AND su2.id_naf_user = ? LIMIT 1) "
-        "WHERE "
-            "su.id_naf_user IS NULL AND nu.type = 'default'"
+        "LEFT JOIN databases_users su ON su.id_user = nu.identifier AND su.id_database = ? "
+        "WHERE su.id_user IS NULL AND nu.type = 'default'"
     );
     action1->AddParameter_("identifier_database", "", true)
     ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -88,7 +85,6 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
         }
         return true;
     });
-    action1->AddParameter_("id_user", get_id_user(), false);
 
     get_functions()->push_back(function);
 }
@@ -101,29 +97,17 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/add", HTTP::EnumMethods::kHTTP_POST);
     
     auto action1 = function->AddAction_("a1");
-    auto action2 = function->AddAction_("a2");
     A1(action1);
-    A2(action2);
-
-    action1->set_sql_code(
-        "INSERT INTO databases_users (id_database, id_naf_user) "
-        "SELECT "
-            "(SELECT id FROM `databases` WHERE identifier = ?) "
-            ",? "
-    );
-    action2->set_sql_code(
-        "INSERT INTO tables_permissions (`read`, `add`, `modify`, `delete`, `just_owner`, id_table, id_naf_user) "
-        "SELECT "
-            "0, 0, 0, 0, 0, t.id, ? "
-        "FROM tables t " \
-        "WHERE t.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
-    );
 
     get_functions()->push_back(function);
 }
 
 void Users::Add::A1(StructBX::Functions::Action::Ptr action)
 {
+    action->set_sql_code(
+        "INSERT INTO databases_users (id_database, id_user) "
+        "VALUES (?, ?)"
+    );
     action->AddParameter_("identifier_database", "", true)
     ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -140,30 +124,6 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
         if(param->ToString_() == "")
         {
             param->set_error("El id de usuario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-}
-
-void Users::Add::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->AddParameter_("id_user", "", true)
-    ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El id de usuario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("identifier_database", "", true)
-    ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de base de datos no puede estar vacío");
             return false;
         }
         return true;
@@ -178,33 +138,21 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/delete", HTTP::EnumMethods::kHTTP_DEL);
     
     auto action1 = function->AddAction_("a1");
-    auto action2 = function->AddAction_("a2");
     A1(action1);
+    auto action2 = function->AddAction_("a2");
     A2(action2);
-
-    action1->set_sql_code(
-        "DELETE su FROM databases_users su "
-        "WHERE "
-            "su.id_naf_user = ? "
-            "AND su.id_database = ( "
-                "SELECT s.id "
-                "FROM `databases` s JOIN databases_users su ON su.id_database = s.id "
-                "WHERE s.identifier = ? AND su.id_naf_user = ? LIMIT 1)"
-    );
-    action2->set_sql_code(
-        "DELETE tp FROM tables_permissions tp "
-        "JOIN tables t ON tp.id_table = t.id "
-        "WHERE id_naf_user = ? AND t.id_database = ( "
-            "SELECT s.id "
-            "FROM `databases` s JOIN databases_users su ON su.id_database = s.id "
-            "WHERE s.identifier = ? AND su.id_naf_user = ? LIMIT 1)"
-    );
 
     get_functions()->push_back(function);
 }
 
 void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
+    action->set_sql_code(
+        "DELETE su FROM databases_users su "
+        "WHERE "
+            "su.id_user = ? "
+            "AND su.id_database = ?"
+    );
     action->AddParameter_("id", "", true)
     ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -225,12 +173,15 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_user", get_id_user(), false);
-
 }
 
 void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
+    action->set_sql_code(
+        "DELETE tp FROM tables_permissions tp "
+        "JOIN tables t ON tp.id_table = t.identifier "
+        "WHERE tp.id_user = ? AND t.id_database = ?"
+    );
     action->AddParameter_("id", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -251,5 +202,4 @@ void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_user", get_id_user(), false);
 }

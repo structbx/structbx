@@ -1,5 +1,6 @@
 
 #include "controllers/general/users.h"
+#include "tools/random_generator.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -26,9 +27,9 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
+        "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.id = nu.id_group " \
+        "JOIN groups ng ON ng.identifier = nu.id_group " \
         "WHERE nu.type = 'default'"
     );
 
@@ -44,10 +45,10 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
     
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
+        "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.id = nu.id_group "
-        "WHERE nu.id = ?"
+        "JOIN groups ng ON ng.identifier = nu.id_group "
+        "WHERE nu.identifier = ?"
     );
     action1->AddParameter_("id_user", get_id_user(), false);
 
@@ -57,23 +58,22 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
 Users::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
-    // Function GET /api/general/users/read/id
+    // Function GET /api/general/users/read/identifier
     StructBX::Functions::Function::Ptr function = 
-        std::make_shared<StructBX::Functions::Function>("/api/general/users/read/id", HTTP::EnumMethods::kHTTP_GET);
-    
+        std::make_shared<StructBX::Functions::Function>("/api/general/users/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     auto action1 = function->AddAction_("a1");
     action1->set_sql_code(
-        "SELECT nu.id, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
+        "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.id = nu.id_group "
-        "WHERE nu.id = ?"
+        "JOIN groups ng ON ng.identifier = nu.id_group "
+        "WHERE nu.identifier = ?"
     );
-    action1->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action1->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de usuario no puede estar vacío");
+            param->set_error("El identificador de usuario no puede estar vacío");
             return false;
         }
         return true;
@@ -103,7 +103,7 @@ Users::ModifyCurrentUsername::ModifyCurrentUsername(Tools::FunctionData& functio
 void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM users WHERE username = ? AND id != ?");
+    action->set_sql_code("SELECT identifier FROM users WHERE username = ? AND identifier != ?");
     action->SetupCondition_("verify-username-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
@@ -125,7 +125,7 @@ void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id", get_id_user(), false);
+    action->AddParameter_("identifier", get_id_user(), false);
 }
 
 void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
@@ -133,7 +133,7 @@ void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE users "
         "SET username = ? "
-        "WHERE id = ?"
+        "WHERE identifier = ?"
     );
 
     action->AddParameter_("username", "", true)
@@ -162,7 +162,7 @@ void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& function_data) :
@@ -222,7 +222,7 @@ Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& functio
 void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM users WHERE password = ? AND id = ?");
+    action->set_sql_code("SELECT identifier FROM users WHERE password = ? AND identifier = ?");
     action->SetupCondition_("verify-username-password", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() < 1)
@@ -249,7 +249,7 @@ void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
 
         return true;
     });
-    action->AddParameter_("id", get_id_user(), false);
+    action->AddParameter_("identifier", get_id_user(), false);
 }
 
 void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
@@ -257,7 +257,7 @@ void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE users "
         "SET password = ? "
-        "WHERE id = ?"
+        "WHERE identifier = ?"
     );
 
     action->AddParameter_("new_password", "", true)
@@ -279,7 +279,7 @@ void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
         param->set_value(StructBX::Tools::DValue::Ptr(new StructBX::Tools::DValue(password_encoded)));
         return true;
     });
-    action->AddParameter_("id_naf_user", get_id_user(), false);
+    action->AddParameter_("identifier", get_id_user(), false);
 }
 
 Users::Add::Add(Tools::FunctionData& function_data) :
@@ -330,7 +330,7 @@ Users::Add::Add(Tools::FunctionData& function_data) :
 
 void Users::Add::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM users WHERE username = ?");
+    action->set_sql_code("SELECT identifier FROM users WHERE username = ?");
     action->SetupCondition_("verify-username-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
@@ -357,9 +357,12 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
 void Users::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO users (username, password, status, id_group) "
-        "VALUES (?, ?, ?, ?) "
+        "INSERT INTO users (identifier, username, password, status, id_group) "
+        "VALUES (?, ?, ?, ?, ?) "
     );
+
+    auto identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+    action->AddParameter_("identifier", identifier, false);
 
     action->AddParameter_("username", "", true)
     ->SetupCondition_("condition-username", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -485,7 +488,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
 
 void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM users WHERE username = ? AND id != ?");
+    action->set_sql_code("SELECT identifier FROM users WHERE username = ? AND identifier != ?");
     action->SetupCondition_("verify-username-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
@@ -507,7 +510,7 @@ void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id", "", true)
+    action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
@@ -524,7 +527,7 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE users n "
         "SET username = ?, password = ?, status = ?, id_group = ? "
-        "WHERE n.id = ? "
+        "WHERE n.identifier = ? "
     );
 
     action->AddParameter_("username", "", true)
@@ -592,12 +595,12 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id del usuario no puede estar vacío");
+            param->set_error("El identificador del usuario no puede estar vacío");
             return false;
         }
         return true;
@@ -609,7 +612,7 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE users n "
         "SET username = ?, status = ?, id_group = ? "
-        "WHERE n.id = ? "
+        "WHERE n.identifier = ? "
     );
 
     action->AddParameter_("username", "", true)
@@ -658,12 +661,12 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id del usuario no puede estar vacío");
+            param->set_error("El identificador del usuario no puede estar vacío");
             return false;
         }
         return true;
@@ -686,12 +689,12 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
 void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "DELETE nu FROM users nu "
+        "DELETE FROM users "
         "WHERE "
-            "nu.id = ? "
+            "identifier = ? "
     );
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {
@@ -700,5 +703,4 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("id_user", get_id_user(), false);
 }

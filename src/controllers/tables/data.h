@@ -41,7 +41,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
                 ,values(values)
                 ,id_database(id_database)
             {}
-            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Query::Field::Ptr column_id, StructBX::Functions::Action::Ptr action3);
+            void Setup(StructBX::Functions::Function& self, StructBX::Query::Results::Ptr results, std::string table_id, StructBX::Functions::Action::Ptr action3);
 
             Type type;
             std::string& columns;
@@ -61,13 +61,11 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         struct ParameterVerification
         {
             ParameterVerification(
-                Query::Field::Ptr length
-                ,Query::Field::Ptr required
+                Query::Field::Ptr required
                 ,Query::Field::Ptr default_value
                 ,Query::Field::Ptr column_type
             ) :
-                length(length)
-                ,required(required)
+                required(required)
                 ,default_value(default_value)
                 ,column_type(column_type)
             {
@@ -75,14 +73,13 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             }
             bool Verify(Query::Parameter::Ptr param);
 
-            Query::Field::Ptr length;
             Query::Field::Ptr required;
             Query::Field::Ptr default_value;
             Query::Field::Ptr column_type;
         };
         struct ChangeInt
         {
-            void Change(std::string row_id, std::string operation, std::string table_identifier, std::string database_id);
+            void Change(std::string row_id, std::string operation, std::string table_identifier);
         };
 
         struct VerifyPermissionsRead : public Tools::FunctionData
@@ -126,13 +123,24 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             struct GetFilters
             {
                 GetFilters(){}
-                void Get(Functions::Function& self, std::string& conditions, std::string view_identifier) const;
+                std::string Get(Functions::Function& self, std::string view_identifier);
+            };
+            struct GetSorts
+            {
+                GetSorts(){}
+                std::string Get(Functions::Function& self, std::string view_identifier);
+            };
+            struct Export
+            {
+                Export(){}
+                bool Start(Functions::Function& self, Functions::Action::Ptr table_data);
             };
 
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetDefaultView(StructBX::Functions::Action::Ptr action);
+            void GetTableColumns(StructBX::Functions::Action::Ptr action);
+            void LinkToAction(StructBX::Functions::Action::Ptr action);
         };
         struct ReadChangeInt : public Tools::FunctionData
         {
@@ -150,8 +158,8 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetTableInfo(StructBX::Functions::Action::Ptr action);
+            void GetTableColumnsInfo(StructBX::Functions::Action::Ptr action);
         };
         struct Import : public Tools::FunctionData
         {
@@ -164,16 +172,14 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetTableColumns(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void GetTableColumns(StructBX::Functions::Action::Ptr action);
+            void SetIdentifierParam(StructBX::Functions::Action::Ptr action);
         };
 
     private:

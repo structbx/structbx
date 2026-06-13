@@ -12,7 +12,7 @@ PermissionsManager::PermissionsManager()
     
 }
 
-std::_List_iterator<Permission> PermissionsManager::FindPermission_(Tools::Route& route, int id_user, std::string action_type)
+std::_List_iterator<Permission> PermissionsManager::FindPermission_(Tools::Route& route, std::string id_user, std::string action_type)
 {
     auto permission_final = permissions_.end();
 
@@ -57,7 +57,7 @@ void PermissionsManager::LoadPermissions_()
             Functions::Action action{"PermissionsManager::LoadPermissions_"};
             action.set_custom_error("Permissions not found.");
             std::string sql_code =
-                "SELECT ap.endpoint AS endpoint, au.username AS username, au.id AS id_user, ap.action AS action, au.id_group AS id_group "
+                "SELECT ap.endpoint AS endpoint, au.username AS username, au.identifier AS id_user, ap.action AS action, au.id_group AS id_group "
                 "FROM permissions ap "
                 "JOIN users au ON au.id_group = ap.id_group"
             ;
@@ -96,7 +96,7 @@ void PermissionsManager::LoadPermissions_()
                 Permission p
                 {
                     Tools::Route{endpoint->String_()}
-                    ,std::make_shared<User>(id_user->Int_(), username->String_(), id_group->Int_()), action_mapped
+                    ,std::make_shared<User>(id_user->String_(), username->String_(), id_group->String_()), action_mapped
                 };
 
                 permissions_.push_back(std::move(p));

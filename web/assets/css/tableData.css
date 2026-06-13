@@ -1,0 +1,161 @@
+/* Main container similar to original */
+#component_data_read .contents {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Container with scroll (both vertical and horizontal) */
+#component_data_read .dynamic-table-wrapper {
+    overflow: auto;
+    height: calc(100vh - 12rem);
+    width: 100%;
+    scroll-behavior: smooth;
+}
+
+/* "Table" structure with display: grid */
+#component_data_read .dynamic-table {
+    display: inline-flex;             /* En lugar de flex, para que se ajuste al contenido */
+    flex-direction: column;
+    min-width: auto;                  /* Quita el min-width que forzaba expansión */
+    width: fit-content;
+}
+
+/* Fixed header in Y axis (sticky) */
+#component_data_read .table-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f4f4f5;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* Header row */
+#component_data_read .header-row {
+    display: flex;
+    background: #f4f4f5;
+    min-height: 30px;
+}
+
+/* Header cells */
+#component_data_read .header-cell {
+    flex: 0 0 auto;         /* Width is controlled by JS or inline style */
+    padding: 0rem 1rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #6a7184;
+    background: inherit;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    user-select: none;
+    position: relative;
+    transition: background 0.2s;
+}
+
+#component_data_read .header-cell:first-child{
+    border-left: 1px solid #e2e8f0;
+}
+
+#component_data_read .header-cell,
+#component_data_read .data-cell {
+    flex: 0 0 auto !important; 
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Container for text and icon */
+#component_data_read .header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#component_data_read .header-content i {
+    color: #64748b;
+    font-size: 0.6rem;
+}
+
+/* Resize handle */
+#component_data_read .resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.15s;
+    z-index: 15;
+}
+
+#component_data_read .resize-handle:hover,
+#component_data_read .resize-handle.active {
+    background: #3b82f6;
+    width: 8px;
+}
+
+/* Table body */
+#component_data_read .table-body {
+    background: white;
+}
+
+/* Rows */
+#component_data_read .data-row {
+    display: flex;
+    min-height: 30px;        /* Comfortable fixed height */
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.2s;
+}
+
+/* Data cells */
+#component_data_read .data-cell {
+    flex: 0 0 auto;
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+    color: #0f172a;
+    border-right: 1px solid #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#component_data_read .data-cell:first-child {
+    border-left: 1px solid #f1f5f9;
+}
+
+/* Hover effect on cell to indicate editing capability */
+#component_data_read .data-cell:hover {
+    background-color: #f7f7f7;
+}
+
+/* Responsive adjustments for container */
+@media (max-width: 768px) {
+    #component_data_read .dynamic-table-wrapper {
+        height: calc(100vh - 8rem);
+    }
+    #component_data_read .header-cell, #component_data_read .data-cell {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Custom scrollbar (optional) */
+#component_data_read .dynamic-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+#component_data_read .dynamic-table-wrapper::-webkit-scrollbar-track {
+    background: #e2e8f0;
+}
+#component_data_read .dynamic-table-wrapper::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+}

@@ -25,7 +25,6 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
         struct ColumnVariables
         {
             std::string column_type = "VARCHAR";
-            std::string length = "(100)";
             std::string link_to = "";
             std::string required = "";
             std::string default_value = "";
@@ -43,7 +42,7 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
         {
             ColumnTypeSetup(){}
             
-            bool Setup(std::string column_type_id, std::string& column_type, std::string& length_value);
+            bool Setup(std::string column_type_id, std::string& column_type);
         };
 
         Columns(Tools::FunctionData& function_data);
@@ -61,19 +60,12 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
-        struct ReadTypes : public Tools::FunctionData
-        {
-            ReadTypes(Tools::FunctionData& function_data);
-
-            void A1(StructBX::Functions::Action::Ptr action);
-        };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
             void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
@@ -81,7 +73,6 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
             void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
         };
         struct ModifyPosition : public Tools::FunctionData
         {
@@ -89,12 +80,14 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
             void A2(StructBX::Functions::Action::Ptr action);
+            void InsertColumnOverride(StructBX::Functions::Action::Ptr action);
         };
         struct ModifyVisible : public Tools::FunctionData
         {
             ModifyVisible(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
+            void InsertColumnOverride(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
@@ -102,13 +95,11 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
             void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
         };
 
     private:
         Read struct_read_;
         ReadSpecific struct_read_specific_;
-        ReadTypes struct_read_types_;
         Add struct_add_;
         Modify struct_modify_;
         ModifyPosition struct_modify_position_;

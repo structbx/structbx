@@ -149,10 +149,10 @@ void BackendHandler::SetupFunctionData_()
         action.set_sql_code(
             "SELECT s.identifier " \
             "FROM `databases` s " \
-            "JOIN databases_users su ON su.id_database = s.id " \
-            "WHERE su.id_naf_user = ? LIMIT 1"
+            "JOIN databases_users su ON su.id_database = s.identifier " \
+            "WHERE su.id_user = ? LIMIT 1"
         );
-        action.AddParameter_("id_naf_user", function_data_.get_id_user(), false);
+        action.AddParameter_("id_user", function_data_.get_id_user(), false);
         if(action.Work_())
         {
             auto database_id = action.get_results()->First_();

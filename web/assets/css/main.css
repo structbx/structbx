@@ -1,4 +1,8 @@
 
+@import '/node_modules/@fontsource/inter/200.css';
+@import '/node_modules/@fontsource/inter/400.css';
+@import '/node_modules/@fontsource/inter/700.css';
+
 :root {
     --primary: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
     --primary-dark: linear-gradient(135deg, #49475f 0%, #302f2e 100%) !important;
@@ -82,4 +86,57 @@ body{
 .fa-fw {
     width: 1.25em;
     text-align: center;
+}
+
+/* Search bar */
+#table_search {
+    font-size: 0.85rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#table_search:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+#table_search_clear {
+    color: #6c757d !important;
+    background: #fff;
+    border-left: none;
+}
+
+#table_search_clear:hover {
+    color: #dc3545 !important;
+    background: #fff;
+}
+
+/* Sidebar search */
+#sidebar_table_search {
+    font-size: 0.75rem;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sidebar_table_search:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+#sidebar_table_search::placeholder {
+    font-size: 0.7rem;
+}
+
+/* No results message */
+.table-search-no-results {
+    color: #6c757d;
+    padding: 2rem 1rem;
+}
+
+.table-search-no-results i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
 }

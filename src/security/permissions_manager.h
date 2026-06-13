@@ -44,7 +44,7 @@ class StructBX::Security::PermissionsManager
         }
 
         static void LoadPermissions_();
-        static std::_List_iterator<Permission> FindPermission_(Tools::Route& route, int id_user, std::string action_type);
+        static std::_List_iterator<Permission> FindPermission_(Tools::Route& route, std::string id_user, std::string action_type);
         static bool VerifyPermission_(Tools::Route& requested_route, User& user, std::_List_iterator<Permission> found_permission);
 
     protected:

@@ -18,8 +18,8 @@ Verifications::UserInDatabase::UserInDatabase(Tools::FunctionData& function_data
     action->set_sql_code(
         "SELECT COUNT(*) AS user_count " \
         "FROM databases_users " \
-        "WHERE id_naf_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "WHERE id_user = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
     );
-    action->AddParameter_("id_naf_user", "", false);
+    action->AddParameter_("id_user", "", false);
     action->AddParameter_("id_database", "", false);
 }

@@ -29,7 +29,7 @@ class StructBX::Tools::FunctionData
         using FunctionsList = std::shared_ptr<std::list<StructBX::Functions::Function::Ptr>>;
 
         FunctionData() :
-            id_user_(-1)
+            id_user_("")
             ,database_id_("")
         {
             functions_ = std::make_shared<std::list<StructBX::Functions::Function::Ptr>>();
@@ -43,7 +43,7 @@ class StructBX::Tools::FunctionData
             
         }
 
-        int get_id_user(){ return id_user_; }
+        std::string get_id_user(){ return id_user_; }
         std::string get_database_id(){ return database_id_; }
         FunctionsList& get_functions()
         {
@@ -56,13 +56,13 @@ class StructBX::Tools::FunctionData
             return var;
         }
 
-        void set_id_user(int id_user){ id_user_ = id_user; }
+        void set_id_user(std::string id_user){ id_user_ = id_user; }
         void set_database_id(std::string database_id){ database_id_ = database_id; }
         void set_functions(FunctionsList functions){ functions_ = functions; }
         void set_current_user(Security::User current_user){ current_user_ = current_user; }
 
     private:
-        int id_user_;
+        std::string id_user_;
         std::string database_id_;
         FunctionsList functions_;
         Security::User current_user_;

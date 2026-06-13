@@ -1,11 +1,11 @@
-class ComponentTypes
+export class ComponentTypes
 {
     static get BLOCK() { return 'block'; }
     static get MODAL() { return 'modal'; }
     static get DROPDOWN() { return 'dropdown'; }
 }
 
-class Component
+export class Component
 {
     constructor(identifier, type = ComponentTypes.MODAL)
     {

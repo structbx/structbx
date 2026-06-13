@@ -40,7 +40,7 @@ class StructBX::Sessions::Session
         {
             return path_;
         }
-        int get_id_user() const
+        std::string get_id_user() const
         {
             return id_user_;
         }
@@ -57,7 +57,7 @@ class StructBX::Sessions::Session
         {
             path_ = path;
         }
-        void set_id_user(int id_user)
+        void set_id_user(std::string id_user)
         {
             id_user_ = id_user;
         }
@@ -71,7 +71,7 @@ class StructBX::Sessions::Session
     private:
         std::string id_;
         std::string path_;
-        int id_user_;
+        std::string id_user_;
         int max_age_;
 };
 

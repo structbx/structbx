@@ -31,7 +31,7 @@ void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
         "SELECT " \
             "f.public_form AS public_form, d.identifier AS database_id " \
         "FROM tables f " \
-        "JOIN `databases` d ON d.id = f.id_database " \
+        "JOIN `databases` d ON d.identifier = f.id_database " \
         "WHERE f.identifier = ?"
     );
     action->set_final(false);
@@ -58,8 +58,8 @@ void Main::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
         "SELECT " \
             "f.identifier, fc.link_to " \
         "FROM tables_columns fc " \
-        "JOIN tables f ON f.id = fc.id_table " \
-        "WHERE f.identifier = ? AND fc.link_to = (SELECT id FROM tables WHERE identifier = ?) " \
+        "JOIN tables f ON f.identifier = fc.id_table " \
+        "WHERE f.identifier = ? AND fc.link_to = ? " \
         "AND f.public_form = 1"
     );
     action->set_final(false);
@@ -86,7 +86,7 @@ void Main::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
 }
 
 Main::CreateSystemUser::CreateSystemUser() :
-    user_id(-1)
+    user_id("")
     ,session_id("")
     ,error(false)
 {
@@ -95,12 +95,16 @@ Main::CreateSystemUser::CreateSystemUser() :
     credentials.GenerateRandomCredentials_(12, 16);
     credentials.set_user("_structbx_system_" + credentials.get_user());
 
+    Tools::RandomGenerator rg;
+    user_id = rg.GenerateAlphanumericID_(20);
+    
     // Save in DB credentials
     Functions::Action save_credentials_action("save_credentials_action");
     save_credentials_action.set_sql_code(
-        "INSERT INTO users (username, password, status, type)"
-        "VALUES (?, ?, 'active', 'system')"
+        "INSERT INTO users (identifier, username, password, status, type)"
+        "VALUES (?, ?, ?, 'active', 'system')"
     );
+    save_credentials_action.AddParameter_("identifier", user_id, false);
     save_credentials_action.AddParameter_("username", credentials.get_user(), false);
     save_credentials_action.AddParameter_("password", credentials.get_password(), false);
 
@@ -109,7 +113,6 @@ Main::CreateSystemUser::CreateSystemUser() :
         error = true;
         return;
     }
-    user_id = save_credentials_action.get_last_insert_id();
     Security::PermissionsManager::LoadPermissions_();
 
     // Save in DB Session
@@ -121,7 +124,7 @@ void Main::CreateSystemUser::DeleteSystemUser()
 {
     Functions::Action delete_user_action("delete_user_action");
     delete_user_action.set_sql_code(
-        "DELETE FROM users WHERE id = ?"
+        "DELETE FROM users WHERE identifier = ?"
     );
     delete_user_action.AddParameter_("id", user_id, false);
 
@@ -223,11 +226,6 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Verify if link table is in main table
-    auto vltim = function->AddAction_("vltim");
-    VerifyLinkTableIsInMain struct_verify_link_table_is_in_main(function_data);
-    struct_verify_link_table_is_in_main.A1(vltim);
-
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
@@ -235,7 +233,7 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     // Setup custom process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, pfv, vltim](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, pfv](StructBX::Functions::Function& self)
     {
         // Public form verification
         if(!pfv->Work_())
@@ -243,15 +241,10 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 5u2UPHVRHkF6");
             return;
         }
-        // vltim verification
-        if(!vltim->Work_())
+        auto public_form = pfv->get_results()->First_();
+        if(public_form->IsNull_() || public_form->ToString_() != "1")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 8qFiCgyBRE6G");
-            return;
-        }
-        if(vltim->get_results()->size() == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error vMKUEWq6UnT2");
+            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "Error 5hXOSg5yxPtW");
             return;
         }
         

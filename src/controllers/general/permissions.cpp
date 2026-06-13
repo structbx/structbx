@@ -65,7 +65,7 @@ void Permissions::ReadCurrent::A1(StructBX::Functions::Action::Ptr action)
         "SELECT ng.* "
         "FROM permissions ng "
         "JOIN users u ON u.id_group = ng.id_group "
-        "WHERE u.id = ? "
+        "WHERE u.identifier = ? "
     );
     action->AddParameter_("id_user", get_id_user(), false);
 }
@@ -204,11 +204,11 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
     
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Verify if group don't exists
+    // Verify if permission don't exists
     auto action1 = function->AddAction_("a1");
     A1(action1);
 
-    // Delete group
+    // Delete permission
     auto action2 = function->AddAction_("a2");
     A2(action2);
 
@@ -242,7 +242,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "SELECT id "
         "FROM permissions "
-        "WHERE id = ?"
+        "WHERE endpoint = ? and id_group = ?"
     );
     action->SetupCondition_("condition-permission-exists", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -255,12 +255,22 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("id", "", true)
-    ->SetupCondition_("condition-id", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    action->AddParameter_("endpoint", "", true)
+    ->SetupCondition_("condition-endpoint", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de permiso no puede estar vacío");
+            param->set_error("El endpoint de permiso no puede estar vacío");
+            return false;
+        }
+        return true;
+    });
+    action->AddParameter_("id_group", "", true)
+    ->SetupCondition_("condition-endpoint", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->ToString_() == "")
+        {
+            param->set_error("El identificador de grupo de permiso no puede estar vacío");
             return false;
         }
         return true;
@@ -269,7 +279,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
 
 void Permissions::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM permissions WHERE id = ?");
-    action->AddParameter_("id", "", true);
-
+    action->set_sql_code("DELETE FROM permissions WHERE endpoint = ? AND id_group = ?");
+    action->AddParameter_("endpoint", "", true);
+    action->AddParameter_("id_group", "", true);
 }

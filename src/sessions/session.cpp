@@ -7,7 +7,7 @@ using namespace StructBX::Sessions;
 Session::Session() :
     id_("")
     ,path_("/")
-    ,id_user_(-1)
+    ,id_user_("")
     ,max_age_(3600)
 {
     GenerateNewSessionID_();

@@ -3,25 +3,153 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>StructBX</title>
-        <link rel="icon" type="image/png" href="assets/images/favicon.png">
+        <title>Inicio - StructBX</title>
+        <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
-        <!-- CSS files -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-
-        <!-- /CSS files -->
+        <!-- CSS Libraries -->
+        <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+        <!-- /CSS Libraries -->
 
         <!-- JS Libraries -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"  crossorigin="anonymous"></script>
-        <script src="https://josefelixrc7.github.io/wtools/wtools.js"></script>
+        <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="/node_modules/jquery-ui/dist/jquery-ui.min.js"></script>
+        <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/node_modules/@josefelixrc72/wtools/wtools.js"></script>
         <!-- /JS Libraries -->
-        
+
+        <!-- CSS files -->
+        <link rel="stylesheet" href="/assets/css/main.css">
+        <link rel="stylesheet" href="/assets/css/styles.css">
+        <link rel="stylesheet" href="/assets/css/modal.css">
+        <!-- /CSS files -->
+
     </head>
-    <body id="structbx" class="position-relative">
-        <div id="wait_animation_page"></div>
-        <script>
-            new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
-            window.location.href = "start/"
-        </script>
+    <body data-page="Start" id="structbx" class="bg-light">
+
+        <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
+        </header>
+
+        <div class="container-xxl">
+            <div class="row">
+
+                <!--- Sidebar menu --->
+                <aside id="menu_main" class="sticky-md-top h-100 sidebar col-md-3 col-lg-2 d-md-block bg-light collapse px-4" style="top:5rem">
+                </aside>
+                <!-- /Sidebar menu -->
+
+                <!-- Main content -->
+                <main id="contents_main" class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-5 bg-light">
+
+                    <!-- Tables section -->
+                    <section class="section_tables">
+                        <div class="pb-2 mb-3 border-bottom d-flex">
+                            <ol class="breadcrumb h4 me-auto flex-grow-1 align-self-center mb-0">
+                                <li class="breadcrumb-item database_name"></li>
+                                <li class="breadcrumb-item active" aria-current="page">Tablas</li>
+                            </ol>
+                            <!-- Tables: Search -->
+                            <div class="d-flex gap-2">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 pe-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0 ps-2" id="table_search" placeholder="Buscar tablas por nombre..." autocomplete="off">
+                                    <button class="btn btn-outline-secondary border" type="button" id="table_search_clear" title="Limpiar b&uacute;squeda">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- /Tables: Search -->
+
+                            <div class="p-2">
+                                <button class="btn btn-dark-shadow table_add">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tables: Read -->
+                        <article id="component_tables_read" class="card p-4 bg-white mb-4">
+                            <!-- Contents -->
+                            <div class="mb-2">
+
+                                <div class="notifications"></div>
+                                <div class="contents mb-2 mt-2">
+
+                                </div>
+
+                            </div>
+                            <!-- /Contents -->
+                            
+                        </article>
+                        <!-- /Tables: Read -->
+
+                        <!-- Tables: Add -->
+                        <div id="component_tables_add" class="modal right-side-modal fade" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form class="modal-content" novalidate>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir nueva tabla
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="notifications"></div>
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td>Nombre</td>
+                                                    <td><input class="form-control" type="text" name="name" required></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Descripci&oacute;n</td>
+                                                    <td><textarea class="form-control" type="text" name="description"></textarea></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-plus-circle me-2"></i>Crear
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- /Tables: Add -->
+
+                    </section>
+
+                    <!-- Footer -->
+                    <footer class="main_footer container">
+                    </footer>
+                    <!-- /Footer -->
+                    
+                </main>
+                <!-- /Main content -->
+
+                <!-- Notifications -->
+                <div class="row">
+                    <div id="notifications" class="col-sm-4 position-fixed top-0 end-0 sticky-top p-2">
+                    </div>
+                </div>
+                <!-- Notifications -->
+        
+            </div>
+        </div>
+
+        <!-- Wait animation -->
+        <div id="wait_animation_page">
+        </div>
+        <!-- /Wait animation -->
+
+        <!-- Javascript -->
+            <script src="/assets/js/structbx.js" type="module"></script>
+        <!-- Javascript -->
     </body>
 </html>

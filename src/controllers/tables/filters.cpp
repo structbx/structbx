@@ -1,5 +1,6 @@
 
 #include "controllers/tables/filters.h"
+#include "tools/dvalue.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -103,7 +104,11 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         }
 
         // Send results
-        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+        auto identifier = action1->GetParameter_("identifier");
+        if(identifier == action1->get_parameters().end())
+            self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+        else
+            self.JSONResponse_(HTTP::Status::kHTTP_OK, identifier->get()->ToString_());
     });
 
     get_functions()->push_back(function);
@@ -112,11 +117,12 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) " \
-        "SELECT ?, v.identifier, vc.id_column, ?, ?, ?, ? " \
-        "FROM views_columns vc " \
-        "JOIN views v ON v.identifier = vc.id_view " \
-        "WHERE v.identifier = ? AND v.id_table = ? AND vc.id_column = ? "
+        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) "
+        "SELECT ?, v.identifier, tc.identifier, ?, ?, ?, ? "
+        "FROM tables_columns tc "
+        "JOIN tables t ON t.identifier = tc.id_table "
+        "JOIN views v ON v.id_table = t.identifier "
+        "WHERE v.identifier = ? AND v.id_table = ? AND tc.identifier = ? "
     );
 
     Tools::RandomGenerator rg;
@@ -129,6 +135,10 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
         {
             param->set_error("El tipo de operación no puede estar vacío");
             return false;
+        }
+        if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
+        {
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue("=")));
         }
         return true;
     });
@@ -264,6 +274,10 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
         {
             param->set_error("El tipo de operación no puede estar vacío");
             return false;
+        }
+        if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
+        {
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue("=")));
         }
         return true;
     });
