@@ -11,6 +11,7 @@ import { Group } from '../models/Group.js';
 import { Permission } from '../models/Permission.js';
 import { User } from '../models/User.js';
 import { Database } from '../models/Database.js';
+import { DatabaseUser } from '../models/DatabaseUser.js';
 
 export class SettingsController extends BaseController{
     constructor() {
@@ -23,6 +24,8 @@ export class SettingsController extends BaseController{
         this.permission = new Permission;
         this.user = new User;
         this.database = new Database;
+        this.databaseUser = new DatabaseUser;
+        this.currentDatabaseIdentifier = null;
 
         // Notifications for each entity
         this.notifications = {
@@ -48,6 +51,11 @@ export class SettingsController extends BaseController{
             databases: {
                 read: new wtools.Notification('WARNING', 5000, '#component_databases_read .notifications'),
                 add: new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications')
+            },
+            databasesUsers: {
+                read: new wtools.Notification('WARNING', 5000, '#component_databases_users_read .notifications'),
+                add: new wtools.Notification('WARNING', 5000, '#component_databases_users_add .notifications'),
+                delete: new wtools.Notification('WARNING', 5000, '#component_databases_users_delete .notifications')
             }
         }
 
@@ -150,6 +158,20 @@ export class SettingsController extends BaseController{
             $('#component_databases_add').modal('show');
         });
         $(document).on('submit', '#component_databases_add form', e => this.addDatabase(e));
+        $(document).on('click', '#component_databases_read table tbody tr', e => {
+            e.preventDefault();
+            this.showDatabaseUsers(e);
+        });
+        $(document).on('click', '#component_databases_users_read .add', (e) => {
+            e.preventDefault();
+            this.preAddDatabaseUser();
+        });
+        $(document).on('submit', '#component_databases_users_add form', e => this.addDatabaseUser(e));
+        $(document).on('click', '#component_databases_users_read table tbody tr', e => {
+            e.preventDefault();
+            this.preDeleteDatabaseUser(e);
+        });
+        $(document).on('submit', '#component_databases_users_delete form', e => this.deleteDatabaseUser(e));
 
         // ---- PERMISSIONS ----
         $(document).on('change', '#component_permissions_read select[name=id_group]', () => {
@@ -576,13 +598,13 @@ export class SettingsController extends BaseController{
 
             new wtools.UIElementsCreator('#component_databases_read table tbody', response.body.data).Build_(row => {
                 const elements = [
-                    `<th scope="row"><a href="/database?identifier=${row.identifier}">${row.name}</a></th>`,
+                    `<th scope="row">${row.name}</th>`,
                     `<td scope="row">${row.size} MB</td>`,
                     `<td scope="row">${row.directory_size} MB</td>`,
                     `<td scope="row">${row.description}</td>`,
                     `<td scope="row">${row.created_at}</td>`
                 ];
-                return new wtools.UIElementsPackage(`<tr database-id="${row.id}"></tr>`, elements).Pack_();
+                return new wtools.UIElementsPackage(`<tr database-identifier="${row.identifier}" database-name="${row.name}"></tr>`, elements).Pack_();
             });
         });
     }
@@ -612,6 +634,119 @@ export class SettingsController extends BaseController{
             new wtools.Notification('SUCCESS').Show_('Base de datos creada exitosamente.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
+        });
+    }
+
+    // --------------------------------------------------
+    // DATABASE USERS
+    // --------------------------------------------------
+    showDatabaseUsers(e){
+        const identifier = $(e.currentTarget).attr('database-identifier');
+        const name = $(e.currentTarget).attr('database-name');
+        if (!identifier) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la base de datos.');
+            return;
+        }
+        this.currentDatabaseIdentifier = identifier;
+        $('#component_databases_users_read .database-name').text(name);
+        $('#component_databases_users_read').removeClass('d-none');
+        this.readDatabaseUsers();
+    }
+
+    readDatabaseUsers(){
+        const wait = new wtools.ElementState('#component_databases_users_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        this.databaseUser.read(this.currentDatabaseIdentifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_databases_users_read .notifications', 'Usuarios de BD: Leer');
+            if (!result.Verify_()) return;
+            if (response.body.data.length < 1) {
+                $('#component_databases_users_read table tbody').html('');
+                $('#component_databases_users_read .notifications').html('');
+                new wtools.Notification('SUCCESS', 0, '#component_databases_users_read .notifications').Show_('Sin resultados.');
+                return;
+            }
+            $('#component_databases_users_read .notifications').html('');
+            $('#component_databases_users_read table tbody').html('');
+            new wtools.UIElementsCreator('#component_databases_users_read table tbody', response.body.data).Build_(row => {
+                const elements = [
+                    `<td scope="row">${row.username}</td>`,
+                    `<td scope="row">${row.created_at}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr user-identifier="${row.identifier}" user-username="${row.username}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    preAddDatabaseUser(){
+        if (!this.currentDatabaseIdentifier) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; la base de datos seleccionada.');
+            return;
+        }
+        const select = new wtools.SelectOptions();
+        this.databaseUser.readOut(this.currentDatabaseIdentifier).then(response => {
+            try {
+                const tmp = [];
+                if (response.body.data.length < 1) {
+                    tmp.push(new wtools.OptionValue("", "No hay usuarios disponibles."));
+                } else {
+                    for (const row of response.body.data) {
+                        tmp.push(new wtools.OptionValue(row.identifier, row.username));
+                    }
+                }
+                select.options = tmp;
+                select.Build_('#component_databases_users_add select[name="id_user"]');
+                $('#component_databases_users_add').modal('show');
+            } catch (error) {
+                new wtools.Notification('WARNING').Show_('No se pudo acceder a los usuarios disponibles.');
+            }
+        });
+    }
+
+    addDatabaseUser(e){
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_databases_users_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const check = new wtools.FormChecker(e.target).Check_();
+        if (!check) {
+            $('#component_databases_users_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_databases_users_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+        const id_user = $('#component_databases_users_add select[name=id_user]').val();
+        this.databaseUser.add(id_user, this.currentDatabaseIdentifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_databases_users_add .notifications', 'Usuarios de BD: A&ntilde;adir');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario agregado exitosamente.');
+            this.readDatabaseUsers();
+            wtools.CleanForm($('#component_databases_users_add form'));
+            $('#component_databases_users_add').modal('hide');
+        });
+    }
+
+    preDeleteDatabaseUser(e){
+        const identifier = $(e.currentTarget).attr('user-identifier');
+        const username = $(e.currentTarget).attr('user-username');
+        if (!identifier || !username) {
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; la informaci&oacute;n del usuario.');
+            return;
+        }
+        $('#component_databases_users_delete input[name=id]').val(identifier);
+        $('#component_databases_users_delete strong.username').html(username);
+        $('#component_databases_users_delete').modal('show');
+    }
+
+    deleteDatabaseUser(e){
+        e.preventDefault();
+        const wait = new wtools.ElementState('#component_databases_users_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+        const identifier = $('#component_databases_users_delete input[name=id]').val();
+        this.databaseUser.delete(identifier, this.currentDatabaseIdentifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_databases_users_delete .notifications', 'Usuarios de BD: Eliminar');
+            if (!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Usuario eliminado.');
+            $('#component_databases_users_delete').modal('hide');
+            this.readDatabaseUsers();
         });
     }
 

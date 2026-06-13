@@ -36,7 +36,7 @@
                 <!-- Settings section -->
                 <div id="section_settings">
                     <div class="row">
-                        <aside class="sidebar sticky-md-top h-100 col-md-3 col-lg-2 d-md-block collapse px-4">
+                        <aside id="menu_main" class="sidebar sticky-md-top h-100 col-md-3 col-lg-2 d-md-block collapse px-4" style="top:5rem">
                             <nav class="nav nav-pills flex-column justify-contents-between pt-4">
                                 <div class="nav-item" permission-endpoint="/api/databases/read">
                                     <a class="menu_databases nav-link mb-2" href="#databases" menu="databases">
@@ -167,6 +167,101 @@
                                     </div>
                                 </div>
                                 <!-- /Databases: Add -->
+
+                                <!-- Databases: Users: Read -->
+                                <section id="component_databases_users_read" class="d-none">
+                                    <article class="card p-4 bg-white mb-4">
+                                        <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                            <div class="flex-grow-1 align-self-center">
+                                                <span class="fw-bold">Usuarios de base de datos: <span class="database-name"></span></span>
+                                            </div>
+                                            <div class="p-2">
+                                                <button class="btn btn-dark-shadow add">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </header>
+                                        <div class="mb-2 mt-4">
+                                            <div class="notifications"></div>
+                                            <div class="table-responsive">
+                                                <table class="table table-hover table-bordered">
+                                                    <thead class="table-light text-center align-middle text-nowrap">
+                                                        <tr>
+                                                            <th scope="col">Usuario</th>
+                                                            <th scope="col">Creado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </section>
+                                <!-- /Databases: Users: Read -->
+
+                                <!-- Databases: Users: Add -->
+                                <div class="modal right-side-modal fade" id="component_databases_users_add" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form class="modal-content" novalidate>
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir usuario a base de datos
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="notifications"></div>
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Usuario</td>
+                                                            <td>
+                                                                <select class="form-select" name="id_user" required></select>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <!-- /Databases: Users: Add -->
+
+                                <!-- Databases: Users: Delete -->
+                                <div class="modal right-side-modal fade" id="component_databases_users_delete" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form class="modal-content" novalidate>
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-times me-2"></i>Eliminar usuario de base de datos
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="notifications"></div>
+                                                <input type="hidden" name="id" required>
+                                                <p>Seguro desea eliminar al usuario <strong class="username"></strong> de esta base de datos?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                </button>
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-times me-2"></i>Borrar
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <!-- /Databases: Users: Delete -->
 
                             </section>
                             <!-- /Databases section -->

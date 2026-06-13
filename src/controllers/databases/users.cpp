@@ -72,7 +72,7 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username "
         "FROM users nu "
-        "LEFT JOIN databases_users su ON u.id_user = nu.identifier AND su.id_database = ? "
+        "LEFT JOIN databases_users su ON su.id_user = nu.identifier AND su.id_database = ? "
         "WHERE su.id_user IS NULL AND nu.type = 'default'"
     );
     action1->AddParameter_("identifier_database", "", true)
@@ -85,7 +85,6 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
         }
         return true;
     });
-    action1->AddParameter_("id_user", get_id_user(), false);
 
     get_functions()->push_back(function);
 }
@@ -98,9 +97,7 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/add", HTTP::EnumMethods::kHTTP_POST);
     
     auto action1 = function->AddAction_("a1");
-    auto action2 = function->AddAction_("a2");
     A1(action1);
-    A2(action2);
 
     get_functions()->push_back(function);
 }
@@ -127,46 +124,6 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
         if(param->ToString_() == "")
         {
             param->set_error("El id de usuario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-}
-
-void Users::Add::A2(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, `just_owner`, id_table, id_user) "
-        "SELECT "
-            "?, 0, 0, 0, 0, 0, t.identifier, ? "
-        "FROM tables t " \
-        "WHERE t.id_database = ? "
-    );
-    action->AddParameter_("identifier", "", false)
-    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        Tools::RandomGenerator rg;
-        auto identifier = rg.GenerateAlphanumericID_(20);
-        param->set_value(Tools::DValue::Ptr(new Tools::DValue(identifier)));
-        
-        return true;
-    });
-    action->AddParameter_("id_user", "", true)
-    ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El id de usuario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("identifier_database", "", true)
-    ->SetupCondition_("condition-identifier_database", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de base de datos no puede estar vacío");
             return false;
         }
         return true;
