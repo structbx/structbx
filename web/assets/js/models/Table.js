@@ -13,4 +13,16 @@ export class Table{
 
         return await new wtools.Request("/api/tables/add", "POST", data, false).Exec_();
     }
+    async modify(identifier, name, public_form, description){
+        const data = new FormData();
+        data.append('identifier', identifier);
+        data.append('name', name);
+        data.append('public_form', public_form);
+        data.append('description', description);
+
+        return await new wtools.Request("/api/tables/modify", "PUT", data, false).Exec_();
+    }
+    async delete(identifier){
+        return await new wtools.Request(`/api/tables/delete?identifier=${identifier}`, "DEL").Exec_();
+    }
 }

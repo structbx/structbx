@@ -7,6 +7,8 @@ import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
 
 import { ViewsController } from '../submodules/views_controller.js';
+import { TableSettingsController } from '../submodules/table_settings_controller.js';
+import { DataImportController } from '../submodules/data_import_controller.js';
 
 export class TableController extends BaseController {
     constructor() {
@@ -15,6 +17,8 @@ export class TableController extends BaseController {
         this.table = new Table;
 
         this.views_controller = new ViewsController;
+        this.table_settings_controller = new TableSettingsController;
+        this.data_import_controller = new DataImportController;
     }
 
     build(){
@@ -40,6 +44,8 @@ export class TableController extends BaseController {
         this.readSidebarTables();
         
         this.views_controller.read();
+        this.table_settings_controller.readSettings();
+        this.table_settings_controller.readPermissions();
 
         wait.Off_();
     }
@@ -47,6 +53,8 @@ export class TableController extends BaseController {
     bindEvents() {
         super.bindEvents();
         this.views_controller.bindEvents();
+        this.table_settings_controller.bindEvents();
+        this.data_import_controller.bindEvents();
 
         // Go to table
         $(document).on('click', '.go_table', (e) => {

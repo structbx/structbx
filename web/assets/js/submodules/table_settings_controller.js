@@ -1,0 +1,367 @@
+import { BaseController } from '../modules/base_controller.js';
+import { ResponseManager } from '../classes/response_manager.js';
+
+import { Table } from '../models/Table.js';
+import { TablePermission } from '../models/TablePermission.js';
+
+export class TableSettingsController extends BaseController{
+    constructor() {
+        super();
+
+        this.table = new Table;
+        this.tablePermission = new TablePermission;
+
+        this.notification.read = new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications');
+        this.notification.add = new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications');
+        this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_settings_permissions_modify .notifications');
+        this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_settings_delete .notifications');
+
+        this.options_permissions = new wtools.SelectOptions([
+            new wtools.OptionValue("0", "No", true),
+            new wtools.OptionValue("1", "S&iacute;")
+        ]);
+
+        const perm_selectors = ['read', 'add', 'modify', 'delete', 'just_owner'];
+        for(const perm of perm_selectors){
+            this.options_permissions.Build_(`#component_settings_permissions_add select[name="${perm}"]`);
+            this.options_permissions.Build_(`#component_settings_permissions_modify select[name="${perm}"]`);
+        }
+
+        this.options_public_form = new wtools.SelectOptions([
+            new wtools.OptionValue("0", "No", true),
+            new wtools.OptionValue("1", "S&iacute;")
+        ]);
+        this.options_public_form.Build_('#component_settings_general select[name="public_form"]');
+    }
+
+    build(){
+    }
+
+    bindEvents(){
+        super.bindEvents();
+
+        $(document).on('click', '.go_settings', (e) => {
+            e.preventDefault();
+            $('#component_settings').modal('show');
+        });
+
+        $(document).on('submit', '#component_settings_general form', e => this.modifySettings(e));
+
+        $(document).on('click', '#component_settings_general_delete .delete', e => {
+            e.preventDefault();
+            this.preDeleteTable();
+        });
+
+        $(document).on('submit', '#component_settings_delete form', e => this.deleteTable(e));
+
+        $(document).on('click', '#component_settings_permissions .add', e => {
+            e.preventDefault();
+            this.preAddPermission();
+        });
+
+        $(document).on('submit', '#component_settings_permissions_add form', e => this.addPermission(e));
+
+        $(document).on('click', '#component_settings_permissions table tbody tr', e => {
+            e.preventDefault();
+            this.preModifyPermission(e);
+        });
+
+        $(document).on('submit', '#component_settings_permissions_modify form', e => this.modifyPermission(e));
+
+        $(document).on('click', '#component_settings_permissions_modify .delete', e => {
+            e.preventDefault();
+            this.preDeletePermission();
+        });
+
+        $(document).on('submit', '#component_settings_permissions_delete form', e => this.deletePermission(e));
+    }
+
+    readSettings(){
+        const wait = new wtools.ElementState('#component_settings_general .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            return;
+        }
+        this.table.read(table_identifier).then(response => {
+            wait.Off_();
+            $('#component_settings_general .notifications').html('');
+            wtools.CleanForm($('#component_settings_general form'));
+            const result = new ResponseManager(response, '#component_settings_general .notifications', 'Configuraciones: General');
+            if(!result.Verify_()) return;
+            if(response.body.data.length < 1){
+                new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_('Sin resultados.');
+                return;
+            }
+            $('#component_settings_general input[name="name"]').val(response.body.data[0].name);
+            $('#component_settings_general select[name="public_form"]').val(response.body.data[0].public_form);
+            $('#component_settings_general textarea[name="description"]').val(response.body.data[0].description);
+            $('#component_settings_general span.link_form').html(`
+                <a href="/form?identifier=${response.body.data[0].identifier}" target="_blank" class="mt-2 d-block form-link">
+                    Ir al formulario p&uacute;blico
+                </a>
+            `);
+        });
+    }
+
+    modifySettings(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_general form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            wait.Off_();
+            $('#component_settings_general .notifications').html('');
+            new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        const name = $('#component_settings_general input[name="name"]').val();
+        const public_form = $('#component_settings_general select[name="public_form"]').val();
+        const description = $('#component_settings_general textarea[name="description"]').val();
+
+        this.table.modify(table_identifier, name, public_form, description).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_general .notifications', 'Tablas: Editar');
+            if(!result.Verify_()) return;
+            $('#component_settings_general .notifications').html('');
+            new wtools.Notification('SUCCESS').Show_('Tabla actualizada correctamente.');
+            this.readSettings();
+        });
+    }
+
+    preDeleteTable(){
+        const table_name = $('#component_settings_general input[name="name"]').val();
+        $('#component_settings_delete strong.header').html(table_name);
+        $('#component_settings_delete strong.name').html(table_name);
+        $('#component_settings_delete .notifications').html('');
+        $('#component_settings_delete').modal('show');
+    }
+
+    deleteTable(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        this.table.delete(table_identifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_delete .notifications', 'Tablas: Eliminar');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Tabla eliminada exitosamente.');
+            window.location.href = `/start`;
+        });
+    }
+
+    readPermissions(){
+        const wait = new wtools.ElementState('#component_settings_permissions .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            return;
+        }
+
+        this.tablePermission.read(table_identifier).then(response => {
+            wait.Off_();
+            $('#component_settings_permissions .notifications').html('');
+            $('#component_settings_permissions table tbody').html('');
+
+            const result = new ResponseManager(response, '#component_settings_permissions .notifications', 'Configuraciones: Permisos');
+            if(!result.Verify_()) return;
+
+            if(response.body.data.length < 1){
+                new wtools.Notification('SUCCESS', 5000, '#component_settings_permissions .notifications').Show_('Sin resultados.');
+                return;
+            }
+
+            new wtools.UIElementsCreator('#component_settings_permissions table tbody', response.body.data).Build_(row => {
+                const elements = [
+                    `<th scope="row">${row.username}</th>`,
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.read)}</td>`,
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.add)}</td>`,
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.modify)}</td>`,
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.delete)}</td>`,
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.just_owner)}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr permission-identifier="${row.identifier}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    preAddPermission(){
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        const select = new wtools.SelectOptions();
+        this.tablePermission.readUsersOut(table_identifier).then(response => {
+            try {
+                const tmp = [];
+                if(response.body.data.length < 1){
+                    tmp.push(new wtools.OptionValue("", "No hay usuarios disponibles."));
+                } else {
+                    for(const row of response.body.data){
+                        tmp.push(new wtools.OptionValue(row.identifier, row.username));
+                    }
+                }
+                select.options = tmp;
+                select.Build_('#component_settings_permissions_add select[name="id_user"]');
+                $('#component_settings_permissions_add .notifications').html('');
+                $('#component_settings_permissions_add form select[name="read"]').val("1");
+                $('#component_settings_permissions_add form select[name="add"]').val("1");
+                $('#component_settings_permissions_add form select[name="modify"]').val("1");
+                $('#component_settings_permissions_add form select[name="delete"]').val("1");
+                $('#component_settings_permissions_add form select[name="just_owner"]').val("0");
+                $('#component_settings_permissions_add').modal('show');
+            } catch(error){
+                new wtools.Notification('WARNING').Show_('No se pudo acceder a los usuarios de la base de datos.');
+                new wtools.Notification('WARNING', 0, '#component_settings_permissions_add .notifications').Show_('No se pudo acceder a los usuarios de la base de datos.');
+            }
+        });
+    }
+
+    addPermission(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_permissions_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_settings_permissions_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        const data = new FormData($('#component_settings_permissions_add form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        this.tablePermission.add(data).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_permissions_add .notifications', 'Permisos de tabla: A&ntilde;adir');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Permiso de tabla creado exitosamente.');
+            this.readPermissions();
+            $('#component_settings_permissions_add').modal('hide');
+        });
+    }
+
+    preModifyPermission(e){
+        const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        const identifier = $(e.currentTarget).attr('permission-identifier');
+        if(identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de permiso de tabla.');
+            return;
+        }
+
+        this.tablePermission.readByIdentifier(identifier, table_identifier).then(response => {
+            const result = new ResponseManager(response, '', 'Permisos de tabla: Modificar');
+            if(!result.Verify_()){
+                wait.Off_();
+                return;
+            }
+
+            if(response.body.data.length < 1){
+                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el permiso de tabla.');
+                wait.Off_();
+                return;
+            }
+
+            $('#component_settings_permissions_modify input[name="identifier"]').val(response.body.data[0].identifier);
+            $('#component_settings_permissions_modify input[name="id_user"]').val(response.body.data[0].username);
+            $('#component_settings_permissions_modify select[name="read"]').val(response.body.data[0].read);
+            $('#component_settings_permissions_modify select[name="add"]').val(response.body.data[0].add);
+            $('#component_settings_permissions_modify select[name="modify"]').val(response.body.data[0].modify);
+            $('#component_settings_permissions_modify select[name="delete"]').val(response.body.data[0].delete);
+            $('#component_settings_permissions_modify select[name="just_owner"]').val(response.body.data[0].just_owner);
+
+            wait.Off_();
+            $('#component_settings_permissions_modify form').removeClass('was-validated');
+            $('#component_settings_permissions_modify').modal('show');
+        });
+    }
+
+    modifyPermission(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_permissions_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_settings_permissions_modify .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            return;
+        }
+
+        const data = new FormData($('#component_settings_permissions_modify form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        this.tablePermission.modify(data).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_permissions_modify .notifications', 'Permiso de tabla: Modificar');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Permiso de tabla modificado exitosamente.');
+            $('#component_settings_permissions_modify').modal('hide');
+            this.readPermissions();
+        });
+    }
+
+    preDeletePermission(){
+        const data = new FormData($('#component_settings_permissions_modify form')[0]);
+        const identifier = data.get('identifier');
+        $('#component_settings_permissions_delete input[name=identifier]').val(identifier);
+        $('#component_settings_permissions_delete').modal('show');
+    }
+
+    deletePermission(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_permissions_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            return;
+        }
+
+        const identifier = $('#component_settings_permissions_delete input[name=identifier]').val();
+
+        this.tablePermission.delete(identifier, table_identifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_permissions_delete .notifications', 'Permiso de tabla: Eliminar');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_('Permiso de tabla eliminado.');
+            $('#component_settings_permissions_delete').modal('hide');
+            $('#component_settings_permissions_modify').modal('hide');
+            this.readPermissions();
+        });
+    }
+}

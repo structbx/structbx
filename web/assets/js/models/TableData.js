@@ -20,4 +20,7 @@ export class TableData{
     async delete(identifier, table_identifier){
         return await new wtools.Request(`/api/tables/data/delete?identifier=${identifier}&table-identifier=${table_identifier}`, "DEL").Exec_();
     }
+    async importData(data){
+        return await new wtools.Request("/api/tables/data/import", "POST", data, true).Exec_();
+    }
 }

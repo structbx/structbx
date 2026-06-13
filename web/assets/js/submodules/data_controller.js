@@ -810,4 +810,35 @@ export class DataController extends BaseController{
             this.changeIntVerification();
         });
     }
+
+    async export(){
+        const wait = new wtools.ElementState('#component_data_export .export', false, 'button', new wtools.WaitAnimation().for_button);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            return;
+        }
+
+        try {
+            const response = await new wtools.Request(`/api/tables/data/read?table-identifier=${this.getTableIdentifier()}&view-identifier=${this.getViewIdentifier()}&export=true`).MakeHTTPRequest();
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style.display = 'none';
+            a.href = url;
+            const timestamp = new Date().getTime();
+            a.download = `export_${timestamp}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            wait.Off_();
+            new wtools.Notification('SUCCESS').Show_('Exportaci&oacute;n exitosa');
+        } catch(error) {
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_(`Error al descargar el archivo: ${error}.`);
+        }
+    }
 }
