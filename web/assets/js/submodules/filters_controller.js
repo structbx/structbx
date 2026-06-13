@@ -309,6 +309,7 @@ export class FiltersController extends BaseController{
             // Clean
             wait.Off_();
             $('#component_filters_read .notifications').html('');
+            $(`#component_filters_read .contents`).html('');
 
             // Manage response
             const result = new ResponseManager(response_data, '#component_filters_read .notifications', 'Filtros: Leer');
@@ -317,6 +318,7 @@ export class FiltersController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
+                $('#filters_count').text('').toggleClass('d-none', true);
                 $(`#component_filters_read .contents`).html('<span class="text-muted p-2">No hay filtros</span>');
                 return;
             }
@@ -324,7 +326,6 @@ export class FiltersController extends BaseController{
             // Results elements creator
             wait.Off_();
             $('#component_filters_read .notifications').html('');
-            $(`#component_filters_read .contents`).html('');
 
             for(const filter of response_data.body.data){
                 this.setupNewFilterElement("modify", filter);

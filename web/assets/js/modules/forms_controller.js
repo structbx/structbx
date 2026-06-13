@@ -124,7 +124,6 @@ export class FormsController extends BaseController
                         table_element = $('<td></td>');
                         let customSelect = new DOME.CustomSelect(table_element);
                         customSelect.hiddenInput.attr('name', row.identifier);
-                        console.log(row)
                         this.linkSelectionOptions(customSelect, row.link_to, row.name, '#component_form_addData .notifications', undefined, '/forms');
                     }
                     else if(row.column_type == "user")

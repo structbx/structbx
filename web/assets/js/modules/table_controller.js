@@ -114,9 +114,6 @@ export class TableController extends BaseController {
             this.table_settings_controller.readSettings();
             this.table_settings_controller.readPermissions();
 
-            // Reset views
-            this.views_controller.read();
-
             // Set to active current tab
             $('#component_sidebar_tables .contents a.menu_table').removeClass('active');
             $(e.currentTarget).addClass('active');

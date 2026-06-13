@@ -159,6 +159,7 @@ export class SortsController extends BaseController{
             // Clean
             wait.Off_();
             $('#component_sorts_read .notifications').html('');
+            $(`#component_sorts_read .contents`).html('');
 
             // Manage response
             const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Filtros: Leer');
@@ -167,6 +168,7 @@ export class SortsController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
+                $('#sorts_count').text('').toggleClass('d-none', true);
                 $(`#component_sorts_read .contents`).html('<span class="text-muted p-2">No hay ordenamientos</span>');
                 return;
             }
@@ -174,7 +176,6 @@ export class SortsController extends BaseController{
             // Results elements creator
             wait.Off_();
             $('#component_sorts_read .notifications').html('');
-            $(`#component_sorts_read .contents`).html('');
 
             for(const sort of response_data.body.data){
                 this.setupNewSortElement("modify", sort);
