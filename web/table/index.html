@@ -123,8 +123,9 @@
                                 <!-- Filters Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <button id="filters_button" class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                             <i class="fas fa-filter"></i>
+                                            <span id="filters_count" class="badge bg-danger ms-1 d-none"></span>
                                         </button>
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
                                             <div id="component_filters_read">
@@ -142,8 +143,9 @@
                                 <!-- Sorts Options -->
                                 <div class="p-2 bd-highlight">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <button id="sorts_button" class="btn btn-sm btn-dark-shadow dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                                             <i class="fas fa-sort-amount-up"></i>
+                                            <span id="sorts_count" class="badge bg-danger ms-1 d-none"></span>
                                         </button>
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
                                             <div id="component_sorts_read">

@@ -313,7 +313,7 @@ export class Headers
                         <div class="vr mx-4 d-none d-md-inline-block"></div>
                         <li class="nav-item me-2">
                             <div class="d-flex align-items-center h-100 text-center">
-                                <a class="btn btn-sm btn-outline-light py-2 px-4 d-block d-md-inline-block w-100 mb-2 mb-md-0 go-button" go-path="/administration" go-hash="#my_account" href="#">
+                                <a class="btn btn-sm btn-outline-light py-2 px-4 d-block d-md-inline-block w-100 mb-2 mb-md-0 go-button" go-path="/settings" go-hash="#my_account" href="#">
                                     <span class="me-2"><i class="fas fa-user"></i></span>
                                     <span class="username_logued"></span>
                                 </a>

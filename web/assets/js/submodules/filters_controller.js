@@ -7,6 +7,36 @@ import { TableElements } from '../classes/table_elements.js';
 import { ViewFilter } from '../models/ViewFilter.js';
 import { TableColumn } from '../models/TableColumn.js';
 
+const OPERATORS_BY_TYPE = {
+    text: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'long-text': ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    user: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'current-user': ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    file: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    image: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'int-number': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'decimal-number': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    date: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    time: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'created-date': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    'updated-date': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    selection: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
+};
+
+const OPERATOR_LABELS = {
+    'LIKE': 'Contiene',
+    '=': 'Igual',
+    '!=': 'No igual',
+    '>': 'Mayor que',
+    '<': 'Menor que',
+    '>=': 'Mayor o igual que',
+    '<=': 'Menor o igual que',
+    'IN': 'Dentro de',
+    'NOT IN': 'No dentro de',
+    'IS NULL': 'Es nulo',
+    'IS NOT NULL': 'No es nulo'
+};
+
 export class FilterType
 {
     constructor()
@@ -80,15 +110,18 @@ export class FiltersController extends BaseController{
             $(element).find('.modify').css('background-color', '#bbb');
         }
         $(document).on('change', '#component_filters_read input[name=is_active]', e => {
+            this.updateFilterCount();
             changesNotSaved($(e.currentTarget).parent().parent());
         });
         $(document).on('change', '#component_filters_read select[name=column]', e => {
+            const filterElement = $(e.currentTarget).closest('.input-group');
+            this.updateFilterInputs(filterElement);
             changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_filters_read select[name=op]', e => {
             changesNotSaved($(e.currentTarget).parent());
         });
-        $(document).on('change', '#component_filters_read input[name=value]', e => {
+        $(document).on('change', '#component_filters_read [name=value]', e => {
             changesNotSaved($(e.currentTarget).parent());
         });
 
@@ -110,7 +143,7 @@ export class FiltersController extends BaseController{
                 <select class="form-select" name="op" required>
                     ${options}
                 </select>
-                <input type="text" class="form-control" name="value" placeholder="value" required/>
+                <input type="text" class="form-control" name="value" placeholder="Valor" required/>
                 <button type="button" class="btn btn-sm btn-dark-shadow ${type}"><i class="fas fa-${type=="modify" ? "pen" : "save"}"></i></button>
                 <button type="button" class="btn btn-sm btn-dark-shadow me-2 delete"><i class="fas fa-trash"></i></button>
             </div>
@@ -119,15 +152,20 @@ export class FiltersController extends BaseController{
 
     setupNewFilterElement(type="modify", filter_row = undefined)
     {
-        // Create filter
         let filter = this.getFilterElement(type)
+        let savedValue = filter_row ? filter_row.value : undefined;
 
-        // Setup row 'columns'
         this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) => {
 
             for(let column of response_data.body.data){
-                $(filter).find('select[name=column]').append($(`<option value="${column.identifier}">${column.name}</option>`))
+                let $option = $(`<option value="${column.identifier}">${column.name}</option>`);
+                $option.attr('data-column-type', column.column_type);
+                if(column.link_to){
+                    $option.attr('data-link-to', column.link_to);
+                }
+                $(filter).find('select[name=column]').append($option);
             }
+
             if(filter_row){
                 if(filter_row.identifier != undefined){
                     $(filter).attr('filter-identifier', filter_row.identifier);
@@ -138,16 +176,126 @@ export class FiltersController extends BaseController{
                 if(filter_row.op != undefined){
                     $(filter).find('select[name=op]').val(filter_row.op);
                 }
-                if(filter_row.value != undefined){
-                    $(filter).find('input[name=value]').val(filter_row.value);
-                }
                 if(filter_row.is_active != undefined){
                     $(filter).find('input[name=is_active]')[0].checked = filter_row.is_active == 0 ? false : true;
                 }
             }
 
-            // Add filter
             $('#component_filters_read .contents').append(filter);
+
+            if($(filter).find('select[name=column]').val()){
+                this.updateFilterInputs(filter, savedValue);
+            }
+        });
+    }
+
+    updateFilterInputs(filterElement, savedValue = undefined)
+    {
+        this.updateOperators(filterElement);
+        this.updateValueInput(filterElement, savedValue);
+    }
+
+    updateOperators(filterElement)
+    {
+        const $columnSelect = $(filterElement).find('select[name=column]');
+        const $opSelect = $(filterElement).find('select[name=op]');
+        const selectedOp = $opSelect.val();
+        const columnIdentifier = $columnSelect.val();
+
+        if(!columnIdentifier){
+            return;
+        }
+
+        const $selectedOption = $columnSelect.find('option:selected');
+        const columnType = $selectedOption.attr('data-column-type');
+
+        if(!columnType){
+            return;
+        }
+
+        const validOps = OPERATORS_BY_TYPE[columnType] || OPERATORS_BY_TYPE.text;
+
+        $opSelect.empty();
+        for(const op of validOps){
+            const label = OPERATOR_LABELS[op] || op;
+            $opSelect.append(`<option value="${op}">${label}</option>`);
+        }
+
+        if(validOps.includes(selectedOp)){
+            $opSelect.val(selectedOp);
+        }
+    }
+
+    updateValueInput(filterElement, savedValue = undefined)
+    {
+        const $columnSelect = $(filterElement).find('select[name=column]');
+        const columnIdentifier = $columnSelect.val();
+
+        if(!columnIdentifier){
+            return;
+        }
+
+        const $selectedOption = $columnSelect.find('option:selected');
+        const columnType = $selectedOption.attr('data-column-type');
+        const linkTo = $selectedOption.attr('data-link-to');
+        const isRestore = savedValue !== undefined;
+        const currentValue = isRestore ? savedValue : '';
+
+        let $newInput;
+
+        if(columnType === 'selection' && linkTo){
+            $newInput = $(`<select class="form-select" name="value" required><option value="">-- Ninguno --</option></select>`);
+            this.loadSelectionOptions(linkTo, $newInput, isRestore ? currentValue : undefined);
+        }
+        else if(columnType === 'int-number'){
+            $newInput = $(`<input type="number" step="1" class="form-control" name="value" placeholder="Valor" required/>`);
+        }
+        else if(columnType === 'decimal-number'){
+            $newInput = $(`<input type="number" step="any" class="form-control" name="value" placeholder="Valor" required/>`);
+        }
+        else if(columnType === 'date'){
+            $newInput = $(`<input type="date" class="form-control" name="value" required/>`);
+        }
+        else if(columnType === 'time'){
+            $newInput = $(`<input type="time" class="form-control" name="value" required/>`);
+        }
+        else if(columnType === 'created-date' || columnType === 'updated-date'){
+            $newInput = $(`<input type="datetime-local" class="form-control" name="value" required/>`);
+        }
+        else {
+            $newInput = $(`<input type="text" class="form-control" name="value" placeholder="Valor" required/>`);
+        }
+
+        $(filterElement).find('[name=value]').replaceWith($newInput);
+
+        if(isRestore && currentValue && columnType !== 'selection'){
+            $(filterElement).find('[name=value]').val(currentValue);
+        }
+    }
+
+    updateFilterCount()
+    {
+        const count = $('#component_filters_read .contents input[name=is_active]:checked').length;
+        $('#filters_count').text(count || '').toggleClass('d-none', count === 0);
+    }
+
+    loadSelectionOptions(linkTo, $select, selectedValue)
+    {
+        this.table_data.readToLinkSelectionOptions(linkTo).then((response_data) => {
+            if(response_data.body && response_data.body.data){
+                for(let row of response_data.body.data){
+                    const colId = response_data.body.columns[0];
+                    const colName = response_data.body.columns[1];
+                    let label = row[colName];
+                    if(row._structbx_column_colorHeader){
+                        label = Tools.headerRowColor(row._structbx_column_colorHeader, label);
+                    }
+                    $select.append(`<option value="${row[colId]}">${label}</option>`);
+                }
+            }
+            if(selectedValue){
+                $select.val(selectedValue);
+            }
         });
     }
 
@@ -181,6 +329,8 @@ export class FiltersController extends BaseController{
             for(const filter of response_data.body.data){
                 this.setupNewFilterElement("modify", filter);
             }
+            const activeCount = response_data.body.data.filter(f => f.is_active == 1).length;
+            $('#filters_count').text(activeCount || '').toggleClass('d-none', activeCount === 0);
         });
     }
 
@@ -197,7 +347,7 @@ export class FiltersController extends BaseController{
         const parent = $(e.currentTarget).parent();
         const column_identifier = parent.find('select[name=column]').val();
         const op = parent.find('select[name=op]').val();
-        const value = parent.find('input[name=value]').val();
+        const value = parent.find('[name=value]').val();
         const is_active = parent.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
@@ -222,6 +372,7 @@ export class FiltersController extends BaseController{
             $(e.target).find('i').addClass('fa-pen');
 
             $(parent).attr('filter-identifier', response_data.body.message);
+            this.updateFilterCount();
             this.onChanged();
         });
     }
@@ -241,7 +392,7 @@ export class FiltersController extends BaseController{
         // Get current values from the filter element
         const column_identifier = filter_element.find('select[name=column]').val();
         const op = filter_element.find('select[name=op]').val();
-        const value = filter_element.find('input[name=value]').val();
+        const value = filter_element.find('[name=value]').val();
         const is_active = filter_element.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
@@ -258,6 +409,7 @@ export class FiltersController extends BaseController{
                 return;
 
             $(filter_element).find('.modify').css('background-color', '#fff');
+            this.updateFilterCount();
             this.onChanged();
         });
     }
@@ -299,6 +451,7 @@ export class FiltersController extends BaseController{
                 return;
 
             $(filter_element).remove();
+            this.updateFilterCount();
             this.onChanged();
         });
     }

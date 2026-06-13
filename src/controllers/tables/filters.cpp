@@ -117,11 +117,12 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) " \
-        "SELECT ?, v.identifier, vc.id_column, ?, ?, ?, ? " \
-        "FROM views_columns vc " \
-        "JOIN views v ON v.identifier = vc.id_view " \
-        "WHERE v.identifier = ? AND v.id_table = ? AND vc.id_column = ? "
+        "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) "
+        "SELECT ?, v.identifier, tc.identifier, ?, ?, ?, ? "
+        "FROM tables_columns tc "
+        "JOIN tables t ON t.identifier = tc.id_table "
+        "JOIN views v ON v.id_table = t.identifier "
+        "WHERE v.identifier = ? AND v.id_table = ? AND tc.identifier = ? "
     );
 
     Tools::RandomGenerator rg;

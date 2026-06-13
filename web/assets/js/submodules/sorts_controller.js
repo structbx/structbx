@@ -75,6 +75,7 @@ export class SortsController extends BaseController{
             $(element).find('.modify').css('background-color', '#bbb');
         }
         $(document).on('change', '#component_sorts_read input[name=is_active]', e => {
+            this.updateSortCount();
             changesNotSaved($(e.currentTarget).parent().parent());
         });
         $(document).on('change', '#component_sorts_read select[name=column]', e => {
@@ -142,6 +143,12 @@ export class SortsController extends BaseController{
         });
     }
 
+    updateSortCount()
+    {
+        const count = $('#component_sorts_read .contents input[name=is_active]:checked').length;
+        $('#sorts_count').text(count || '').toggleClass('d-none', count === 0);
+    }
+
     read(){
         // Wait animation
         let wait = new wtools.ElementState('#component_sorts_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
@@ -172,6 +179,8 @@ export class SortsController extends BaseController{
             for(const sort of response_data.body.data){
                 this.setupNewSortElement("modify", sort);
             }
+            const activeCount = response_data.body.data.filter(s => s.is_active == 1).length;
+            $('#sorts_count').text(activeCount || '').toggleClass('d-none', activeCount === 0);
         });
     }
 
@@ -220,6 +229,7 @@ export class SortsController extends BaseController{
             $(e.target).find('i').addClass('fa-pen');
 
             $(parent).attr('sort-identifier', response_data.body.message);
+            this.updateSortCount();
             this.onChanged();
         });
     }
@@ -261,6 +271,7 @@ export class SortsController extends BaseController{
                 return;
 
             $(sort_element).find('.modify').css('background-color', '#fff');
+            this.updateSortCount();
             this.onChanged();
         });
     }
@@ -303,6 +314,7 @@ export class SortsController extends BaseController{
             const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Visibilidad: Modificar');
             if(!result.Verify_())
                 return;
+            this.updateSortCount();
             this.onChanged();
         });
     }
@@ -327,6 +339,7 @@ export class SortsController extends BaseController{
                 return;
 
             $(sort_element).remove();
+            this.updateSortCount();
             this.onChanged();
         });
     }
