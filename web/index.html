@@ -48,6 +48,20 @@
                                 <li class="breadcrumb-item database_name"></li>
                                 <li class="breadcrumb-item active" aria-current="page">Tablas</li>
                             </ol>
+                            <!-- Tables: Search -->
+                            <div class="d-flex gap-2">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 pe-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0 ps-2" id="table_search" placeholder="Buscar tablas por nombre..." autocomplete="off">
+                                    <button class="btn btn-outline-secondary border" type="button" id="table_search_clear" title="Limpiar b&uacute;squeda">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- /Tables: Search -->
+
                             <div class="p-2">
                                 <button class="btn btn-dark-shadow table_add">
                                     <i class="fas fa-plus"></i>

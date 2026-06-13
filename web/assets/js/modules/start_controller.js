@@ -71,6 +71,42 @@ export class StartController extends BaseController {
             e.preventDefault();
             this.addTable(e);
         });
+
+        // Table search / filter
+        const filterTables = () => {
+            const query = $('#table_search').val().toLowerCase().trim();
+            const $items = $('#component_tables_read .contents [table-identifier]');
+            let visibleCount = 0;
+
+            $items.each(function () {
+                const name = $(this).find('h5').text().toLowerCase();
+                const match = name.includes(query);
+                $(this).toggle(match);
+                if (match) visibleCount++;
+            });
+
+            // Remove existing no-results message
+            $('#component_tables_read .contents .table-search-no-results').remove();
+
+            if (query !== '' && visibleCount === 0) {
+                const total = $items.length;
+                const note = total === 0
+                    ? 'No hay tablas disponibles.'
+                    : 'Ninguna tabla coincide con la b&uacute;squeda.';
+                $('#component_tables_read .contents').append(`
+                    <div class="table-search-no-results text-center">
+                        <i class="fas fa-search mb-2 d-block"></i>
+                        <span>${note}</span>
+                    </div>
+                `);
+            }
+        };
+
+        $(document).on('keyup', '#table_search', filterTables);
+
+        $(document).on('click', '#table_search_clear', function () {
+            $('#table_search').val('').trigger('keyup').focus();
+        });
     }
 
     readTables(){
@@ -143,6 +179,9 @@ export class StartController extends BaseController {
             }
             super.hideTablesWithoutPermission();
             $('#component_tables_read .contents').show();
+            if ($('#table_search').val().trim() !== '') {
+                $('#table_search').trigger('keyup');
+            }
         });
     };
 

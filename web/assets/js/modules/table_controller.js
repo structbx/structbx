@@ -65,6 +65,35 @@ export class TableController extends BaseController {
             document.location.href = `/table?t=${table_identifier}`;
         });
 
+        // Sidebar table search / filter
+        const filterSidebarTables = () => {
+            const query = $('#sidebar_table_search').val().toLowerCase().trim();
+            const $items = $('#component_sidebar_tables .contents a.menu_table');
+            let visibleCount = 0;
+
+            $items.each(function () {
+                const name = $(this).find('span').text().toLowerCase();
+                const match = name.includes(query);
+                $(this).toggle(match);
+                if (match) visibleCount++;
+            });
+
+            $('#component_sidebar_tables .contents .sidebar-search-no-results').remove();
+
+            if (query !== '' && visibleCount === 0) {
+                const note = $items.length === 0
+                    ? 'Sin tablas disponibles.'
+                    : 'Ninguna tabla coincide.';
+                $('#component_sidebar_tables .contents').append(`
+                    <div class="sidebar-search-no-results text-muted small text-center py-2">
+                        ${note}
+                    </div>
+                `);
+            }
+        };
+
+        $(document).on('keyup', '#sidebar_table_search', filterSidebarTables);
+
         // Click on TABLE (sidebar menu)
         $(document).on('click', '#component_sidebar_tables .contents a.menu_table', (e) => {
             e.preventDefault();
@@ -161,6 +190,9 @@ export class TableController extends BaseController {
 
             super.hideTablesWithoutPermission();
             $('#component_sidebar_tables .contents').show();
+            if ($('#sidebar_table_search').val().trim() !== '') {
+                $('#sidebar_table_search').trigger('keyup');
+            }
         });
     };
 }
