@@ -397,18 +397,16 @@ bool Tables::Data::Read::Export::Start(Functions::Function& self, Functions::Act
             tmp_file << "\n";
             first = false;
         }
-        else
+        
+        // Save data
+        for(auto field : *row)
         {
-            // Save data
-            for(auto field : *row)
-            {
-                if(field->IsNull_())
-                    tmp_file << "\t";
-                else
-                    tmp_file << field->ToString_() + "\t";
-            }
-            tmp_file << "\n";
+            if(field->IsNull_())
+                tmp_file << "\t";
+            else
+                tmp_file << field->ToString_() + "\t";
         }
+        tmp_file << "\n";
 
     }
     tmp_file.close();
@@ -512,6 +510,12 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             return;
         }
 
+        // Export param
+        auto export_param = self.GetParameter_("export");
+        bool export_data = false;
+        if(export_param != self.get_parameters().end() && export_param->get()->ToString_() == "true")
+            export_data = true;
+
         // Get columns
         std::string columns = "";
         std::string joins = "";
@@ -561,8 +565,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 }
                 
                 // Setup column link
-                column = "_" + link_to->ToString_() + "." + display_value->ToString_() + " AS '" + name->ToString_() + "'" +
-                    ", _" + link_to->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + identifier->ToString_() + "_colorHeader'";
+                column = "_" + link_to->ToString_() + "." + display_value->ToString_() + " AS '" + name->ToString_() + "'";
+                if(!export_data)
+                    column += ", _" + link_to->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + identifier->ToString_() + "_colorHeader'";
 
                 // Setup new join
                 joins += " LEFT JOIN " + id_database + "." + link_to->ToString_() +
@@ -570,7 +575,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 table_identifier->get()->ToString_() + "." + identifier->ToString_();
             }
 
-            columns += ", " + column;
+            if(count == 0)
+                columns += column;
+            else
+                columns += ", " + column;
 
             count++;
         }
@@ -611,7 +619,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 filters_query += " AND " + just_owner_condition;
         }
         // Setup color header
-        columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
+        if(!export_data)
+            columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
 
         // Get page or limit
         auto page = self.GetParameter_("page");
@@ -658,9 +667,14 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             table_data->AddParameter_("identifier", record_identifier->get()->ToString_(), false);
         }
 
+        // Add identifier
+        std::string add_identifier =  "_" + table_identifier->get()->ToString_() + ".identifier, ";
+        if(export_data)
+            add_identifier = "";
+
         // Final SQL Code
         std::string sql_code = 
-            "SELECT _" + table_identifier->get()->ToString_() + ".identifier " + columns + " " \
+            "SELECT " + add_identifier + columns + " " \
             "FROM " + id_database + "." + table_identifier->get()->ToString_() + 
                 " AS _" + table_identifier->get()->ToString_()
         ;
@@ -673,11 +687,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         sql_code += filters_query;
         sql_code += sorts_query;
 
-        // Export param
-        auto export_param = self.GetParameter_("export");
-
         // Limit
-        if(export_param == self.get_parameters().end())
+        if(!export_data)
         {
             sql_code += limit_query;
         }
@@ -705,7 +716,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         };
 
         // Get export
-        if(export_param != self.get_parameters().end() && export_param->get()->ToString_() == "true")
+        if(export_data)
         {
             Export _export;
             if(!_export.Start(self, table_data))

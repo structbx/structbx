@@ -33,9 +33,9 @@ class StructBX::Controllers::Tables::Permissions : public Tools::FunctionData
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
-        struct Tables : public Tools::FunctionData
+        struct Current : public Tools::FunctionData
         {
-            Tables(Tools::FunctionData& function_data);
+            Current(Tools::FunctionData& function_data);
 
             void A1(StructBX::Functions::Action::Ptr action);
         };
@@ -72,7 +72,7 @@ class StructBX::Controllers::Tables::Permissions : public Tools::FunctionData
 
     private:
         Read struct_read_;
-        Tables struct_tables_;
+        Current struct_current_;
         ReadSpecific struct_read_specific_;
         ReadUsersOut struct_read_users_out_;
         Add struct_add_;

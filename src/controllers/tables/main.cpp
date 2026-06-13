@@ -411,7 +411,7 @@ Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
 void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -440,7 +440,7 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
 void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
-    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
         if(self.get_results()->size() > 0)
@@ -481,7 +481,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     action->set_sql_code(
         "UPDATE tables " \
         "SET name = ?, state = ?, public_form = ?, description = ? " \
-        "WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)"
+        "WHERE identifier = ? AND id_database = ?"
     );
 
     // Parameters and conditions
@@ -610,7 +610,7 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
 
 void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -638,7 +638,7 @@ void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
 
 void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("DELETE FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("DELETE FROM tables WHERE identifier = ? AND id_database = ?");
     action->AddParameter_("identifier", "", true);
     action->AddParameter_("database_identifier", get_database_id(), false);
 }

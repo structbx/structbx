@@ -139,7 +139,7 @@ export class BaseController {
     }
 
     readCurrentUserTablePermissions(callback){
-        this.table_permission.read().then((response_data) => {
+        this.table_permission.readCurrent().then((response_data) => {
             // Manage error
             const result = new ResponseManager(response_data, '');
             if(!result.Verify_())
@@ -150,7 +150,6 @@ export class BaseController {
             
             callback();
         })
-
     }
 
     verifyUserHasTablePermission(permission_endpoint){
