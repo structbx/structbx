@@ -1,5 +1,6 @@
 
 #include "controllers/general/main.h"
+#include "tools/random_generator.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -12,6 +13,9 @@ Main::Main(Tools::FunctionData& function_data) :
     ,struct_modify_instance_name_(function_data)
     ,struct_read_instance_logo_(function_data)
     ,struct_modify_instance_logo_(function_data)
+    ,struct_apikey_read_(function_data)
+    ,struct_apikey_generate_(function_data)
+    ,struct_apikey_revoke_(function_data)
 {
     
 }
@@ -61,7 +65,83 @@ Main::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_data)
         }
         return true;
     });
-    
+
+    get_functions()->push_back(function);
+}
+
+Main::ApiKeyRead::ApiKeyRead(Tools::FunctionData& function_data) :
+    Tools::FunctionData(function_data)
+{
+    // Function GET /api/general/users/apikey/read
+    StructBX::Functions::Function::Ptr function =
+        std::make_shared<StructBX::Functions::Function>("/api/general/users/apikey/read", HTTP::EnumMethods::kHTTP_GET);
+
+    auto action1 = function->AddAction_("a1");
+    action1->set_sql_code(
+        "SELECT api_key "
+        "FROM users "
+        "WHERE identifier = ?"
+    );
+    action1->AddParameter_("id_user", get_id_user(), false);
+
+    get_functions()->push_back(function);
+}
+
+Main::ApiKeyGenerate::ApiKeyGenerate(Tools::FunctionData& function_data) :
+    Tools::FunctionData(function_data)
+{
+    // Function PUT /api/general/users/apikey/generate
+    StructBX::Functions::Function::Ptr function =
+        std::make_shared<StructBX::Functions::Function>("/api/general/users/apikey/generate", HTTP::EnumMethods::kHTTP_PUT);
+
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    auto id_user = get_id_user();
+    function->SetupCustomProcess_([id_user](StructBX::Functions::Function& self)
+    {
+        // Generate API key: "sbx_" + 44 random alphanumeric chars
+        std::string api_key = "sbx_" + StructBX::Tools::RandomGenerator().GenerateAlphanumericID_(44);
+
+        // Save to DB
+        StructBX::Functions::Action action("ApiKeyGenerate");
+        action.set_sql_code(
+            "UPDATE users "
+            "SET api_key = ? "
+            "WHERE identifier = ?"
+        );
+        action.AddParameter_("api_key", api_key, false);
+        action.AddParameter_("id_user", id_user, false);
+
+        if(!action.Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error al generar la API key.");
+            return;
+        }
+
+        // Return the new API key
+        Poco::JSON::Object::Ptr json = new Poco::JSON::Object();
+        json->set("api_key", api_key);
+        self.CompoundFillResponse_(HTTP::Status::kHTTP_OK, json, "API key generada exitosamente.");
+    });
+
+    get_functions()->push_back(function);
+}
+
+Main::ApiKeyRevoke::ApiKeyRevoke(Tools::FunctionData& function_data) :
+    Tools::FunctionData(function_data)
+{
+    // Function PUT /api/general/users/apikey/revoke
+    StructBX::Functions::Function::Ptr function =
+        std::make_shared<StructBX::Functions::Function>("/api/general/users/apikey/revoke", HTTP::EnumMethods::kHTTP_PUT);
+
+    auto action1 = function->AddAction_("a1");
+    action1->set_sql_code(
+        "UPDATE users "
+        "SET api_key = NULL "
+        "WHERE identifier = ?"
+    );
+    action1->AddParameter_("id_user", get_id_user(), false);
+
     get_functions()->push_back(function);
 }
 

@@ -127,8 +127,76 @@ bool RootHandler::VerifySession_()
 
             return true;
         }
-        else
+
+    // Fallback to API key authentication
+        return VerifyApiKey_();
+}
+
+bool RootHandler::VerifyApiKey_()
+{
+    auto request = get_http_server_request().value();
+
+    // Extract API key from header (X-API-Key) or query parameter
+        std::string api_key;
+        try
+        {
+            api_key = request->get("X-API-Key", "");
+        }
+        catch(...)
+        {
+            api_key = "";
+        }
+
+        if(api_key.empty())
+        {
+            auto params = get_query_parameters();
+            auto it = std::find_if(params.begin(), params.end(),
+                [](const std::pair<std::string, std::string>& p) {
+                    return p.first == "api_key";
+                });
+            if(it != params.end())
+                api_key = it->second;
+        }
+
+        if(api_key.empty())
             return false;
+
+    // Look up user by API key
+        Functions::Action action("VerifyApiKey_");
+        action.set_sql_code(
+            "SELECT identifier, username, id_group, status, type "
+            "FROM users "
+            "WHERE api_key = ? AND status = 'active'"
+        );
+        action.AddParameter_("api_key", api_key, false);
+
+        if(!action.Work_())
+            return false;
+
+        if(action.get_results()->size() < 1)
+            return false;
+
+    // Set current user
+        auto row = action.get_results()->front();
+        auto id = row->ExtractField_("identifier");
+        auto username = row->ExtractField_("username");
+        auto id_group = row->ExtractField_("id_group");
+        auto status = row->ExtractField_("status");
+        auto type = row->ExtractField_("type");
+
+        if(id->IsNull_() || username->IsNull_())
+            return false;
+
+        get_users_manager().get_current_user().set_id(id->String_());
+        get_users_manager().get_current_user().set_username(username->String_());
+        if(!id_group->IsNull_())
+            get_users_manager().get_current_user().set_id_group(id_group->String_());
+        if(!status->IsNull_())
+            get_users_manager().get_current_user().set_status(status->String_());
+        if(!type->IsNull_())
+            get_users_manager().get_current_user().set_type(type->String_());
+
+        return true;
 }
 
 bool RootHandler::VerifyPermissions_()

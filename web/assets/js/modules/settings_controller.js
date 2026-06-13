@@ -56,6 +56,11 @@ export class SettingsController extends BaseController{
                 read: new wtools.Notification('WARNING', 5000, '#component_databases_users_read .notifications'),
                 add: new wtools.Notification('WARNING', 5000, '#component_databases_users_add .notifications'),
                 delete: new wtools.Notification('WARNING', 5000, '#component_databases_users_delete .notifications')
+            },
+            apikey: {
+                read: new wtools.Notification('WARNING', 5000, '#component_my_account_apikey .notifications'),
+                generate: new wtools.Notification('WARNING', 5000, '#component_my_account_apikey .notifications'),
+                revoke: new wtools.Notification('WARNING', 5000, '#component_my_account_apikey .notifications')
             }
         }
 
@@ -94,6 +99,7 @@ export class SettingsController extends BaseController{
         this.readGroups();
         this.readUsers();
         this.readCurrentUser();
+        this.readApiKey();
         this.readDatabases();
         this.initPermissionsGroupSelect();
 
@@ -134,6 +140,27 @@ export class SettingsController extends BaseController{
         // My Account
         $(document).on('submit', '#component_my_account_general form', e => this.modifyCurrentUser(e));
         $(document).on('submit', '#component_my_account_change_password form', e => this.changePassword(e));
+
+        // API Key
+        $(document).on('click', '#component_my_account_apikey .generate', () => this.generateApiKey());
+        $(document).on('click', '#component_my_account_apikey .revoke', () => this.revokeApiKey());
+        $(document).on('click', '#component_my_account_apikey .toggle-show', function() {
+            const input = $('#component_my_account_apikey input[name="api_key"]');
+            const icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+        $(document).on('click', '#component_my_account_apikey .copy', function() {
+            const input = $('#component_my_account_apikey input[name="api_key"]')[0];
+            input.select();
+            document.execCommand('copy');
+            new wtools.Notification('SUCCESS').Show_('API key copiada al portapapeles.');
+        });
 
         // ---- GROUPS ----
         $(document).on('click', '#component_groups_read .add', (e) => {
@@ -895,6 +922,54 @@ export class SettingsController extends BaseController{
             new wtools.Notification('SUCCESS').Show_('Permiso eliminado.');
             $('#component_permissions_delete').modal('hide');
             this.readPermissions();
+        });
+    }
+
+    // --------------------------------------------------
+    // API KEY
+    // --------------------------------------------------
+    readApiKey() {
+        const wait = new wtools.ElementState('#component_my_account_apikey .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+        this.user.apiKeyRead().then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Leer');
+            if (!result.Verify_()) return;
+
+            const input = $('#component_my_account_apikey input[name="api_key"]');
+            if (response.body.data.length > 0 && response.body.data[0].api_key) {
+                const key = response.body.data[0].api_key;
+                const masked = '*'.repeat(key.length - 4) + key.slice(-4);
+                input.val(masked).data('full', key).attr('type', 'password');
+            } else {
+                input.val('').data('full', '');
+            }
+        });
+    }
+
+    generateApiKey() {
+        const wait = new wtools.ElementState('#component_my_account_apikey .generate', true, 'button', new wtools.WaitAnimation().for_button);
+        this.user.apiKeyGenerate().then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Generar');
+            if (!result.Verify_()) return;
+
+            const key = response.body.api_key;
+            const input = $('#component_my_account_apikey input[name="api_key"]');
+            input.val(key).data('full', key).attr('type', 'text');
+            new wtools.Notification('SUCCESS').Show_('API key generada exitosamente.');
+        });
+    }
+
+    revokeApiKey() {
+        const wait = new wtools.ElementState('#component_my_account_apikey .revoke', true, 'button', new wtools.WaitAnimation().for_button);
+        this.user.apiKeyRevoke().then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Revocar');
+            if (!result.Verify_()) return;
+
+            const input = $('#component_my_account_apikey input[name="api_key"]');
+            input.val('').data('full', '');
+            new wtools.Notification('SUCCESS').Show_('API key revocada exitosamente.');
         });
     }
 }

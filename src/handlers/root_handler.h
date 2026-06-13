@@ -122,6 +122,7 @@ class StructBX::Handlers::RootHandler :
         Functions::Function::Ptr AddFunction_(std::string endpoint, HTTP::EnumMethods method);
         virtual void Process_() = 0;
         bool VerifySession_();
+        bool VerifyApiKey_();
         bool VerifyPermissions_();
         bool IdentifyRoute_();
         void ManageRequestBody_();

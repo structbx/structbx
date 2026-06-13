@@ -45,6 +45,18 @@ class StructBX::Controllers::General::Main : public Tools::FunctionData
         {
             ModifyInstanceLogo(Tools::FunctionData& function_data);
         };
+        struct ApiKeyRead : public Tools::FunctionData
+        {
+            ApiKeyRead(Tools::FunctionData& function_data);
+        };
+        struct ApiKeyGenerate : public Tools::FunctionData
+        {
+            ApiKeyGenerate(Tools::FunctionData& function_data);
+        };
+        struct ApiKeyRevoke : public Tools::FunctionData
+        {
+            ApiKeyRevoke(Tools::FunctionData& function_data);
+        };
 
     private:
         Users function_users_;
@@ -54,6 +66,9 @@ class StructBX::Controllers::General::Main : public Tools::FunctionData
         ModifyInstanceName struct_modify_instance_name_;
         ReadInstanceLogo struct_read_instance_logo_;
         ModifyInstanceLogo struct_modify_instance_logo_;
+        ApiKeyRead struct_apikey_read_;
+        ApiKeyGenerate struct_apikey_generate_;
+        ApiKeyRevoke struct_apikey_revoke_;
 
 };
 

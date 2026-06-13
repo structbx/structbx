@@ -349,6 +349,46 @@
                                 </article>
                                 <!-- /My Account: Change password -->
 
+                                <!-- My Account: API Key -->
+                                <article id="component_my_account_apikey" class="card p-4 bg-white mb-4">
+                                    <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                        <div class="flex-grow-1 align-self-center">
+                                            <span class="fw-bold">API Key</span>
+                                        </div>
+                                    </header>
+                                    <div class="mb-2 mt-4">
+
+                                        <div class="notifications"></div>
+
+                                        <div class="apikey-display mb-3">
+                                            <label class="form-label">Tu API Key</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="api_key" readonly>
+                                                <button class="btn btn-outline-secondary copy" title="Copiar al portapapeles">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary toggle-show" title="Mostrar/Ocultar">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <small class="text-muted">
+                                                Usa este header en tus peticiones: <code>X-API-Key: &lt;tu_key&gt;</code>
+                                            </small>
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary generate">
+                                                <i class="fas fa-key me-2"></i>Generar nueva
+                                            </button>
+                                            <button class="btn btn-danger revoke">
+                                                <i class="fas fa-trash me-2"></i>Revocar
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </article>
+                                <!-- /My Account: API Key -->
+
                             </section>
                             <!-- /My Account section -->
 

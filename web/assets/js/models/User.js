@@ -43,4 +43,16 @@ export class User{
 
         return await new wtools.Request("/api/general/users/current/password/modify", "PUT", data, false).Exec_();
     }
+
+    async apiKeyRead(){
+        return await new wtools.Request("/api/general/users/apikey/read").Exec_();
+    }
+
+    async apiKeyGenerate(){
+        return await new wtools.Request("/api/general/users/apikey/generate", "PUT").Exec_();
+    }
+
+    async apiKeyRevoke(){
+        return await new wtools.Request("/api/general/users/apikey/revoke", "PUT").Exec_();
+    }
 }

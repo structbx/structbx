@@ -176,9 +176,11 @@ CREATE TABLE `users` (
   `type` VARCHAR(100) NOT NULL DEFAULT 'default' ,
   `created_at` DATETIME NOT NULL DEFAULT current_timestamp() ,
   `id_group` VARCHAR(100) NULL DEFAULT NULL ,
+  `api_key` VARCHAR(64) NULL DEFAULT NULL ,
    PRIMARY KEY (`id`),
   CONSTRAINT `UQ_users_username` UNIQUE (`username`),
-  CONSTRAINT `UQ_users_identifier` UNIQUE (`identifier`)
+  CONSTRAINT `UQ_users_identifier` UNIQUE (`identifier`),
+  CONSTRAINT `UQ_users_api_key` UNIQUE (`api_key`)
 )
 ENGINE = InnoDB;
 CREATE TABLE `tables_columns` ( 
