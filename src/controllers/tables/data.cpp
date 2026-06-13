@@ -1217,7 +1217,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
 
 void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
 {
-    action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
+    action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
     {
@@ -1247,11 +1247,10 @@ void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
 void Tables::Data::Import::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fc.*, fct.identifier AS column_type " \
+        "SELECT fc.* " \
         "FROM tables_columns fc " \
-        "JOIN tables_columns_types fct ON fct.identifier = fc.id_column_type " \
         "JOIN tables f ON f.identifier = fc.id_table " \
-        "WHERE f.identifier = ? AND f.id_database = (SELECT id FROM `databases` WHERE identifier = ?) "
+        "WHERE f.identifier = ? AND f.id_database = ? "
     );
     action->set_final(false);
     action->AddParameter_("table-identifier", "", true)
