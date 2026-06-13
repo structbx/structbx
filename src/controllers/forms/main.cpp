@@ -226,11 +226,6 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    // Verify if link table is in main table
-    auto vltim = function->AddAction_("vltim");
-    VerifyLinkTableIsInMain struct_verify_link_table_is_in_main(function_data);
-    struct_verify_link_table_is_in_main.A1(vltim);
-
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
@@ -238,7 +233,7 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
 
     // Setup custom process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, pfv, vltim](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, pfv](StructBX::Functions::Function& self)
     {
         // Public form verification
         if(!pfv->Work_())
@@ -246,15 +241,10 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 5u2UPHVRHkF6");
             return;
         }
-        // vltim verification
-        if(!vltim->Work_())
+        auto public_form = pfv->get_results()->First_();
+        if(public_form->IsNull_() || public_form->ToString_() != "1")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 8qFiCgyBRE6G");
-            return;
-        }
-        if(vltim->get_results()->size() == 0)
-        {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error vMKUEWq6UnT2");
+            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "Error 5hXOSg5yxPtW");
             return;
         }
         

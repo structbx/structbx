@@ -98,14 +98,21 @@ export class TableController extends BaseController {
         $(document).on('click', '#component_sidebar_tables .contents a.menu_table', (e) => {
             e.preventDefault();
 
-            // Get Form identifier
+            // Get table identifier
             const new_table_identifier = $(e.currentTarget).attr('table-identifier');
 
-            // Reset URL parameters and set new form identifier
+            // Reset URL parameters and set new table identifier
             const url = new URL(window.location.href);
             url.searchParams.delete('v');
             url.searchParams.set('t', new_table_identifier);
             history.pushState({}, '', url.toString());
+
+            // Reset table info and settings
+            this.readCurrentTableInfo();
+            
+            this.views_controller.read();
+            this.table_settings_controller.readSettings();
+            this.table_settings_controller.readPermissions();
 
             // Reset views
             this.views_controller.read();

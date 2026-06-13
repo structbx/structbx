@@ -46,16 +46,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
             "t.identifier = ? "
         "ORDER BY COALESCE(vc.position, tc.position) ASC"
     );
-    action->AddParameter_("view-identifier", "", true)
-    ->SetupCondition_("condition-view-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("El identificador de vista no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
+    action->AddParameter_("view-identifier", "", true);
     action->AddParameter_("table-identifier", "", true)
     ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
