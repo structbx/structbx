@@ -166,9 +166,7 @@ void BackendHandler::SetupFunctionData_()
 
                 Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
                 cookie.setPath("/");
-                cookie.setSameSite(Net::HTTPCookie::SAME_SITE_STRICT);
                 cookie.setSecure(true);
-                cookie.setHttpOnly();
                 database_id_cookie_ = HTTP::Cookie(cookie);
             }
         }

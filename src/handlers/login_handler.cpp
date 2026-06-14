@@ -94,8 +94,6 @@ void LoginHandler::StartSession_()
         Poco::Net::HTTPCookie cookie("structbx-sid", session.get_id());
         cookie.setPath(session.get_path());
         cookie.setMaxAge(session.get_max_age());
-        cookie.setSameSite(Poco::Net::HTTPCookie::SAME_SITE_STRICT);
-        cookie.setHttpOnly(true);
         cookie.setSecure(true);
 
         auto& response = get_http_server_response().value();
@@ -118,8 +116,13 @@ void LoginHandler::EndSession_()
         cookie.setPath("/");
         cookie.setMaxAge(-1);
 
+        Poco::Net::HTTPCookie cookie2(Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), "");
+        cookie2.setPath("/");
+        cookie2.setMaxAge(-1);
+
         auto& response = get_http_server_response().value();
         response->addCookie(cookie);
+        response->addCookie(cookie2);
 
         JSONResponse_(HTTP::Status::kHTTP_OK, "Client logout.");
 }

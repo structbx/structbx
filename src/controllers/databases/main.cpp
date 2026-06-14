@@ -364,9 +364,7 @@ Main::Change::Change(Tools::FunctionData& function_data) :
             auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_identifier->ToString_());
             Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
             cookie.setPath("/");
-            cookie.setSameSite(Net::HTTPCookie::SAME_SITE_STRICT);
             cookie.setSecure(true);
-            cookie.setHttpOnly();
 
             auto& response = self.get_http_server_response().value();
             response->addCookie(cookie);
