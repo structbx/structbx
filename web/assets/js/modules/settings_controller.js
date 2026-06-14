@@ -107,6 +107,8 @@ export class SettingsController extends BaseController{
     }
 
     bindEvents(){
+        super.bindEvents();
+
         // ---- INSTANCE ----
         $(document).on('submit', '#component_instance_name_read form', (e) => {
             e.preventDefault();

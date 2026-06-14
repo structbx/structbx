@@ -305,6 +305,7 @@ export class ColumnsController extends BaseController{
             }
 
             // Set data
+            $('#component_columns_modify .identifier').text(response_data.body.data[0].identifier);
             $('#component_columns_modify input[name="identifier"]').val(response_data.body.data[0].identifier);
             $('#component_columns_modify input[name="name"]').val(response_data.body.data[0].name);
             $('#component_columns_modify select[name="required"]').val(response_data.body.data[0].required);
