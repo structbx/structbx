@@ -545,6 +545,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             {
                 has_link = true;
 
+                // Reset results
+                link_to_action->get_results()->clear();
+
                 // Get table link identifier and display_value
                 link_to_action->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(link_to->ToString_())), "link_to");
                 if(!link_to_action->Work_())
