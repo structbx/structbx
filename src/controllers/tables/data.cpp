@@ -596,6 +596,54 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Filters and Sorts
         std::string filters_query = GetFilters().Get(self, view_identifier->get()->ToString_());
         std::string sorts_query = GetSorts().Get(self, view_identifier->get()->ToString_());
+
+        // Dynamic filters from query parameters
+        {
+            static const std::unordered_set<std::string> kReservedParams = {
+                "table-identifier", "view-identifier", "from", "export",
+                "page", "limit", "identifier"
+            };
+
+            std::unordered_set<std::string> valid_columns;
+            for (auto& row : *table_columns->get_results())
+            {
+                auto col_id = row->ExtractField_("identifier");
+                if (!col_id->IsNull_())
+                    valid_columns.insert(col_id->ToString_());
+            }
+
+            for (auto& param : self.get_parameters())
+            {
+                if (kReservedParams.find(param->get_name()) != kReservedParams.end())
+                    continue;
+                if (param->get_parameter_type() != Query::ParameterType::kField)
+                    continue;
+                if (valid_columns.find(param->get_name()) == valid_columns.end())
+                    continue;
+
+                auto param_value = param->get_value()->ToString_();
+                if (param_value.empty())
+                    continue;
+
+                std::string escaped_value;
+                escaped_value.reserve(param_value.size());
+                for (char ch : param_value)
+                {
+                    if (ch == '\'')
+                        escaped_value += "''";
+                    else
+                        escaped_value += ch;
+                }
+
+                std::string condition = "_" + table_identifier->get()->ToString_() + "."
+                                      + param->get_name() + " = '" + escaped_value + "'";
+
+                if (filters_query.empty())
+                    filters_query = " WHERE " + condition;
+                else
+                    filters_query += " AND " + condition;
+            }
+        }
         
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
