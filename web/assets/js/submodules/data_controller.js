@@ -356,17 +356,8 @@ export class DataController extends BaseController{
         // Path request
         let path = "";
         if(reload){
-            // Set current limit
-            //this.data_read_limit = $('#component_data_read table tbody')[0].rows.length;
-            this.data_read_limit = 20 * this.data_read_page;
             if(clean)
                 $('#component_data_read table tbody').html('');
-
-            // Setup path
-            if(this.data_read_limit < 20)
-                path = `&limit=20`;
-            else
-                path = `&limit=${this.data_read_limit}`;
         } else {
             // Setup path
             path = `&page=${this.data_read_page}`;
@@ -407,10 +398,6 @@ export class DataController extends BaseController{
 
             // Get path
             const path = this.getPath(reload);
-            if(path == ""){
-                this.freeMutex();
-                return;
-            }
 
             // Request
             this.tableData.readAll(this.getTableIdentifier(), this.getViewIdentifier(), path)

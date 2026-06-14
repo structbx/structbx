@@ -673,33 +673,19 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         if(!export_data)
             columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
 
-        // Get page or limit
+        // Get page
         auto page = self.GetParameter_("page");
-        auto limit = self.GetParameter_("limit");
         int offset = 0;
-        std::string limit_query = " LIMIT ";
+        std::string limit_query = " LIMIT 20 ";
         if(page != self.get_parameters().end())
         {
             try
             {
                 // LIMIT M, N
                 offset = (std::stoi(page->get()->ToString_()) - 1) * 20;
-                limit_query += std::to_string(offset) + ", 20";
+                limit_query += " LIMIT " + std::to_string(offset) + ", 20";
             }
             catch(std::exception&){StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/data.cpp: Page parameter is not an integer");}
-        }
-        else if(limit != self.get_parameters().end())
-        {
-            try
-            {
-                // LIMIT N
-                limit_query += limit->get()->ToString_();
-            }
-            catch(std::exception&){StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/data.cpp: Limit parameter error");}
-        }
-        else
-        {
-            limit_query = "";
         }
 
         // Action: Table data
