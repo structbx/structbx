@@ -163,7 +163,7 @@ export class TableSettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_settings_delete .notifications', 'Tablas: Eliminar');
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_('Tabla eliminada exitosamente.');
-            window.location.href = `/start`;
+            window.location.href = `/`;
         });
     }
 
