@@ -27,7 +27,6 @@ export class DataController extends BaseController{
         this.data_read_page = 1;
         this.data_read_limit = 20;
         this.data_read_page_end = false;
-        this.data_read_columns = [];
         this.users_in_database = {};
         this.read_mutex = false;
         this.colorsSelect = 
@@ -214,9 +213,9 @@ export class DataController extends BaseController{
 
     bindEvents(){
         // Pagination
-        $('#component_data_read .contents').on("scroll", function(e){
+        $('#component_data_read .dynamic-table-wrapper').on("scroll", (e) => {
             if(e.currentTarget.scrollTop + e.currentTarget.clientHeight >= e.currentTarget.scrollHeight){
-                if($('#component_data_read table tbody').html() != "")
+                if($('#component_data_read #tableBody').children().length > 0)
                     this.read();
             }
         });
@@ -270,6 +269,9 @@ export class DataController extends BaseController{
             e.preventDefault();
             this.export();
         });
+
+        // Start polling for real-time updates
+        setInterval(() => this.changeIntVerification(), 5000);
     }
 
     clear()
@@ -284,12 +286,6 @@ export class DataController extends BaseController{
             $('#component_data_read #headerRow').append($(this.column_placeholder()));
             $('#component_data_read #tableBody').append($(this.row_placeholder()));
         }
-    }
-
-    start()
-    {
-        //this.ReadUsersInDatabase_(() => this.read());
-        //setInterval(this.changeIntVerification.bind(this), 5000);
     }
 
     createColumn(response_data){
@@ -354,17 +350,10 @@ export class DataController extends BaseController{
         return elements;
     }
 
-    getPath = (reload, clean = true) => {
-        // Path request
-        let path = "";
-        if(reload){
-            if(clean)
-                $('#component_data_read table tbody').html('');
-        } else {
-            // Setup path
-            path = `&page=${this.data_read_page}`;
-        }
-        return path;
+    getPath = (reload) => {
+        if(reload)
+            return "";
+        return `&page=${this.data_read_page}`;
     }
 
     getBodyData = (response_data) => {
@@ -394,6 +383,7 @@ export class DataController extends BaseController{
             }
 
             if(reload){
+                this.data_read_page = 1;
                 this.clear();
                 this.setupPlaceholders();
             }
@@ -450,11 +440,11 @@ export class DataController extends BaseController{
                 if(!reload)
                     this.data_read_page++;
 
-                // Change int verification
-                this.changeIntVerification();
-
                 // Free mutex
                 this.freeMutex();
+
+                // Change int verification
+                this.changeIntVerification();
             });
         } catch(error) {
             // Free mutex
@@ -517,6 +507,8 @@ export class DataController extends BaseController{
                 } else {
                     // If there is new changeInt, refresh rows
                     let reload = false;
+                    let updates = [];
+                    let deletes = [];
                     for(let row of data) {
                         this.changeInt = row.id;
                         switch(row.operation){
@@ -524,18 +516,24 @@ export class DataController extends BaseController{
                                 reload = true;
                                 break;
                             case "update":
-                                this.updateRow(row.id_row);
+                                updates.push(row.id_row);
                                 break;
                             case "delete":
-                                $(`#${row.id_row}`).remove();
+                                deletes.push(row.id_row);
                                 break;
                             case "import":
                                 reload = true;
                                 break;
                         }
                     }
-                    if(reload)
+                    if(reload) {
                         this.read(true);
+                    } else {
+                        for(const id of deletes)
+                            $(`#${id}`).remove();
+                        for(const id of updates)
+                            this.updateRow(id);
+                    }
                 }
             }
         });

@@ -701,8 +701,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             try
             {
                 // LIMIT M, N
-                offset = (std::stoi(page->get()->ToString_()) - 1) * 20;
-                limit_query += " LIMIT " + std::to_string(offset) + ", 20";
+                offset = std::stoi(page->get()->ToString_()) * 20;
+                limit_query = " LIMIT " + std::to_string(offset) + ", 20";
             }
             catch(std::exception&){StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/data.cpp: Page parameter is not an integer");}
         }
