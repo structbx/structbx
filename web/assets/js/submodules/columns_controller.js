@@ -7,6 +7,8 @@ import { TableElements } from '../classes/table_elements.js';
 import { Table } from '../models/Table.js';
 import { TableColumn } from '../models/TableColumn.js';
 
+import { ColumnType } from '../constants/column_types.js';
+
 export class ColumnsController extends BaseController{
     constructor(onChangedCallback = () => {}) {
         super();
@@ -30,19 +32,19 @@ export class ColumnsController extends BaseController{
         this.options_required.Build_('#component_columns_modify select[name="required"]');
 
         this.options_column_type = new wtools.SelectOptions([
-            new wtools.OptionValue("text", "Texto", true),
-            new wtools.OptionValue("long-text", "Texto largo", false),
-            new wtools.OptionValue("int-number", "Número entero", false),
-            new wtools.OptionValue("decimal-number", "Número decimal", false),
-            new wtools.OptionValue("date", "Fecha", false),
-            new wtools.OptionValue("time", "Hora", false),
-            new wtools.OptionValue("file", "Archivo", false),
-            new wtools.OptionValue("image", "Imagen", false),
-            new wtools.OptionValue("selection", "Selección", false),
-            new wtools.OptionValue("user", "Usuario", false),
-            new wtools.OptionValue("current-user", "Usuario actual", false),
-            new wtools.OptionValue("created-date", "Fecha de creación", false),
-            new wtools.OptionValue("updated-date", "Fecha de actualización", false)
+            new wtools.OptionValue(ColumnType.Text, "Texto", true),
+            new wtools.OptionValue(ColumnType.LongText, "Texto largo", false),
+            new wtools.OptionValue(ColumnType.IntNumber, "Número entero", false),
+            new wtools.OptionValue(ColumnType.DecimalNumber, "Número decimal", false),
+            new wtools.OptionValue(ColumnType.Date, "Fecha", false),
+            new wtools.OptionValue(ColumnType.Time, "Hora", false),
+            new wtools.OptionValue(ColumnType.File, "Archivo", false),
+            new wtools.OptionValue(ColumnType.Image, "Imagen", false),
+            new wtools.OptionValue(ColumnType.Selection, "Selección", false),
+            new wtools.OptionValue(ColumnType.User, "Usuario", false),
+            new wtools.OptionValue(ColumnType.CurrentUser, "Usuario actual", false),
+            new wtools.OptionValue(ColumnType.CreatedDate, "Fecha de creación", false),
+            new wtools.OptionValue(ColumnType.UpdatedDate, "Fecha de actualización", false)
         ]);
         this.options_column_type.Build_('#component_columns_add select[name="column_type"]');
         this.options_column_type.Build_('#component_columns_modify select[name="column_type"]');
@@ -92,7 +94,7 @@ export class ColumnsController extends BaseController{
 
         // Column type selection on/off
         const change_column_type = (target) => {
-            if($(`${target} select[name=column_type]`).val() == "selection")
+            if($(`${target} select[name=column_type]`).val() == ColumnType.Selection)
             {
                 $(`${target} .link_to_tr`).removeClass('d-none');
                 $(`${target} form select[name="link_to"]`).prop('disabled', false);
@@ -225,7 +227,7 @@ export class ColumnsController extends BaseController{
         const link_to = $('#component_columns_add select[name=link_to]').val();
 
         // Verify if column type is selection then link_to is required
-        if(column_type == "selection" && (link_to == null || link_to == "" || link_to == undefined)){
+        if(column_type == ColumnType.Selection && (link_to == null || link_to == "" || link_to == undefined)){
             wait.Off_();
             this.notification.add.Show_('Debe especificar la tabla a enlazar.');
             return;
@@ -347,7 +349,7 @@ export class ColumnsController extends BaseController{
         const link_to = $('#component_columns_modify select[name=link_to]').val();
 
         // Verify if column type is selection then link_to is required
-        if(column_type == "selection" && (link_to == null || link_to == "" || link_to == undefined)){
+        if(column_type == ColumnType.Selection && (link_to == null || link_to == "" || link_to == undefined)){
             wait.Off_();
             this.notification.add.Show_('Debe especificar la tabla a enlazar.');
             return;

@@ -1,5 +1,6 @@
 
 #include "controllers/tables/data.h"
+#include "controllers/tables/column_types.h"
 
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
@@ -581,7 +582,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 " AS _" + link_to->ToString_() + " ON _" + link_to->ToString_() + ".identifier = _" + 
                 table_identifier->get()->ToString_() + "." + identifier->ToString_();
             }
-            else if(!column_type->IsNull_() && (column_type->ToString_() == "user" || column_type->ToString_() == "current-user"))
+            else if(!column_type->IsNull_() && (column_type->ToString_() == ColumnType::User || column_type->ToString_() == ColumnType::CurrentUser))
             {
                 if(has_record_identifier)
                     column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
@@ -1528,7 +1529,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             if(column_type->IsNull_())
                 continue;
             bool r = false;
-            if(column_type->ToString_() == "image" || column_type->ToString_() == "file")
+            if(column_type->ToString_() == ColumnType::Image || column_type->ToString_() == ColumnType::File)
                 r = true;
             if(!r)
                 continue;
@@ -1705,11 +1706,11 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
             continue;
 
         // Skip auto-managed columns (handled by DB defaults/triggers)
-        if(column_type->ToString_() == "created-date" || column_type->ToString_() == "updated-date")
+        if(column_type->ToString_() == ColumnType::CreatedDate || column_type->ToString_() == ColumnType::UpdatedDate)
             continue;
 
         // Step 2: Search column type image or file
-        if(column_type->ToString_() == "image" || column_type->ToString_() == "file")
+        if(column_type->ToString_() == ColumnType::Image || column_type->ToString_() == ColumnType::File)
         {
             // Get file manager
             auto file_manager = self.get_file_manager();

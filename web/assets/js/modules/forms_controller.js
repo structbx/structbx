@@ -4,6 +4,8 @@ import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
 import { Form } from '../models/Form.js';
 
+import { ColumnType } from '../constants/column_types.js';
+
 export class FormsController extends BaseController
 {
     constructor()
@@ -108,10 +110,10 @@ export class FormsController extends BaseController
 
                 new wtools.UIElementsCreator('#component_form_addData table tbody', response_data.body.data).Build_((row) =>
                 {
-                    if(row.identifier == "identifier" || row.column_type == "created-date" || row.column_type == "updated-date")
+                    if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
                         return undefined;
 
-                    const column_type = wtools.IFUndefined(row.column_type, "text");
+                    const column_type = wtools.IFUndefined(row.column_type, ColumnType.Text);
                     let table_element_object = new TableElements(column_type, row, table_identifier);
                     let table_element = $(table_element_object.Get_());
                     let table_icon = table_element_object.GetIcon_();
@@ -119,14 +121,14 @@ export class FormsController extends BaseController
                     if(table_element == undefined)
                         return undefined;
 
-                    if(row.column_type == "selection")
+                    if(row.column_type == ColumnType.Selection)
                     {
                         table_element = $('<td></td>');
                         let customSelect = new DOME.CustomSelect(table_element);
                         customSelect.hiddenInput.attr('name', row.identifier);
                         this.linkSelectionOptions(customSelect, row.link_to, row.name, '#component_form_addData .notifications', undefined, '/forms');
                     }
-                    else if(row.column_type == "user")
+                    else if(row.column_type == ColumnType.User)
                     {
                         table_element = $('<td></td>');
                         let customSelect = new DOME.CustomSelect(table_element);

@@ -1,3 +1,5 @@
+import { ColumnType } from '../constants/column_types.js';
+
 export class TableElements
 {
     constructor(element_type, data, table_identifier)
@@ -11,7 +13,7 @@ export class TableElements
         let return_element;
         switch(this.element_type)
         {
-            case "text":
+            case ColumnType.Text:
             {
                 return_element = this.Text_
                 (
@@ -22,7 +24,7 @@ export class TableElements
                 );
                 break;
             }
-            case "long-text":
+            case ColumnType.LongText:
             {
                 return_element = this.LongText_
                 (
@@ -33,7 +35,7 @@ export class TableElements
                 );
                 break;
             }
-            case "int-number":
+            case ColumnType.IntNumber:
             {
                 return_element = this.IntNumber_
                 (
@@ -44,7 +46,7 @@ export class TableElements
                 );
                 break;
             }
-            case "decimal-number":
+            case ColumnType.DecimalNumber:
             {
                 return_element = this.DecimalNumber_
                 (
@@ -55,7 +57,7 @@ export class TableElements
                 );
                 break;
             }
-            case "date":
+            case ColumnType.Date:
             {
                 return_element = this.Date_
                 (
@@ -65,7 +67,7 @@ export class TableElements
                 );
                 break;
             }
-            case "time":
+            case ColumnType.Time:
             {
                 return_element = this.Time_
                 (
@@ -75,7 +77,7 @@ export class TableElements
                 );
                 break;
             }
-            case "file":
+            case ColumnType.File:
             {
                 return_element = this.File_
                 (
@@ -85,7 +87,7 @@ export class TableElements
                 );
                 break;
             }
-            case "image":
+            case ColumnType.Image:
             {
                 return_element = this.Image_
                 (
@@ -95,7 +97,7 @@ export class TableElements
                 );
                 break;
             }
-            case "selection":
+            case ColumnType.Selection:
             {
                 return_element = this.Selection_
                 (
@@ -104,7 +106,7 @@ export class TableElements
                 );
                 break;
             }
-            case "user":
+            case ColumnType.User:
             {
                 return_element = this.User_
                 (
@@ -133,52 +135,52 @@ export class TableElements
         let return_element;
         switch(this.element_type)
         {
-            case "text":
+            case ColumnType.Text:
             {
                 return_element = '<i class="fas fa-font';
                 break;
             }
-            case "long-text":
+            case ColumnType.LongText:
             {
                 return_element = '<i class="fas fa-text-height';
                 break;
             }
-            case "int-number":
+            case ColumnType.IntNumber:
             {
                 return_element = '<i class="fas fa-sort-numeric-up';
                 break;
             }
-            case "decimal-number":
+            case ColumnType.DecimalNumber:
             {
                 return_element = '<i class="fas fa-sort-numeric-up';
                 break;
             }
-            case "date":
+            case ColumnType.Date:
             {
                 return_element = '<i class="fas fa-calendar-alt';
                 break;
             }
-            case "time":
+            case ColumnType.Time:
             {
                 return_element = '<i class="fas fa-clock';
                 break;
             }
-            case "file":
+            case ColumnType.File:
             {
                 return_element = '<i class="fas fa-file';
                 break;
             }
-            case "image":
+            case ColumnType.Image:
             {
                 return_element = '<i class="fas fa-image';
                 break;
             }
-            case "selection":
+            case ColumnType.Selection:
             {
                 return_element = '<i class="fas fa-hand-pointer';
                 break;
             }
-            case "user":
+            case ColumnType.User:
             {
                 return_element = '<i class="fas fa-users';
                 break;

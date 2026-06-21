@@ -1,5 +1,6 @@
 
 #include "controllers/tables/tables.h"
+#include "controllers/tables/column_types.h"
 #include "functions/action.h"
 #include "tools/random_generator.h"
 #include <Poco/JSON/Object.h>
@@ -384,7 +385,7 @@ void Tables::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
 
     action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "Default", false);
-    action->AddParameter_("column_type", "text", false);
+    action->AddParameter_("column_type", std::string(ColumnType::Text), false);
     action->AddParameter_("table_identifier", 0, false);
 }
 

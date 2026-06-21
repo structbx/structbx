@@ -7,6 +7,8 @@ import { TableElements } from '../classes/table_elements.js';
 import { TableData } from '../models/TableData.js';
 import { TableColumn } from '../models/TableColumn.js';
 
+import { ColumnType } from '../constants/column_types.js';
+
 export class DataController extends BaseController{
     constructor(onChangedCallback = () => {}) {
         super();
@@ -304,7 +306,7 @@ export class DataController extends BaseController{
                 return undefined;
 
             // Setup columns and icon
-            let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, "text"), column, this.getTableIdentifier());
+            let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, ColumnType.Text), column, this.getTableIdentifier());
             let table_icon = table_element_object.GetIcon_(false);
 
             return [this.column_cell(column.identifier, table_icon + column.name)];
@@ -330,11 +332,11 @@ export class DataController extends BaseController{
                 let link_color = row[`_structbx_column_${column_meta.identifier}_colorHeader`];
 
                 // Determine the appropriate function to create the cell based on the column type.
-                if(column_meta.column_type == "image")
+                if(column_meta.column_type == ColumnType.Image)
                     this.image_row(elements, row, column);
-                else if(column_meta.column_type == "file")
+                else if(column_meta.column_type == ColumnType.File)
                     this.file_row(elements, row, column);
-                else if(column_meta.column_type == "user" || column_meta.column_type == "current-user")
+                else if(column_meta.column_type == ColumnType.User || column_meta.column_type == ColumnType.CurrentUser)
                     this.user_row(elements, row, column);
                 else if(key == 0)
                     this.header_row(elements, row, column);
@@ -541,7 +543,7 @@ export class DataController extends BaseController{
 
     setupColumn(row, elements, first, target, value = undefined){
         // If column type is a NORMAL type
-        let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, "text"), row, this.getTableIdentifier());
+        let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, ColumnType.Text), row, this.getTableIdentifier());
         let table_element = $(table_element_object.Get_());
         let table_icon = table_element_object.GetIcon_();
 
@@ -551,13 +553,13 @@ export class DataController extends BaseController{
         }
 
         // If column type is SELECTION
-        if(row.column_type == "selection"){
+        if(row.column_type == ColumnType.Selection){
             table_element = $('<td></td>');
             let customSelect = new DOME.CustomSelect(table_element);
             customSelect.hiddenInput.attr('name', row.identifier);
             this.linkSelectionOptions(customSelect, row.link_to, row.name, `${target} .notifications`, value);
         }
-        else if(row.column_type == "user")
+        else if(row.column_type == ColumnType.User)
         {
             table_element = $('<td></td>');
             let customSelect = new DOME.CustomSelect(table_element);
@@ -608,7 +610,7 @@ export class DataController extends BaseController{
                 let first = true;
                 new wtools.UIElementsCreator('#component_data_add table tbody', response_data.body.data)
                 .Build_((row) => {
-                    if(row.identifier == "identifier" || row.column_type == "created-date" || row.column_type == "updated-date")
+                    if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
                         return undefined;
 
                     let elements = [];
@@ -712,7 +714,7 @@ export class DataController extends BaseController{
                 let first = true;
                 new wtools.UIElementsCreator('#component_data_modify table tbody', data)
                 .Build_((row) => {
-                    if(row.column_type == "created-date" || row.column_type == "updated-date")
+                    if(row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
                         return;
 
                     let elements = [];

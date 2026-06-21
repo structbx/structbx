@@ -7,20 +7,22 @@ import { TableElements } from '../classes/table_elements.js';
 import { ViewFilter } from '../models/ViewFilter.js';
 import { TableColumn } from '../models/TableColumn.js';
 
+import { ColumnType } from '../constants/column_types.js';
+
 const OPERATORS_BY_TYPE = {
-    text: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'long-text': ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    user: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'current-user': ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    file: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    image: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'int-number': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'decimal-number': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    date: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    time: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'created-date': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    'updated-date': ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
-    selection: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
+    [ColumnType.Text]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.LongText]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.User]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.CurrentUser]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.File]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.Image]: ['LIKE', '=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.IntNumber]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.DecimalNumber]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.Date]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.Time]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.CreatedDate]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.UpdatedDate]: ['=', '!=', '>', '<', '>=', '<=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'],
+    [ColumnType.Selection]: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
 };
 
 const OPERATOR_LABELS = {
@@ -243,23 +245,23 @@ export class FiltersController extends BaseController{
 
         let $newInput;
 
-        if(columnType === 'selection' && linkTo){
+        if(columnType === ColumnType.Selection && linkTo){
             $newInput = $(`<select class="form-select" name="value" required><option value="">-- Ninguno --</option></select>`);
             this.loadSelectionOptions(linkTo, $newInput, isRestore ? currentValue : undefined);
         }
-        else if(columnType === 'int-number'){
+        else if(columnType === ColumnType.IntNumber){
             $newInput = $(`<input type="number" step="1" class="form-control" name="value" placeholder="Valor" required/>`);
         }
-        else if(columnType === 'decimal-number'){
+        else if(columnType === ColumnType.DecimalNumber){
             $newInput = $(`<input type="number" step="any" class="form-control" name="value" placeholder="Valor" required/>`);
         }
-        else if(columnType === 'date'){
+        else if(columnType === ColumnType.Date){
             $newInput = $(`<input type="date" class="form-control" name="value" required/>`);
         }
-        else if(columnType === 'time'){
+        else if(columnType === ColumnType.Time){
             $newInput = $(`<input type="time" class="form-control" name="value" required/>`);
         }
-        else if(columnType === 'created-date' || columnType === 'updated-date'){
+        else if(columnType === ColumnType.CreatedDate || columnType === ColumnType.UpdatedDate){
             $newInput = $(`<input type="datetime-local" class="form-control" name="value" required/>`);
         }
         else {

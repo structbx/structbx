@@ -1,5 +1,6 @@
 
 #include "controllers/tables/columns.h"
+#include "controllers/tables/column_types.h"
 #include "tools/dvalue.h"
 
 using namespace StructBX::Controllers::Tables;
@@ -958,12 +959,12 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
         else
             variables.default_value = "";
 
-        if(column_type_str == "created-date" || column_type_str == "updated-date")
+        if(column_type_str == ColumnType::CreatedDate || column_type_str == ColumnType::UpdatedDate)
             variables.default_value = "DEFAULT CURRENT_TIMESTAMP";
     }
 
     // On update setup (only for updated-date)
-    if(column_type_str == "updated-date")
+    if(column_type_str == ColumnType::UpdatedDate)
         variables.on_update = "ON UPDATE CURRENT_TIMESTAMP";
 
     // Link to
@@ -972,7 +973,7 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
 
     // Verify if column type is selection and link_to is empty
     if(
-        (column_type_str == "selection") &&
+        (column_type_str == ColumnType::Selection) &&
         (
             variables.link_to == "" 
             || link_to->get()->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kEmpty)
@@ -985,42 +986,42 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
 
 bool Columns::ColumnTypeSetup::Setup(std::string column_type_str, std::string& column_type)
 {
-    if(column_type_str == "text" || column_type_str == "user" || column_type_str == "current-user")
+    if(column_type_str == ColumnType::Text || column_type_str == ColumnType::User || column_type_str == ColumnType::CurrentUser)
     {
         column_type = "VARCHAR (500)";
         return true;
     }
-    else if(column_type_str == "long-text" || column_type_str == "file" || column_type_str == "image")
+    else if(column_type_str == ColumnType::LongText || column_type_str == ColumnType::File || column_type_str == ColumnType::Image)
     {
         column_type = "TEXT";
         return true;
     }
-    else if(column_type_str == "int-number")
+    else if(column_type_str == ColumnType::IntNumber)
     {
         column_type = "INT";
         return true;
     }
-    else if(column_type_str == "decimal-number")
+    else if(column_type_str == ColumnType::DecimalNumber)
     {
         column_type = "DECIMAL (20, 5)";
         return true;
     }
-    else if(column_type_str == "date")
+    else if(column_type_str == ColumnType::Date)
     {
         column_type = "DATE";
         return true;
     }
-    else if(column_type_str == "time")
+    else if(column_type_str == ColumnType::Time)
     {
         column_type = "TIME";
         return true;
     }
-    else if(column_type_str == "selection")
+    else if(column_type_str == ColumnType::Selection)
     {
         column_type = "VARCHAR (20)";
         return true;
     }
-    else if(column_type_str == "created-date" || column_type_str == "updated-date")
+    else if(column_type_str == ColumnType::CreatedDate || column_type_str == ColumnType::UpdatedDate)
     {
         column_type = "DATETIME";
         return true;
