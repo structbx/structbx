@@ -64,6 +64,10 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
         {
             ReadColumns(Tools::FunctionData& function_data);
         };
+        struct ReadDatabaseUsers : public Tools::FunctionData
+        {
+            ReadDatabaseUsers(Tools::FunctionData& function_data);
+        };
         struct AddData : public Tools::FunctionData
         {
             AddData(Tools::FunctionData& function_data);
@@ -73,6 +77,7 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
         ReadTableSpecific struct_read_table_specific_;
         ReadTableData struct_read_table_data_;
         ReadColumns struct_read_columns_;
+        ReadDatabaseUsers struct_read_database_users_;
         AddData struct_add_data_;
 };
 

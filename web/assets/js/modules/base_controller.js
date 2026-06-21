@@ -374,18 +374,18 @@ export class BaseController {
         });
     }
 
-    async linkUsersInDatabaseOptions(element, target, selected = undefined, form = ''){
-        this.database_user.current(form).then((response_data) => {
-            let options = new wtools.SelectOptions();
+    async linkUsersInDatabaseOptions(element, target, selected = undefined, form = '', table_identifier = undefined){
+        let promise;
+        if(table_identifier)
+            promise = this.database_user.readForm(table_identifier, form);
+        else
+            promise = this.database_user.current(form);
+        promise.then((response_data) => {
+            // Add empty <option>
+            element.AddOption_('', '-- Ninguno --');
 
             try{
                 let tmp_options = [];
-
-                // Add empty <option>
-                if(selected == undefined)
-                    tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
-                else
-                    tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', false));
 
                 // Verify status
                 if(response_data.status == 401) throw new Error(`No posee los permisos necesarios para acceder a los usuarios de la base de datos`);
@@ -394,18 +394,11 @@ export class BaseController {
 
                 // Add select or not selected <option>
                 for(let row of response_data.body.data){
-                    if(selected == row.id)
-                        tmp_options.push(new wtools.OptionValue(row.id, row.username, true));
-                    else
-                        tmp_options.push(new wtools.OptionValue(row.id, row.username));
+                    element.AddOption_(row.identifier, row.username);
+                    if(selected == row.identifier)
+                        element.setValue(row.identifier);
                 }
-
-                // Build <option>
-                options.options = tmp_options;
-                let element_building = $(element).find('select');
-                options.Build_(element_building);
-            }
-            catch(error){
+            } catch(error) {
                 new wtools.Notification('WARNING', 0, target).Show_(error);
             }
         });

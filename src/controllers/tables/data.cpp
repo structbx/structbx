@@ -516,10 +516,15 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         if(export_param != self.get_parameters().end() && export_param->get()->ToString_() == "true")
             export_data = true;
 
+        // Check if record identifier is specified
+        auto record_identifier = self.GetParameter_("identifier");
+        bool has_record_identifier = (record_identifier != self.get_parameters().end()
+                                      && record_identifier->get()->ToString_() != "");
+
         // Get columns
         std::string columns = "";
         std::string joins = "";
-        bool has_link = false;
+        bool has_users_join = false;
         int count = 0; // Simple counter to know if it's the first column or not for the query
         for(auto it : *table_columns->get_results())
         {
@@ -531,6 +536,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             Query::Field::Ptr name = it.get()->ExtractField_("name");
             Query::Field::Ptr link_to = it.get()->ExtractField_("link_to");
             Query::Field::Ptr visible = it.get()->ExtractField_("visible");
+            Query::Field::Ptr column_type = it.get()->ExtractField_("column_type");
             if(identifier->IsNull_() || name->IsNull_())
                 continue;
 
@@ -543,8 +549,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             // Get LINK TO column
             if(!link_to->IsNull_())
             {
-                has_link = true;
-
                 // Reset results
                 link_to_action->get_results()->clear();
 
@@ -576,6 +580,20 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 joins += " LEFT JOIN " + id_database + "." + link_to->ToString_() +
                 " AS _" + link_to->ToString_() + " ON _" + link_to->ToString_() + ".identifier = _" + 
                 table_identifier->get()->ToString_() + "." + identifier->ToString_();
+            }
+            else if(!column_type->IsNull_() && (column_type->ToString_() == "user" || column_type->ToString_() == "current-user"))
+            {
+                if(has_record_identifier)
+                    column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
+                else
+                    column = "_users.username AS '" + name->ToString_() + "'";
+
+                if(!has_record_identifier && !has_users_join)
+                {
+                    has_users_join = true;
+                    joins += " LEFT JOIN users AS _users ON _users.identifier = _" +
+                    table_identifier->get()->ToString_() + "." + identifier->ToString_();
+                }
             }
 
             if(count == 0)
@@ -691,9 +709,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Action: Table data
         auto table_data = self.AddAction_("table_data");
 
-        // Set record identifier if specified
-        auto record_identifier = self.GetParameter_("identifier");
-        if(record_identifier != self.get_parameters().end() && record_identifier->get()->ToString_() != "")
+        // Set record identifier condition
+        if(has_record_identifier)
         {
             std::string record_identifier_condition = "_"+ table_identifier->get()->ToString_() + ".identifier = ?";
             if(filters_query == "")
@@ -716,8 +733,8 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 " AS _" + table_identifier->get()->ToString_()
         ;
 
-        // Prepare JOIN if there is a link
-        if(has_link)
+        // Prepare JOIN if there are links or user joins
+        if(!joins.empty())
             sql_code += joins;
 
         // Filters and sorts

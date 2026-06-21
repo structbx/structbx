@@ -15,6 +15,7 @@ Main::Main(Tools::FunctionData& function_data) :
     ,struct_read_table_specific_(function_data)
     ,struct_read_table_data_(function_data)
     ,struct_read_columns_(function_data)
+    ,struct_read_database_users_(function_data)
     ,struct_add_data_(function_data)
 {
     
@@ -373,6 +374,90 @@ Main::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Func
         {
             // Before to send the JSON response, delete all sensitive data that 
             // the client should not know from the response of /api/forms/columns/read
+            self.CustomResponse_(HTTP::Status::kHTTP_OK, response.str(), "application/json");
+        });
+
+        // Send
+        client.SendHTTPSRequest_();
+
+        // Delete system user
+        system_user.DeleteSystemUser();
+    });
+
+    get_functions()->push_back(function);
+}
+
+Main::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+{
+    // Function GET /api/forms/databases/users/read
+    StructBX::Functions::Function::Ptr function = 
+        std::make_shared<StructBX::Functions::Function>("/api/forms/databases/users/read", HTTP::EnumMethods::kHTTP_GET);
+
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Public form verification
+    auto pfv = function->AddAction_("pfv");
+    VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
+    struct_verify_public_form_enabled.A1(pfv);
+
+    // Setup custom process
+    auto database_id = get_database_id();
+    function->SetupCustomProcess_([database_id, pfv](StructBX::Functions::Function& self)
+    {
+        // Public form verification
+        if(!pfv->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error sOAIsi80PllR");
+            return;
+        }
+
+        // Get public_form result
+        auto public_form = pfv->get_results()->First_();
+        if(public_form->IsNull_() || public_form->Int_() != 1)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error sp289WDFFpw289m");
+            return;
+        }
+        
+        // Get Database ID
+        auto database_id = pfv->get_results()->ExtractField_(0, 1);
+        if(database_id->IsNull_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
+            return;
+        }
+        
+        // Create system user
+        CreateSystemUser system_user;
+        if(system_user.error)
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error adLfo2Mq4p1");
+            return;
+        }
+
+        // Get table id
+        auto table_identifier_param = self.GetParameter_("table-identifier");
+        if(table_identifier_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error pdfkiwe23sdZp");
+            return;
+        }
+
+        // HTTP Request to /api/databases/users/read
+        HTTP::Client client
+        (
+            "https://127.0.0.1:" + Tools::SettingsManager::GetSetting_("port", "3001") + "/api/databases/users/read?identifier=" + database_id->ToString_()
+            ,HTTP::HTTP_GET
+        );
+        
+        // Add Cookies
+        client.AddCookie_("structbx-sid", system_user.session_id);
+        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
+        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+
+        // Response handler
+        client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
+        {
             self.CustomResponse_(HTTP::Status::kHTTP_OK, response.str(), "application/json");
         });
 

@@ -558,7 +558,12 @@ export class DataController extends BaseController{
             this.linkSelectionOptions(customSelect, row.link_to, row.name, `${target} .notifications`, value);
         }
         else if(row.column_type == "user")
-            this.linkUsersInDatabaseOptions(table_element, `${target} .notifications`, value);
+        {
+            table_element = $('<td></td>');
+            let customSelect = new DOME.CustomSelect(table_element);
+            customSelect.hiddenInput.attr('name', row.identifier);
+            this.linkUsersInDatabaseOptions(customSelect, `${target} .notifications`, value);
+        }
 
         // Final elements
         elements.push(`<th scope="row">${table_icon}${row.name}</th>`);

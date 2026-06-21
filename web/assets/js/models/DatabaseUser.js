@@ -3,6 +3,10 @@ export class DatabaseUser{
         return await new wtools.Request(`/api${form}/databases/users/current/read`).Exec_();
     }
 
+    async readForm(table_identifier, form = ''){
+        return await new wtools.Request(`/api${form}/databases/users/read?table-identifier=${table_identifier}`).Exec_();
+    }
+
     async read(identifier){
         return await new wtools.Request(`/api/databases/users/read?identifier=${identifier}`).Exec_();
     }

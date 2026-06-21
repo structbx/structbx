@@ -128,7 +128,10 @@ export class FormsController extends BaseController
                     }
                     else if(row.column_type == "user")
                     {
-                        this.linkUsersInDatabaseOptions(table_element, '#component_form_addData .notifications', undefined, '/forms');
+                        table_element = $('<td></td>');
+                        let customSelect = new DOME.CustomSelect(table_element);
+                        customSelect.hiddenInput.attr('name', row.identifier);
+                        this.linkUsersInDatabaseOptions(customSelect, '#component_form_addData .notifications', undefined, '/forms', this.getTableIdentifier());
                     }
 
                     let elements = [
