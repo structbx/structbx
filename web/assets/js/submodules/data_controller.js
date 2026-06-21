@@ -608,7 +608,7 @@ export class DataController extends BaseController{
                 let first = true;
                 new wtools.UIElementsCreator('#component_data_add table tbody', response_data.body.data)
                 .Build_((row) => {
-                    if(row.identifier == "identifier")
+                    if(row.identifier == "identifier" || row.column_type == "created-date" || row.column_type == "updated-date")
                         return undefined;
 
                     let elements = [];
@@ -712,6 +712,9 @@ export class DataController extends BaseController{
                 let first = true;
                 new wtools.UIElementsCreator('#component_data_modify table tbody', data)
                 .Build_((row) => {
+                    if(row.column_type == "created-date" || row.column_type == "updated-date")
+                        return;
+
                     let elements = [];
                     if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value)){
                         first = false;

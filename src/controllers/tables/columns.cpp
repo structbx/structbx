@@ -177,7 +177,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         action4->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
             "ADD " + column_identifier + " " + variables.column_type + " " +
-            + " NULL " + variables.default_value
+            + " NULL " + variables.default_value + " " + variables.on_update
         );
         if(!action4->Work_())
         {
@@ -367,7 +367,7 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
                 "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
                 "CHANGE COLUMN `" + column + "` " + column + 
                 " " + variables.column_type + " " + variables.required +
-                " " + variables.default_value
+                " " + variables.default_value + " " + variables.on_update
             );
             if(!action_alter_table->Work_())
             {
@@ -957,7 +957,14 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
             variables.default_value = "DEFAULT NULL";
         else
             variables.default_value = "";
+
+        if(column_type_str == "created-date" || column_type_str == "updated-date")
+            variables.default_value = "DEFAULT CURRENT_TIMESTAMP";
     }
+
+    // On update setup (only for updated-date)
+    if(column_type_str == "updated-date")
+        variables.on_update = "ON UPDATE CURRENT_TIMESTAMP";
 
     // Link to
     if(!link_to->get()->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kEmpty) && link_to->get()->ToString_() != "")

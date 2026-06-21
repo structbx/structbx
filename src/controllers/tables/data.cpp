@@ -1704,6 +1704,10 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
         if(identifier->IsNull_())
             continue;
 
+        // Skip auto-managed columns (handled by DB defaults/triggers)
+        if(column_type->ToString_() == "created-date" || column_type->ToString_() == "updated-date")
+            continue;
+
         // Step 2: Search column type image or file
         if(column_type->ToString_() == "image" || column_type->ToString_() == "file")
         {

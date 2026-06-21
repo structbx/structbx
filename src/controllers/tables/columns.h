@@ -28,6 +28,7 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
             std::string link_to = "";
             std::string required = "";
             std::string default_value = "";
+            std::string on_update = "";
             std::string cascade_key_condition = "ON DELETE SET NULL ON UPDATE CASCADE";
         };
 

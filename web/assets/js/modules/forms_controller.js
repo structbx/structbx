@@ -108,7 +108,7 @@ export class FormsController extends BaseController
 
                 new wtools.UIElementsCreator('#component_form_addData table tbody', response_data.body.data).Build_((row) =>
                 {
-                    if(row.identifier == "id")
+                    if(row.identifier == "identifier" || row.column_type == "created-date" || row.column_type == "updated-date")
                         return undefined;
 
                     const column_type = wtools.IFUndefined(row.column_type, "text");
