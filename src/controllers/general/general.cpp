@@ -1,10 +1,10 @@
 
-#include "controllers/general/main.h"
+#include "controllers/general/general.h"
 #include "tools/random_generator.h"
 
 using namespace StructBX::Controllers::General;
 
-Main::Main(Tools::FunctionData& function_data) :
+General::General(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,function_users_(function_data)
     ,function_groups_(function_data)
@@ -20,7 +20,7 @@ Main::Main(Tools::FunctionData& function_data) :
     
 }
 
-Main::ReadInstanceName::ReadInstanceName(Tools::FunctionData& function_data) :
+General::ReadInstanceName::ReadInstanceName(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/general/read
@@ -37,7 +37,7 @@ Main::ReadInstanceName::ReadInstanceName(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_data) :
+General::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/general/modify
@@ -69,7 +69,7 @@ Main::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_data)
     get_functions()->push_back(function);
 }
 
-Main::ApiKeyRead::ApiKeyRead(Tools::FunctionData& function_data) :
+General::ApiKeyRead::ApiKeyRead(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/general/users/apikey/read
@@ -87,7 +87,7 @@ Main::ApiKeyRead::ApiKeyRead(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ApiKeyGenerate::ApiKeyGenerate(Tools::FunctionData& function_data) :
+General::ApiKeyGenerate::ApiKeyGenerate(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function PUT /api/general/users/apikey/generate
@@ -127,7 +127,7 @@ Main::ApiKeyGenerate::ApiKeyGenerate(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ApiKeyRevoke::ApiKeyRevoke(Tools::FunctionData& function_data) :
+General::ApiKeyRevoke::ApiKeyRevoke(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function PUT /api/general/users/apikey/revoke
@@ -145,7 +145,7 @@ Main::ApiKeyRevoke::ApiKeyRevoke(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) :
+General::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
         // Function GET /api/general/instanceLogo/read
@@ -217,7 +217,7 @@ Main::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_data) :
+General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function PUT /api/general/instanceLogo/modify

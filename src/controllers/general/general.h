@@ -1,6 +1,6 @@
 
-#ifndef STRUCTBX_CONTROLLERS_GENERAL_MAIN_H
-#define STRUCTBX_CONTROLLERS_GENERAL_MAIN_H
+#ifndef STRUCTBX_CONTROLLERS_GENERAL_GENERAL_H
+#define STRUCTBX_CONTROLLERS_GENERAL_GENERAL_H
 
 
 #include "tools/base_action.h"
@@ -16,17 +16,17 @@ namespace StructBX
     {
         namespace General
         {
-            class Main;
+            class General;
         }
     }
 }
 
 using namespace StructBX;
 
-class StructBX::Controllers::General::Main : public Tools::FunctionData
+class StructBX::Controllers::General::General : public Tools::FunctionData
 {
     public:
-        Main(Tools::FunctionData& function_data);
+        General(Tools::FunctionData& function_data);
         
     protected:
         struct ReadInstanceName : public Tools::FunctionData
@@ -72,4 +72,4 @@ class StructBX::Controllers::General::Main : public Tools::FunctionData
 
 };
 
-#endif //STRUCTBX_CONTROLLERS_GENERAL_MAIN_H
+#endif //STRUCTBX_CONTROLLERS_GENERAL_GENERAL_H

@@ -1,6 +1,6 @@
 
-#ifndef STRUCTBX_CONTROLLERS_DATABASES_MAIN_H
-#define STRUCTBX_CONTROLLERS_DATABASES_MAIN_H
+#ifndef STRUCTBX_CONTROLLERS_DATABASES_DATABASES_H
+#define STRUCTBX_CONTROLLERS_DATABASES_DATABASES_H
 
 #include "Poco/DirectoryIterator.h"
 
@@ -17,7 +17,7 @@ namespace StructBX
     {
         namespace Databases
         {
-            class Main;
+            class Databases;
         }
     }
 }
@@ -25,10 +25,10 @@ namespace StructBX
 using namespace StructBX;
 
 
-class StructBX::Controllers::Databases::Main : public Tools::FunctionData
+class StructBX::Controllers::Databases::Databases : public Tools::FunctionData
 {
     public:
-        Main(Tools::FunctionData& function_data);
+        Databases(Tools::FunctionData& function_data);
         
     protected:
         struct Read : public Tools::FunctionData
@@ -84,4 +84,4 @@ class StructBX::Controllers::Databases::Main : public Tools::FunctionData
         Delete struct_delete_;
 };
 
-#endif //STRUCTBX_CONTROLLERS_DATABASES_MAIN_H
+#endif //STRUCTBX_CONTROLLERS_DATABASES_DATABASES_H

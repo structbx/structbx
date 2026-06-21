@@ -1,12 +1,12 @@
 
-#include "controllers/tables/main.h"
+#include "controllers/tables/tables.h"
 #include "functions/action.h"
 #include "tools/random_generator.h"
 #include <Poco/JSON/Object.h>
 
 using namespace StructBX::Controllers::Tables;
 
-Main::Main(Tools::FunctionData& function_data) :
+Tables::Tables(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,function_data_(function_data)
     ,function_columns_(function_data)
@@ -23,7 +23,7 @@ Main::Main(Tools::FunctionData& function_data) :
     
 }
 
-Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/read
     StructBX::Functions::Function::Ptr function = 
@@ -83,7 +83,7 @@ Main::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     get_functions()->push_back(function);
 }
 
-void Main::Read::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier, name, state, public_form, description, id_column_display " \
@@ -94,7 +94,7 @@ void Main::Read::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
-Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/tables/read/identifier
     StructBX::Functions::Function::Ptr function1 = 
@@ -107,7 +107,7 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::Fu
     get_functions()->push_back(function1);
 }
 
-void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Tables::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -129,7 +129,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function POST /api/tables/add
     StructBX::Functions::Function::Ptr function = 
@@ -272,14 +272,14 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
         catch(Poco::FileException& e)
         {
             delete_table(table_identifier);
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + e.displayText());
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Add::Add(): " + e.displayText());
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
             return;
         }
         catch(std::exception& e)
         {
             delete_table(table_identifier);
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + std::string(e.what()));
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Add::Add(): " + std::string(e.what()));
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
             return;
         }
@@ -290,7 +290,7 @@ Main::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functio
     get_functions()->push_back(function);
 }
 
-void Main::Add::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM tables WHERE name = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
@@ -319,7 +319,7 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Main::Add::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
 
@@ -350,7 +350,7 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Main::Add::A3(StructBX::Functions::Action::Ptr action)
+void Tables::Add::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, id_user, id_table) " \
@@ -363,7 +363,7 @@ void Main::Add::A3(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("table_identifier", 0, false);
 }
 
-void Main::Add::AddView(StructBX::Functions::Action::Ptr action)
+void Tables::Add::AddView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO views (identifier, name, id_table) " \
@@ -375,7 +375,7 @@ void Main::Add::AddView(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("table_identifier", 0, false);
 }
 
-void Main::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
+void Tables::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_columns (identifier, name, column_type, id_table) " \
@@ -388,7 +388,7 @@ void Main::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("table_identifier", 0, false);
 }
 
-Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function PUT /api/tables/modify
     StructBX::Functions::Function::Ptr function = 
@@ -409,7 +409,7 @@ Main::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(f
     get_functions()->push_back(function);
 }
 
-void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
@@ -437,7 +437,7 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
-void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = ?");
@@ -476,7 +476,7 @@ void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_id", get_database_id(), false);
 }
 
-void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables " \
@@ -522,7 +522,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_id", get_database_id(), false);
 }
 
-Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function DEL /api/tables/delete
     StructBX::Functions::Function::Ptr function = 
@@ -591,13 +591,13 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
         }
         catch(Poco::FileException& e)
         {
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Delete::Delete(): " + e.displayText());
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Delete::Delete(): " + e.displayText());
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo borrar el directorio de archivos del formulario");
             return;
         }
         catch(std::exception& e)
         {
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Delete::Delete(): " + std::string(e.what()));
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Delete::Delete(): " + std::string(e.what()));
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo borrar el directorio de archivos del formulario");
             return;
         }
@@ -608,7 +608,7 @@ Main::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(f
     get_functions()->push_back(function);
 }
 
-void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
@@ -636,7 +636,7 @@ void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
-void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM tables WHERE identifier = ? AND id_database = ?");
     action->AddParameter_("identifier", "", true);

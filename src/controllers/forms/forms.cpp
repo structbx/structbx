@@ -1,5 +1,5 @@
 
-#include "controllers/forms/main.h"
+#include "controllers/forms/forms.h"
 #include "functions/action.h"
 #include "security/permissions_manager.h"
 #include "sessions/sessions_manager.h"
@@ -10,7 +10,7 @@
 
 using namespace StructBX::Controllers::Forms;
 
-Main::Main(Tools::FunctionData& function_data) :
+Forms::Forms(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,struct_read_table_specific_(function_data)
     ,struct_read_table_data_(function_data)
@@ -21,12 +21,12 @@ Main::Main(Tools::FunctionData& function_data) :
     
 }
 
-Main::VerifyPublicFormEnabled::VerifyPublicFormEnabled(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::VerifyPublicFormEnabled::VerifyPublicFormEnabled(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
 
 }
 
-void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
+void Forms::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -48,12 +48,12 @@ void Main::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::VerifyLinkTableIsInMain::VerifyLinkTableIsInMain(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::VerifyLinkTableIsInMain::VerifyLinkTableIsInMain(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
 
 }
 
-void Main::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
+void Forms::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -86,7 +86,7 @@ void Main::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::CreateSystemUser::CreateSystemUser() :
+Forms::CreateSystemUser::CreateSystemUser() :
     user_id("")
     ,session_id("")
     ,error(false)
@@ -121,7 +121,7 @@ Main::CreateSystemUser::CreateSystemUser() :
     session_id = session.get_id();
 }
 
-void Main::CreateSystemUser::DeleteSystemUser()
+void Forms::CreateSystemUser::DeleteSystemUser()
 {
     Functions::Action delete_user_action("delete_user_action");
     delete_user_action.set_sql_code(
@@ -131,11 +131,11 @@ void Main::CreateSystemUser::DeleteSystemUser()
 
     if(!delete_user_action.Work_())
     {
-        Tools::OutputLogger::Error_("Error deleting temporary user in Main::CreateSystemUser::DeleteSystemUser: xhSo4FleZp");
+        Tools::OutputLogger::Error_("Error deleting temporary user in Forms::CreateSystemUser::DeleteSystemUser: xhSo4FleZp");
     }
 }
 
-Main::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/tables/read/identifier
     StructBX::Functions::Function::Ptr function = 
@@ -219,7 +219,7 @@ Main::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/tables/data/read
     StructBX::Functions::Function::Ptr function = 
@@ -301,7 +301,7 @@ Main::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools::
     get_functions()->push_back(function);
 }
 
-Main::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/columns/read
     StructBX::Functions::Function::Ptr function = 
@@ -387,7 +387,7 @@ Main::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Func
     get_functions()->push_back(function);
 }
 
-Main::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/databases/users/read
     StructBX::Functions::Function::Ptr function = 
@@ -471,7 +471,7 @@ Main::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-Main::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
 {
     // Function GET /api/forms/tables/data/add
     StructBX::Functions::Function::Ptr function = 

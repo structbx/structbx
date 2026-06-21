@@ -6,10 +6,10 @@
 #include "handlers/root_handler.h"
 #include "query/results.h"
 #include "tools/function_data.h"
-#include "controllers/general/main.h"
-#include "controllers/databases/main.h"
-#include "controllers/tables/main.h"
-#include "controllers/forms/main.h"
+#include "controllers/general/general.h"
+#include "controllers/databases/databases.h"
+#include "controllers/tables/tables.h"
+#include "controllers/forms/forms.h"
 
 
 namespace StructBX

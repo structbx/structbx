@@ -1,9 +1,9 @@
 
-#include "controllers/databases/main.h"
+#include "controllers/databases/databases.h"
 
 using namespace StructBX::Controllers::Databases;
 
-Main::Main(Tools::FunctionData& function_data) :
+Databases::Databases(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
     ,function_users_(function_data)
     ,struct_read_(function_data)
@@ -16,7 +16,7 @@ Main::Main(Tools::FunctionData& function_data) :
     
 }
 
-Main::Read::Read(Tools::FunctionData& function_data) :
+Databases::Read::Read(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/databases/read
@@ -120,7 +120,7 @@ Main::Read::Read(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::Read::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Read::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -131,7 +131,7 @@ void Main::Read::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
+Databases::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/databases/read/identifier
@@ -157,7 +157,7 @@ Main::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Databases::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -169,7 +169,7 @@ void Main::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", get_database_id(), true);
 }
 
-Main::Add::Add(Tools::FunctionData& function_data) :
+Databases::Add::Add(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/databases/add
@@ -264,14 +264,14 @@ Main::Add::Add(Tools::FunctionData& function_data) :
         }
         catch(Poco::FileException& e)
         {
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/main.cpp on Add::Add(): " + e.displayText());
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/databases.cpp on Add::Add(): " + e.displayText());
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
             delete_database(database_identifier);
             return;
         }
         catch(std::exception& e)
         {
-            StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/main.cpp on Add::Add(): " + std::string(e.what()));
+            StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/databases.cpp on Add::Add(): " + std::string(e.what()));
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
             delete_database(database_identifier);
             return;
@@ -281,7 +281,7 @@ Main::Add::Add(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::Add::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Add::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT s.identifier FROM `databases` s WHERE s.identifier = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
@@ -298,7 +298,7 @@ void Main::Add::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", "", false);
 }
 
-void Main::Add::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Add::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT IGNORE INTO `databases` (identifier, name, description) VALUES (?, ?, ?)"
@@ -322,7 +322,7 @@ void Main::Add::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("description", "", true);
 }
 
-void Main::Add::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Add::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO databases_users (id_user, id_database) " \
@@ -332,7 +332,7 @@ void Main::Add::A3(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", "", false);
 }
 
-Main::Change::Change(Tools::FunctionData& function_data) :
+Databases::Change::Change(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/databases/change
@@ -379,7 +379,7 @@ Main::Change::Change(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::Change::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Change::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -400,7 +400,7 @@ void Main::Change::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::Modify::Modify(Tools::FunctionData& function_data) :
+Databases::Modify::Modify(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function PUT /api/databases/modify
@@ -422,7 +422,7 @@ Main::Modify::Modify(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier " \
@@ -444,7 +444,7 @@ void Main::Modify::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM `databases` WHERE name = ? AND identifier != ?");
@@ -482,7 +482,7 @@ void Main::Modify::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
@@ -525,7 +525,7 @@ void Main::Modify::A3(StructBX::Functions::Action::Ptr action)
     });
 }
 
-Main::Delete::Delete(Tools::FunctionData& function_data) :
+Databases::Delete::Delete(Tools::FunctionData& function_data) :
     Tools::FunctionData(function_data)
 {
     // Function GET /api/databases/delete
@@ -547,7 +547,7 @@ Main::Delete::Delete(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier " \
@@ -569,7 +569,7 @@ void Main::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::A2(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
@@ -591,7 +591,7 @@ void Main::Delete::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Main::Delete::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::A3(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM databases_users WHERE id_database = ?");
 

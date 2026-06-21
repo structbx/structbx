@@ -1,6 +1,6 @@
 
-#ifndef STRUCTBX_CONTROLLERS_FORMS_MAIN_H
-#define STRUCTBX_CONTROLLERS_FORMS_MAIN_H
+#ifndef STRUCTBX_CONTROLLERS_FORMS_FORMS_H
+#define STRUCTBX_CONTROLLERS_FORMS_FORMS_H
 
 #include "tools/base_action.h"
 #include "tools/function_data.h"
@@ -16,7 +16,7 @@ namespace StructBX
     {
         namespace Forms
         {
-            class Main;
+            class Forms;
         }
     }
 }
@@ -24,10 +24,10 @@ namespace StructBX
 using namespace StructBX;
 
 
-class StructBX::Controllers::Forms::Main : public Tools::FunctionData
+class StructBX::Controllers::Forms::Forms : public Tools::FunctionData
 {
     public:
-        Main(Tools::FunctionData& function_data);
+        Forms(Tools::FunctionData& function_data);
 
     protected:
         struct VerifyPublicFormEnabled : public Tools::FunctionData
@@ -81,4 +81,4 @@ class StructBX::Controllers::Forms::Main : public Tools::FunctionData
         AddData struct_add_data_;
 };
 
-#endif //STRUCTBX_CONTROLLERS_FORMS_MAIN_H
+#endif //STRUCTBX_CONTROLLERS_FORMS_FORMS_H

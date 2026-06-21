@@ -16,10 +16,10 @@ BackendHandler::BackendHandler() :
 void BackendHandler::AddFunctions_()
 {
     // Functions
-    auto general = General::Main(function_data_);
-    auto databases = Databases::Main(function_data_);
-    auto tables = Tables::Main(function_data_);
-    auto forms = Forms::Main(function_data_);
+    auto general = General::General(function_data_);
+    auto databases = Databases::Databases(function_data_);
+    auto tables = Tables::Tables(function_data_);
+    auto forms = Forms::Forms(function_data_);
 
     // Add all functions
     for(auto it : *function_data_.get_functions())

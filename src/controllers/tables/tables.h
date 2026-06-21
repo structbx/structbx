@@ -1,6 +1,6 @@
 
-#ifndef STRUCTBX_CONTROLLERS_TABLES_MAIN_H
-#define STRUCTBX_CONTROLLERS_TABLES_MAIN_H
+#ifndef STRUCTBX_CONTROLLERS_TABLES_TABLES_H
+#define STRUCTBX_CONTROLLERS_TABLES_TABLES_H
 
 #include "tools/base_action.h"
 #include "tools/function_data.h"
@@ -19,7 +19,7 @@ namespace StructBX
     {
         namespace Tables
         {
-            class Main;
+            class Tables;
         }
     }
 }
@@ -27,10 +27,10 @@ namespace StructBX
 using namespace StructBX;
 
 
-class StructBX::Controllers::Tables::Main : public Tools::FunctionData
+class StructBX::Controllers::Tables::Tables : public Tools::FunctionData
 {
     public:
-        Main(Tools::FunctionData& function_data);
+        Tables(Tools::FunctionData& function_data);
 
     protected:
         struct Read : public Tools::FunctionData
@@ -85,4 +85,4 @@ class StructBX::Controllers::Tables::Main : public Tools::FunctionData
         Delete struct_delete_;
 };
 
-#endif //STRUCTBX_CONTROLLERS_TABLES_MAIN_H
+#endif //STRUCTBX_CONTROLLERS_TABLES_TABLES_H

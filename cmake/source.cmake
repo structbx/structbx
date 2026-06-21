@@ -21,20 +21,20 @@ set(HEADER
 set(
     SOURCES
     ${PROJECT_SOURCE_DIR}/src/structbx-server.cpp
-    ${PROJECT_SOURCE_DIR}/src/controllers/general/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/general/general.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/general/users.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/general/groups.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/general/permissions.cpp
-    ${PROJECT_SOURCE_DIR}/src/controllers/databases/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/databases/databases.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/databases/users.cpp
-    ${PROJECT_SOURCE_DIR}/src/controllers/tables/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/tables/tables.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/data.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/columns.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/permissions.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/views.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/filters.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/sorts.cpp
-    ${PROJECT_SOURCE_DIR}/src/controllers/forms/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/forms/forms.cpp
     ${PROJECT_SOURCE_DIR}/src/core/core.cpp
     ${PROJECT_SOURCE_DIR}/src/core/handler_factory.cpp
     ${PROJECT_SOURCE_DIR}/src/core/server.cpp
