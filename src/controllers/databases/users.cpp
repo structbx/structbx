@@ -1,5 +1,6 @@
 
 #include "controllers/databases/users.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Databases;
 
@@ -33,7 +34,7 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -80,7 +81,7 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -113,7 +114,7 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -123,7 +124,7 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -158,7 +159,7 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de usuario a eliminar no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -168,7 +169,7 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -187,7 +188,7 @@ void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de usuario a eliminar no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -197,7 +198,7 @@ void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;

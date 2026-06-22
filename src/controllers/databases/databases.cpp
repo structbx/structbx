@@ -1,5 +1,6 @@
 
 #include "controllers/databases/databases.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Databases;
 
@@ -35,7 +36,7 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
         // Execute actions
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERR0UO7DD9YJ6");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The user is not in any database.", ERR_DB_NOT_FOUND);
             return;
         }
 
@@ -56,7 +57,7 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
             );
             if(!action2.Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR9TT3QC0QRG");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Action failed.", ERR_ACTION_FAILED);
                 return;
             }
 
@@ -147,7 +148,7 @@ Databases::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     {
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERROWYA84SAXC");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The user is not in any database.", ERR_DB_NOT_FOUND);
             return;
         }
         
@@ -213,21 +214,21 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
         action1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         // Action2: Add database
         action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
         // Action3: Add current user to the new database
         action3->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(database_identifier)), "identifier");
         if(!action3->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action3->get_custom_error(), action3->get_custom_error_code());
             return;
         }
 
@@ -235,7 +236,7 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
         action4->set_sql_code("CREATE DATABASE " + database_identifier);
         if(!action4->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error " + action4->get_identifier() + ": No se pudo crear la base de datos");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create database.", ERR_DB_CREATE_FAIL);
             delete_database(database_identifier);
 
             return;
@@ -254,7 +255,7 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
             }
             if(!file.createDirectory())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create database file directory.", ERR_DB_DIR_CREATE_FAIL);
                 delete_database(database_identifier);
                 return;
             }
@@ -265,14 +266,14 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
         catch(Poco::FileException& e)
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/databases.cpp on Add::Add(): " + e.displayText());
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create database file directory.", ERR_DB_DIR_CREATE_FAIL);
             delete_database(database_identifier);
             return;
         }
         catch(std::exception& e)
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/databases/databases.cpp on Add::Add(): " + std::string(e.what()));
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la base de datos");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create database file directory.", ERR_DB_DIR_CREATE_FAIL);
             delete_database(database_identifier);
             return;
         }
@@ -288,7 +289,8 @@ void Databases::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Una base de datos con este identificador ya existe");
+            self.set_custom_error("A database with this identifier already exists.");
+            self.set_custom_error_code(ERR_DB_DUP_IDENT);
             return false;
         }
 
@@ -309,12 +311,12 @@ void Databases::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de la base de datos no puede estar vacío");
+            param->set_error("The database name cannot be empty.");
             return false;
         }
         if(param->ToString_().size() <= 3)
         {
-            param->set_error("El nombre de la base de datos debe tener más de 3 caracteres");
+            param->set_error("The database name must be more than 3 characters.");
             return false;
         }
         return true;
@@ -350,7 +352,7 @@ Databases::Change::Change(Tools::FunctionData& function_data) :
         // Action1: Database info
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action->get_custom_error(), action->get_custom_error_code());
             return;
         }
         auto first = action->get_results()->begin();
@@ -373,7 +375,7 @@ Databases::Change::Change(Tools::FunctionData& function_data) :
             self.CompoundResponse_(HTTP::Status::kHTTP_OK, action->get_json_result());
         }
         else
-            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "El usuario no est&aacute; en alguna base de datos.");
+            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "The user is not in any database.", ERR_DB_NOT_FOUND);
     });
 
     get_functions()->push_back(function);
@@ -393,7 +395,7 @@ void Databases::Change::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de cambio de base de datos no puede estar vacío");
+            param->set_error("The database switch identifier cannot be empty.");
             return false;
         }
         return true;
@@ -434,7 +436,8 @@ void Databases::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("El usuario actual no pertenece a la base de datos que intenta modificar");
+            self.set_custom_error("The current user does not belong to the database they are trying to modify.");
+            self.set_custom_error_code(ERR_DB_USER_NOT_OWNED);
             return false;
         }
 
@@ -452,7 +455,8 @@ void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Una base de datos con este nombre ya existe");
+            self.set_custom_error("A database with this name already exists.");
+            self.set_custom_error_code(ERR_DB_DUP_NAME);
             return false;
         }
 
@@ -464,7 +468,7 @@ void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El name no puede estar vacío");
+            param->set_error("The database name cannot be empty.");
             return false;
         }
         return true;
@@ -475,7 +479,7 @@ void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -496,17 +500,17 @@ void Databases::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre debe ser una cadena de texto");
+            param->set_error("The name must be a text string.");
             return false;
         }
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The database name cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 dígitos");
+            param->set_error("The database name must be more than 3 characters.");
             return false;
         }
         return true;
@@ -518,7 +522,7 @@ void Databases::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -559,7 +563,8 @@ void Databases::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("El usuario actual no pertenece a la base de datos que intenta eliminar");
+            self.set_custom_error("The current user does not belong to the database they are trying to modify.");
+            self.set_custom_error_code(ERR_DB_USER_NOT_OWNED);
             return false;
         }
 
@@ -584,7 +589,7 @@ void Databases::Delete::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
@@ -600,7 +605,7 @@ void Databases::Delete::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de base de datos no puede estar vacío");
+            param->set_error("The database identifier cannot be empty.");
             return false;
         }
         return true;
