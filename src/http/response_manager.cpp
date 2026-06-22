@@ -27,7 +27,7 @@ void ResponseManager::CompoundResponse_(HTTP::Status status, JSON::Object::Ptr r
     std::ostream& out = get_http_server_response().value()->send();
     result_json->stringify(out);
 }
-void ResponseManager::CompoundFillResponse_(HTTP::Status status, JSON::Object::Ptr result_json, std::string message)
+void ResponseManager::CompoundFillResponse_(HTTP::Status status, JSON::Object::Ptr result_json, std::string message, std::string error_code)
 {
     SetupHeaders_();
     SetupCookies_();
@@ -35,12 +35,12 @@ void ResponseManager::CompoundFillResponse_(HTTP::Status status, JSON::Object::P
     get_http_server_response().value()->setContentType("application/json");
     get_http_server_response().value()->setChunkedTransferEncoding(true);
 
-    FillStatusMessage_(result_json, status, message);
+    FillStatusMessage_(result_json, status, message, error_code);
     std::ostream& out = get_http_server_response().value()->send();
     result_json->stringify(out);
 }
 
-void ResponseManager::JSONResponse_(HTTP::Status status, std::string message)
+void ResponseManager::JSONResponse_(HTTP::Status status, std::string message, std::string error_code)
 {
     SetupHeaders_();
     SetupCookies_();
@@ -50,7 +50,7 @@ void ResponseManager::JSONResponse_(HTTP::Status status, std::string message)
 
     JSON::Object::Ptr object_json = new JSON::Object;
 
-    FillStatusMessage_(object_json, status, message);
+    FillStatusMessage_(object_json, status, message, error_code);
 
     std::ostream& out = get_http_server_response().value()->send();
     object_json->stringify(out);
@@ -178,17 +178,25 @@ void ResponseManager::FillResponses_()
     responses_.emplace(std::make_pair(Status::kHTTP_SERVICE_UNAVAILABLE, Attributes{HTTPResponse::HTTP_SERVICE_UNAVAILABLE, 503, ResponseType::kError, "Something unexpected happened on server side"}));
 }
 
-void ResponseManager::FillStatusMessage_(JSON::Object::Ptr json_object, HTTP::Status status, std::string message)
+void ResponseManager::FillStatusMessage_(JSON::Object::Ptr json_object, HTTP::Status status, std::string message, std::string error_code)
 {
     auto found = responses_.find(status);
     if(found != responses_.end())
     {
         json_object->set("status", responses_.find(status)->second.message);
         json_object->set("message", message);
+        if(!error_code.empty())
+        {
+            json_object->set("error_code", error_code);
+        }
     }
     else
     {
         json_object->set("status", responses_.find(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR)->second.message);
         json_object->set("message", "Error on HTTPStatus");
+        if(!error_code.empty())
+        {
+            json_object->set("error_code", error_code);
+        }
     }
 }

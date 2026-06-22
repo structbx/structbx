@@ -71,8 +71,8 @@ class StructBX::HTTP::ResponseManager : public HTTP::Request
         }
 
         void CompoundResponse_(HTTP::Status status, JSON::Object::Ptr result_json);
-        void CompoundFillResponse_(HTTP::Status status, JSON::Object::Ptr result_json, std::string message);
-        void JSONResponse_(HTTP::Status status, std::string message);
+        void CompoundFillResponse_(HTTP::Status status, JSON::Object::Ptr result_json, std::string message, std::string error_code = "");
+        void JSONResponse_(HTTP::Status status, std::string message, std::string error_code = "");
         void HTMLResponse_(HTTP::Status status, std::string message);
         void CustomHTMLResponse_(HTTP::Status status, std::string html_message);
         void CustomResponse_(HTTP::Status status, std::string message, std::string content_type);
@@ -81,7 +81,7 @@ class StructBX::HTTP::ResponseManager : public HTTP::Request
 
     protected:
         void FillResponses_();
-        void FillStatusMessage_(JSON::Object::Ptr json_object, HTTP::Status status, std::string message);
+        void FillStatusMessage_(JSON::Object::Ptr json_object, HTTP::Status status, std::string message, std::string error_code = "");
 
     private:
         std::map<HTTP::Status, Attributes> responses_;
