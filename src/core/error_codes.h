@@ -1,0 +1,146 @@
+
+#ifndef STRUCTBX_CORE_ERRORCODES
+#define STRUCTBX_CORE_ERRORCODES
+
+#define ERR_CODE(file, func, task, err_id) \
+    file ":" func ":" task ":" err_id
+
+// Databases controller
+#define ERR_DB_NAME_EMPTY ERR_CODE("databases.cpp", "createDatabase", "validate_input", "name_empty")
+#define ERR_DB_IDENT_EMPTY ERR_CODE("databases.cpp", "createDatabase", "validate_input", "ident_empty")
+#define ERR_DB_NAME_SHORT ERR_CODE("databases.cpp", "createDatabase", "validate_input", "name_too_short")
+#define ERR_DB_USER_NOT_OWNED ERR_CODE("databases.cpp", "modifyDatabase", "validate_ownership", "user_not_owner")
+#define ERR_DB_DUP_IDENT ERR_CODE("databases.cpp", "createDatabase", "validate_uniqueness", "duplicate_ident")
+#define ERR_DB_DUP_NAME ERR_CODE("databases.cpp", "createDatabase", "validate_uniqueness", "duplicate_name")
+#define ERR_DB_SWITCH_IDENT_EMPTY ERR_CODE("databases.cpp", "switchDatabase", "validate_input", "ident_empty")
+#define ERR_DB_NOT_FOUND ERR_CODE("databases.cpp", "switchDatabase", "validate_existence", "not_found")
+#define ERR_DB_UPDATE_FAIL ERR_CODE("databases.cpp", "modifyDatabase", "execute_update", "update_failed")
+#define ERR_DB_CREATE_FAIL ERR_CODE("databases.cpp", "createDatabase", "execute_create", "create_failed")
+#define ERR_DB_DELETE_FAIL ERR_CODE("databases.cpp", "deleteDatabase", "execute_delete", "delete_failed")
+#define ERR_DB_DIR_CREATE_FAIL ERR_CODE("databases.cpp", "createDatabase", "create_directory", "dir_create_failed")
+
+// Users controller
+#define ERR_USR_ID_EMPTY ERR_CODE("users.cpp", "modifyUser", "validate_input", "id_empty")
+#define ERR_USR_USERNAME_EMPTY ERR_CODE("users.cpp", "Create_", "validate_input", "username_empty")
+#define ERR_USR_USERNAME_INVALID ERR_CODE("users.cpp", "Create_", "validate_format", "username_invalid")
+#define ERR_USR_PASSWORD_EMPTY ERR_CODE("users.cpp", "Create_", "validate_input", "password_empty")
+#define ERR_USR_PASSWORD_SHORT ERR_CODE("users.cpp", "Create_", "validate_input", "password_too_short")
+#define ERR_USR_PASSWORD_MISMATCH ERR_CODE("users.cpp", "modifyPassword", "validate_input", "passwords_mismatch")
+#define ERR_USR_STATUS_EMPTY ERR_CODE("users.cpp", "modifyUser", "validate_input", "status_empty")
+#define ERR_USR_DUP_USERNAME ERR_CODE("users.cpp", "Create_", "validate_uniqueness", "duplicate_username")
+#define ERR_USR_UPDATE_FAIL ERR_CODE("users.cpp", "modifyUser", "execute_update", "update_failed")
+#define ERR_USR_CREATE_FAIL ERR_CODE("users.cpp", "Create_", "execute_create", "create_failed")
+#define ERR_USR_PASSWORD_UPDATE_FAIL ERR_CODE("users.cpp", "modifyPassword", "execute_update", "update_failed")
+#define ERR_USR_CURRENT_PASSWORD_WRONG ERR_CODE("users.cpp", "modifyPassword", "validate_current", "current_password_incorrect")
+
+// Groups controller
+#define ERR_GRP_NAME_EMPTY ERR_CODE("groups.cpp", "Create_", "validate_input", "name_empty")
+#define ERR_GRP_DUP_NAME ERR_CODE("groups.cpp", "Create_", "validate_uniqueness", "duplicate_name")
+#define ERR_GRP_CREATE_FAIL ERR_CODE("groups.cpp", "Create_", "execute_create", "create_failed")
+
+// Permissions controller
+#define ERR_PER_ENDPOINT_EMPTY ERR_CODE("permissions.cpp", "Create_", "validate_input", "endpoint_empty")
+#define ERR_PER_DUP_IN_GROUP ERR_CODE("permissions.cpp", "Create_", "validate_uniqueness", "duplicate_in_group")
+#define ERR_PER_NOT_OWNED ERR_CODE("permissions.cpp", "Create_", "validate_ownership", "user_not_owner")
+#define ERR_PER_CREATE_FAIL ERR_CODE("permissions.cpp", "Create_", "execute_create", "create_failed")
+
+// Tables controller
+#define ERR_TBL_ID_EMPTY ERR_CODE("tables.cpp", "readTable", "validate_input", "id_empty")
+#define ERR_TBL_NOT_FOUND ERR_CODE("tables.cpp", "readTable", "validate_existence", "not_found")
+#define ERR_TBL_CREATE_FAIL ERR_CODE("tables.cpp", "Create_", "execute_create", "create_failed")
+#define ERR_TBL_UPDATE_FAIL ERR_CODE("tables.cpp", "modifyTable", "execute_update", "update_failed")
+#define ERR_TBL_DELETE_FAIL ERR_CODE("tables.cpp", "deleteTable", "execute_delete", "delete_failed")
+
+// Data controller
+#define ERR_DATA_TABLE_ID_EMPTY ERR_CODE("data.cpp", "readRecords", "validate_input", "table_id_empty")
+#define ERR_DATA_NO_PERMISSION ERR_CODE("data.cpp", "readRecords", "validate_permission", "no_permission")
+
+// Columns controller
+#define ERR_COL_TABLE_ID_EMPTY ERR_CODE("columns.cpp", "readColumns", "validate_input", "table_id_empty")
+#define ERR_COL_COL_ID_EMPTY ERR_CODE("columns.cpp", "validateColumn", "validate_input", "col_id_empty")
+#define ERR_COL_NAME_NOT_STRING ERR_CODE("columns.cpp", "validateName", "validate_input", "name_not_string")
+#define ERR_COL_NAME_EMPTY ERR_CODE("columns.cpp", "validateName", "validate_input", "name_empty")
+#define ERR_COL_NAME_SHORT ERR_CODE("columns.cpp", "validateName", "validate_input", "name_too_short")
+#define ERR_COL_REQUIRED_NOT_BOOL ERR_CODE("columns.cpp", "validateRequired", "validate_input", "required_not_bool")
+#define ERR_COL_TYPE_EMPTY ERR_CODE("columns.cpp", "validateType", "validate_input", "type_empty")
+#define ERR_COL_NOT_FOUND ERR_CODE("columns.cpp", "modifyColumn", "validate_existence", "not_found")
+#define ERR_COL_NOT_IN_TABLE ERR_CODE("columns.cpp", "deleteColumn", "validate_existence", "not_in_table")
+#define ERR_COL_POSITION_MOVE_FAIL ERR_CODE("columns.cpp", "modifyPosition", "execute", "position_move_failed")
+#define ERR_COL_VISIBLE_EMPTY ERR_CODE("columns.cpp", "modifyVisible", "validate_input", "visible_empty")
+
+// Views controller
+#define ERR_VIEW_TABLE_ID_EMPTY ERR_CODE("views.cpp", "readViews", "validate_input", "table_id_empty")
+#define ERR_VIEW_VIEW_ID_EMPTY ERR_CODE("views.cpp", "readViews", "validate_input", "view_id_empty")
+#define ERR_VIEW_NAME_EMPTY ERR_CODE("views.cpp", "addView", "validate_input", "name_empty")
+
+// Filters controller
+#define ERR_FILT_VIEW_ID_EMPTY ERR_CODE("filters.cpp", "readFilters", "validate_input", "view_id_empty")
+#define ERR_FILT_TABLE_ID_EMPTY ERR_CODE("filters.cpp", "readFilters", "validate_input", "table_id_empty")
+#define ERR_FILT_OP_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "op_empty")
+#define ERR_FILT_VALUE_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "value_empty")
+#define ERR_FILT_POSITION_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "position_empty")
+#define ERR_FILT_ACTIVE_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "active_empty")
+#define ERR_FILT_COL_ID_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "col_id_empty")
+#define ERR_FILT_ID_EMPTY ERR_CODE("filters.cpp", "validateFilter", "validate_input", "id_empty")
+#define ERR_FILT_POSITION_MOVE_FAIL ERR_CODE("filters.cpp", "modifyPosition", "execute", "position_move_failed")
+
+// Sorts controller
+#define ERR_SORT_VIEW_ID_EMPTY ERR_CODE("sorts.cpp", "readSorts", "validate_input", "view_id_empty")
+#define ERR_SORT_TABLE_ID_EMPTY ERR_CODE("sorts.cpp", "readSorts", "validate_input", "table_id_empty")
+#define ERR_SORT_TYPE_EMPTY ERR_CODE("sorts.cpp", "validateSort", "validate_input", "type_empty")
+#define ERR_SORT_TYPE_INVALID ERR_CODE("sorts.cpp", "validateSort", "validate_input", "type_invalid")
+#define ERR_SORT_POSITION_EMPTY ERR_CODE("sorts.cpp", "validateSort", "validate_input", "position_empty")
+#define ERR_SORT_ACTIVE_EMPTY ERR_CODE("sorts.cpp", "validateSort", "validate_input", "active_empty")
+#define ERR_SORT_COL_ID_EMPTY ERR_CODE("sorts.cpp", "validateSort", "validate_input", "col_id_empty")
+#define ERR_SORT_ID_EMPTY ERR_CODE("sorts.cpp", "validateSort", "validate_input", "id_empty")
+#define ERR_SORT_POSITION_MOVE_FAIL ERR_CODE("sorts.cpp", "modifyPosition", "execute", "position_move_failed")
+
+// General controller
+#define ERR_GEN_LOGO_READ_FAIL ERR_CODE("general.cpp", "readLogo", "execute_read", "logo_read_failed")
+#define ERR_GEN_LOGO_SAVE_FAIL ERR_CODE("general.cpp", "saveLogo", "execute_save", "logo_save_failed")
+#define ERR_GEN_API_KEY_FAIL ERR_CODE("general.cpp", "generateApiKey", "execute_generate", "api_key_failed")
+
+// File upload
+#define ERR_FILE_NOT_SUPPORTED ERR_CODE("general.cpp", "uploadFile", "validate_type", "file_not_supported")
+#define ERR_FILE_SIZE_EXCEEDED ERR_CODE("general.cpp", "uploadFile", "validate_size", "size_exceeded")
+
+// Auth / Login
+#define ERR_AUTH_SESSION_NOT_FOUND ERR_CODE("backend_handler.cpp", "handleRequest", "validate_session", "session_not_found")
+#define ERR_AUTH_ENDPOINT_NOT_FOUND ERR_CODE("backend_handler.cpp", "handleRequest", "validate_endpoint", "endpoint_not_found")
+#define ERR_AUTH_NO_PERMISSION ERR_CODE("backend_handler.cpp", "handleRequest", "validate_permission", "no_permission")
+#define ERR_AUTH_USER_INACTIVE ERR_CODE("backend_handler.cpp", "handleRequest", "validate_user", "user_inactive")
+#define ERR_AUTH_BAD_METHOD ERR_CODE("backend_handler.cpp", "handleRequest", "validate_method", "bad_method")
+#define ERR_AUTH_LOGIN_FAIL ERR_CODE("login_handler.cpp", "handleLogin", "authenticate", "login_failed")
+#define ERR_AUTH_UNAUTHORIZED ERR_CODE("login_handler.cpp", "handleLogin", "authorize", "unauthorized")
+
+// Server errors
+#define ERR_SRV_INTERNAL ERR_CODE("root_handler.cpp", "handleRequest", "catch_all", "internal_error")
+#define ERR_SRV_BAD_GATEWAY ERR_CODE("root_handler.cpp", "handleRequest", "upstream", "bad_gateway")
+#define ERR_SRV_UNAVAILABLE ERR_CODE("root_handler.cpp", "handleRequest", "unexpected", "service_unavailable")
+#define ERR_SRV_OUT_OF_RANGE ERR_CODE("root_handler.cpp", "handleRequest", "catch_out_of_range", "out_of_range")
+#define ERR_SRV_RUNTIME ERR_CODE("root_handler.cpp", "handleRequest", "catch_runtime", "runtime_error")
+#define ERR_SRV_MYSQL ERR_CODE("root_handler.cpp", "handleRequest", "catch_mysql", "mysql_error")
+#define ERR_SRV_JSON ERR_CODE("root_handler.cpp", "handleRequest", "catch_json", "json_error")
+#define ERR_SRV_BAD_METHOD ERR_CODE("function.cpp", "Process_", "switch_method", "bad_http_method")
+#define ERR_SRV_NO_REQUEST ERR_CODE("root_handler.cpp", "handleRequest", "setup", "no_request")
+#define ERR_SRV_NO_RESPONSE ERR_CODE("root_handler.cpp", "handleRequest", "setup", "no_response")
+
+// Permissions controller (tables)
+#define ERR_PERM_TABLE_ID_EMPTY ERR_CODE("permissions.cpp", "validatePermission", "validate_input", "table_id_empty")
+#define ERR_PERM_ID_EMPTY ERR_CODE("permissions.cpp", "validatePermission", "validate_input", "perm_id_empty")
+#define ERR_PERM_USER_ID_EMPTY ERR_CODE("permissions.cpp", "validatePermission", "validate_input", "user_id_empty")
+
+// Forms controller
+#define ERR_FORM_NOT_FOUND ERR_CODE("forms.cpp", "readForm", "validate_existence", "form_not_found")
+
+// Database users
+#define ERR_DBUSR_ID_EMPTY ERR_CODE("database_users.cpp", "modifyDatabaseUser", "validate_input", "user_id_empty")
+
+// Function / Action errors
+#define ERR_ACTION_FAILED ERR_CODE("action.cpp", "Work_", "execute_action", "action_failed")
+#define ERR_ACTION_SETUP_REQ ERR_CODE("action.cpp", "Work_", "setup_request", "setup_request_failed")
+#define ERR_ACTION_SETUP_RES ERR_CODE("action.cpp", "Work_", "setup_response", "setup_response_failed")
+#define ERR_FUNCTION_SETUP_REQ ERR_CODE("function.cpp", "Process_", "setup_request", "setup_request_failed")
+#define ERR_FUNCTION_SETUP_RES ERR_CODE("function.cpp", "Process_", "setup_response", "setup_response_failed")
+
+#endif // STRUCTBX_CORE_ERRORCODES
