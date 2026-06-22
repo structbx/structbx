@@ -1,6 +1,7 @@
 import { BaseController } from '../modules/base_controller.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { CSVReader } from '../classes/csv_reader.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { TableData } from '../models/TableData.js';
 import { TableColumn } from '../models/TableColumn.js';
@@ -58,7 +59,7 @@ export class DataImportController extends BaseController{
             for(const column of columns){
                 options += `<option value="${column.identifier}">${column.name}</option>`;
             }
-            options += `<option value="">-- SKIP --</option>`;
+            options += `<option value="">${window.structbxI18n ? window.structbxI18n.t('import.skip') : '-- SKIP --'}</option>`;
 
             for(const header of Object.keys(this.file_data[0])){
                 const select = $(`<select class="form-select column" name="${header}">${options}</select>`);
@@ -139,7 +140,7 @@ export class DataImportController extends BaseController{
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('import.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
@@ -156,10 +157,10 @@ export class DataImportController extends BaseController{
 
             $('#component_data_reload').click();
             $('#component_data_import_message').modal('show');
-            $('#component_data_import_message .contents').append($(`<p>Mensaje: ${response.body.message}</p>`));
-            $('#component_data_import_message .contents').append($(`<p>Total guardados: ${response.body.saved}</p>`));
-            $('#component_data_import_message .contents').append($(`<p>Total no guardados: ${response.body.errors}</p>`));
-            $('#component_data_import_message .contents').append($(`<p>Filas no guardadas: ${response.body.error_lines}</p>`));
+            $('#component_data_import_message .contents').append($(`<p>${window.structbxI18n ? window.structbxI18n.t('import.message', {message: response.body.message}) : 'Message: ' + response.body.message}</p>`));
+            $('#component_data_import_message .contents').append($(`<p>${window.structbxI18n ? window.structbxI18n.t('import.saved', {saved: response.body.saved}) : 'Total saved: ' + response.body.saved}</p>`));
+            $('#component_data_import_message .contents').append($(`<p>${window.structbxI18n ? window.structbxI18n.t('import.errors', {errors: response.body.errors}) : 'Total not saved: ' + response.body.errors}</p>`));
+            $('#component_data_import_message .contents').append($(`<p>${window.structbxI18n ? window.structbxI18n.t('import.error_lines', {error_lines: response.body.error_lines}) : 'Rows not saved: ' + response.body.error_lines}</p>`));
         });
     }
 }

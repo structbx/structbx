@@ -3,6 +3,7 @@ import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { ViewFilter } from '../models/ViewFilter.js';
 import { TableColumn } from '../models/TableColumn.js';
@@ -25,31 +26,33 @@ const OPERATORS_BY_TYPE = {
     [ColumnType.Selection]: ['=', '!=', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL']
 };
 
+const t = (key, fallback) => window.structbxI18n ? window.structbxI18n.t(key) : fallback;
+
 const OPERATOR_LABELS = {
-    'LIKE': 'Contiene',
-    '=': 'Igual',
-    '!=': 'No igual',
-    '>': 'Mayor que',
-    '<': 'Menor que',
-    '>=': 'Mayor o igual que',
-    '<=': 'Menor o igual que',
-    'IN': 'Dentro de',
-    'NOT IN': 'No dentro de',
-    'IS NULL': 'Es nulo',
-    'IS NOT NULL': 'No es nulo'
+    'LIKE': t('filters.op_contains', 'Contains'),
+    '=': t('filters.op_equals', 'Equals'),
+    '!=': t('filters.op_not_equals', 'Not Equal'),
+    '>': t('filters.op_greater_than', 'Greater Than'),
+    '<': t('filters.op_less_than', 'Less Than'),
+    '>=': t('filters.op_greater_equal', 'Greater or Equal'),
+    '<=': t('filters.op_less_equal', 'Less or Equal'),
+    'IN': t('filters.op_in', 'In'),
+    'NOT IN': t('filters.op_not_in', 'Not In'),
+    'IS NULL': t('filters.op_is_null', 'Is Null'),
+    'IS NOT NULL': t('filters.op_is_not_null', 'Is Not Null')
 };
 
 export class FilterType
 {
     constructor()
     {
-        this.like = {title: 'Contiene', value: 'LIKE'};
-        this.equal = {title: 'Igual', value: '='};
-        this.not_equal = {title: 'No igual', value: '!='};
-        this.greater = {title: 'Mayor que', value: '>'};
-        this.less = {title: 'Menor que', value: '<'};
-        this.greater_equal = {title: 'Mayor o igual que', value: '>='};
-        this.less_equal = {title: 'Menor o igual que', value: '<='};
+        this.like = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_contains') : 'Contains', value: 'LIKE'};
+        this.equal = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_equals') : 'Equals', value: '='};
+        this.not_equal = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_not_equals') : 'Not Equal', value: '!='};
+        this.greater = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_greater_than') : 'Greater Than', value: '>'};
+        this.less = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_less_than') : 'Less Than', value: '<'};
+        this.greater_equal = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_greater_equal') : 'Greater or Equal', value: '>='};
+        this.less_equal = {title: window.structbxI18n ? window.structbxI18n.t('filters.op_less_equal') : 'Less or Equal', value: '<='};
         this.array = [this.like, this.equal, this.not_equal, this.greater, this.less, this.greater_equal, this.less_equal];
     }
 }
@@ -145,7 +148,7 @@ export class FiltersController extends BaseController{
                 <select class="form-select" name="op" required>
                     ${options}
                 </select>
-                <input type="text" class="form-control" name="value" placeholder="Valor" required/>
+                <input type="text" class="form-control" name="value" placeholder="${window.structbxI18n ? window.structbxI18n.t('filters.value_placeholder') : 'Value'}" required/>
                 <button type="button" class="btn btn-sm btn-dark-shadow ${type}"><i class="fas fa-${type=="modify" ? "pen" : "save"}"></i></button>
                 <button type="button" class="btn btn-sm btn-dark-shadow me-2 delete"><i class="fas fa-trash"></i></button>
             </div>
@@ -246,14 +249,14 @@ export class FiltersController extends BaseController{
         let $newInput;
 
         if(columnType === ColumnType.Selection && linkTo){
-            $newInput = $(`<select class="form-select" name="value" required><option value="">-- Ninguno --</option></select>`);
+            $newInput = $(`<select class="form-select" name="value" required><option value="">${window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --'}</option></select>`);
             this.loadSelectionOptions(linkTo, $newInput, isRestore ? currentValue : undefined);
         }
         else if(columnType === ColumnType.IntNumber){
-            $newInput = $(`<input type="number" step="1" class="form-control" name="value" placeholder="Valor" required/>`);
+            $newInput = $(`<input type="number" step="1" class="form-control" name="value" placeholder="${window.structbxI18n ? window.structbxI18n.t('filters.value_placeholder') : 'Value'}" required/>`);
         }
         else if(columnType === ColumnType.DecimalNumber){
-            $newInput = $(`<input type="number" step="any" class="form-control" name="value" placeholder="Valor" required/>`);
+            $newInput = $(`<input type="number" step="any" class="form-control" name="value" placeholder="${window.structbxI18n ? window.structbxI18n.t('filters.value_placeholder') : 'Value'}" required/>`);
         }
         else if(columnType === ColumnType.Date){
             $newInput = $(`<input type="date" class="form-control" name="value" required/>`);
@@ -265,7 +268,7 @@ export class FiltersController extends BaseController{
             $newInput = $(`<input type="datetime-local" class="form-control" name="value" required/>`);
         }
         else {
-            $newInput = $(`<input type="text" class="form-control" name="value" placeholder="Valor" required/>`);
+            $newInput = $(`<input type="text" class="form-control" name="value" placeholder="${window.structbxI18n ? window.structbxI18n.t('filters.value_placeholder') : 'Value'}" required/>`);
         }
 
         $(filterElement).find('[name=value]').replaceWith($newInput);
@@ -321,7 +324,7 @@ export class FiltersController extends BaseController{
             // Handle zero results
             if(response_data.body.data.length < 1){
                 $('#filters_count').text('').toggleClass('d-none', true);
-                $(`#component_filters_read .contents`).html('<span class="text-muted p-2">No hay filtros</span>');
+                $(`#component_filters_read .contents`).html(`<span class="text-muted p-2">${window.structbxI18n ? window.structbxI18n.t('filters.no_filters') : 'No filters.'}</span>`);
                 return;
             }
 
@@ -355,7 +358,7 @@ export class FiltersController extends BaseController{
 
         // Validate inputs
         if (column_identifier === "" || op === "" || value === ""){
-            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('filters.all_fields_required') : 'All filter fields are required.');
             return;
         }
         
@@ -388,7 +391,7 @@ export class FiltersController extends BaseController{
         const filter_element = $(e.currentTarget).parent();
         const filter_identifier = filter_element.attr('filter-identifier');
         if(filter_identifier == undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('filters.identifier_not_found') : 'Filter identifier not found.');
             return;
         }
 
@@ -400,7 +403,7 @@ export class FiltersController extends BaseController{
 
         // Validate inputs
         if (column_identifier === "" || op === "" || value === ""){
-            new wtools.Notification('WARNING').Show_('Todos los campos del filtro son obligatorios.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('filters.all_fields_required') : 'All filter fields are required.');
             return;
         }
         
@@ -442,7 +445,7 @@ export class FiltersController extends BaseController{
         const filter_element = $(e.currentTarget).parent();
         const filter_identifier = filter_element.attr('filter-identifier');
         if(filter_identifier == undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del filtro.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('filters.identifier_not_found') : 'Filter identifier not found.');
             return;
         }
 

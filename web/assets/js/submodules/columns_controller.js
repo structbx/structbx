@@ -3,6 +3,7 @@ import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { Table } from '../models/Table.js';
 import { TableColumn } from '../models/TableColumn.js';
@@ -25,26 +26,26 @@ export class ColumnsController extends BaseController{
         this.columns = []
 
         this.options_required = new wtools.SelectOptions([
-            new wtools.OptionValue("0", "No", true)
-            ,new wtools.OptionValue("1", "S&iacute;")
+            new wtools.OptionValue("0", window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No', true)
+            ,new wtools.OptionValue("1", window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
         ]);
         this.options_required.Build_('#component_columns_add select[name="required"]');
         this.options_required.Build_('#component_columns_modify select[name="required"]');
 
         this.options_column_type = new wtools.SelectOptions([
-            new wtools.OptionValue(ColumnType.Text, "Texto", true),
-            new wtools.OptionValue(ColumnType.LongText, "Texto largo", false),
-            new wtools.OptionValue(ColumnType.IntNumber, "Número entero", false),
-            new wtools.OptionValue(ColumnType.DecimalNumber, "Número decimal", false),
-            new wtools.OptionValue(ColumnType.Date, "Fecha", false),
-            new wtools.OptionValue(ColumnType.Time, "Hora", false),
-            new wtools.OptionValue(ColumnType.File, "Archivo", false),
-            new wtools.OptionValue(ColumnType.Image, "Imagen", false),
-            new wtools.OptionValue(ColumnType.Selection, "Selección", false),
-            new wtools.OptionValue(ColumnType.User, "Usuario", false),
-            new wtools.OptionValue(ColumnType.CurrentUser, "Usuario actual", false),
-            new wtools.OptionValue(ColumnType.CreatedDate, "Fecha de creación", false),
-            new wtools.OptionValue(ColumnType.UpdatedDate, "Fecha de actualización", false)
+            new wtools.OptionValue(ColumnType.Text, window.structbxI18n ? window.structbxI18n.t('columns.type_text') : 'Text', true),
+            new wtools.OptionValue(ColumnType.LongText, window.structbxI18n ? window.structbxI18n.t('columns.type_long_text') : 'Long Text', false),
+            new wtools.OptionValue(ColumnType.IntNumber, window.structbxI18n ? window.structbxI18n.t('columns.type_integer') : 'Integer', false),
+            new wtools.OptionValue(ColumnType.DecimalNumber, window.structbxI18n ? window.structbxI18n.t('columns.type_decimal') : 'Decimal', false),
+            new wtools.OptionValue(ColumnType.Date, window.structbxI18n ? window.structbxI18n.t('columns.type_date') : 'Date', false),
+            new wtools.OptionValue(ColumnType.Time, window.structbxI18n ? window.structbxI18n.t('columns.type_time') : 'Time', false),
+            new wtools.OptionValue(ColumnType.File, window.structbxI18n ? window.structbxI18n.t('columns.type_file') : 'File', false),
+            new wtools.OptionValue(ColumnType.Image, window.structbxI18n ? window.structbxI18n.t('columns.type_image') : 'Image', false),
+            new wtools.OptionValue(ColumnType.Selection, window.structbxI18n ? window.structbxI18n.t('columns.type_select') : 'Selection', false),
+            new wtools.OptionValue(ColumnType.User, window.structbxI18n ? window.structbxI18n.t('columns.type_user') : 'User', false),
+            new wtools.OptionValue(ColumnType.CurrentUser, window.structbxI18n ? window.structbxI18n.t('columns.type_current_user') : 'Current User', false),
+            new wtools.OptionValue(ColumnType.CreatedDate, window.structbxI18n ? window.structbxI18n.t('columns.type_created_at') : 'Created At', false),
+            new wtools.OptionValue(ColumnType.UpdatedDate, window.structbxI18n ? window.structbxI18n.t('columns.type_updated_at') : 'Updated At', false)
         ]);
         this.options_column_type.Build_('#component_columns_add select[name="column_type"]');
         this.options_column_type.Build_('#component_columns_modify select[name="column_type"]');
@@ -55,7 +56,7 @@ export class ColumnsController extends BaseController{
             try
             {
                 let tmp_options = [];
-                tmp_options.push(new wtools.OptionValue('', '-- Ninguno --', true));
+                tmp_options.push(new wtools.OptionValue('', window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --', true));
                 for(let row of response_data.body.data)
                     tmp_options.push(new wtools.OptionValue(row.identifier, row.name));
 
@@ -65,9 +66,9 @@ export class ColumnsController extends BaseController{
                 callback();
             }
             catch(error){
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a los tabla a enlazar.');
-                new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
-                new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_('No se pudo acceder a los tabla a enlazar.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('columns.link_tables_failed') : 'Could not access tables to link.');
+                new wtools.Notification('WARNING', 0, '#component_columns_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('columns.link_tables_failed') : 'Could not access tables to link.');
+                new wtools.Notification('WARNING', 0, '#component_columns_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('columns.link_tables_failed') : 'Could not access tables to link.');
             }
         });
         this.options_link_to_init(this.options_link_to, () => {})
@@ -174,7 +175,7 @@ export class ColumnsController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
-                new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 
@@ -214,7 +215,7 @@ export class ColumnsController extends BaseController{
         if(!check){
             $('#component_columns_add .notifications').html('');
             wait.Off_();
-            this.notification.add.Show_('Hay campos inv&aacute;lidos.');
+            this.notification.add.Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -243,9 +244,9 @@ export class ColumnsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            this.notification.ok.Show_('Columna creada exitosamente.');
+            this.notification.ok.Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_created') : 'Column created successfully.');
             $('#component_columns_add').modal('hide');
-            $('#component_columns_add form input[name="name"]').val("Nueva columna");
+            $('#component_columns_add form input[name="name"]').val(window.structbxI18n ? window.structbxI18n.t('columns.new_column') : 'New column');
             this.read();
             this.onChanged();
         });
@@ -288,7 +289,7 @@ export class ColumnsController extends BaseController{
         let identifier = $(e.target).attr('column-identifier');
         if(identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la columna.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_identifier_not_found') : 'Column identifier not found.');
             return;
         }
 
@@ -302,7 +303,7 @@ export class ColumnsController extends BaseController{
 
             // Handle no results or zero results
             if(response_data.body.data.length < 1){
-                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 
@@ -335,7 +336,7 @@ export class ColumnsController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_columns_modify .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_columns_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_columns_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -351,7 +352,7 @@ export class ColumnsController extends BaseController{
         // Verify if column type is selection then link_to is required
         if(column_type == ColumnType.Selection && (link_to == null || link_to == "" || link_to == undefined)){
             wait.Off_();
-            this.notification.add.Show_('Debe especificar la tabla a enlazar.');
+            this.notification.add.Show_(window.structbxI18n ? window.structbxI18n.t('columns.link_table_required') : 'You must specify the table to link.');
             return;
         }
 
@@ -364,7 +365,7 @@ export class ColumnsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Columna modificada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_updated') : 'Column updated successfully.');
             $('#component_columns_modify').modal('hide');
             this.onChanged();
             this.read();
@@ -405,7 +406,7 @@ export class ColumnsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Columna eliminada.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_deleted') : 'Column deleted.');
             $('#component_columns_delete').modal('hide');
             $('#component_columns_modify').modal('hide');
             this.read();

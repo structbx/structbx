@@ -2,6 +2,7 @@ import { BaseController } from '../modules/base_controller.js';
 import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { View } from '../models/View.js';
 
@@ -60,7 +61,7 @@ export class ViewsController extends BaseController{
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                this.notification.error.Show_('No se encontr&oacute; la vista.');
+                this.notification.error.Show_(window.structbxI18n ? window.structbxI18n.t('views.not_found') : 'View not found.');
                 return;
             }
             $('#component_views_modify input[name="name"]').val(view_name);
@@ -78,7 +79,7 @@ export class ViewsController extends BaseController{
             const view_identifier = $(e.currentTarget).attr('view-identifier');
             const view_name = $(e.currentTarget).attr('view-name');
             if(view_identifier == undefined || view_name == undefined){
-                this.notification.error.Show_('No se encontr&oacute; la vista.');
+                this.notification.error.Show_(window.structbxI18n ? window.structbxI18n.t('views.not_found') : 'View not found.');
                 return;
             }
             $('#component_views_delete .name').text(view_name);
@@ -149,7 +150,7 @@ export class ViewsController extends BaseController{
                 if(first_view_identifier == undefined) {
                     //dataObject.Clear_();
                     //columnsObject.Clear_();
-                    this.notification.warning.Show_('No se encontr&oacute; ninguna vista disponible.');
+                    this.notification.warning.Show_(window.structbxI18n ? window.structbxI18n.t('views.no_views_available') : 'No views available.');
                     
                     // Create default view...
                 }
@@ -209,7 +210,7 @@ export class ViewsController extends BaseController{
         if(!check){
             $('#component_views_add .notifications').html('');
             wait.Off_();
-            this.notification.add.Show_('Hay campos inv&aacute;lidos.');
+            this.notification.add.Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -227,7 +228,7 @@ export class ViewsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            this.notification.ok.Show_('Vista creada exitosamente.');
+            this.notification.ok.Show_(window.structbxI18n ? window.structbxI18n.t('views.created') : 'View created successfully.');
             $('#component_views_add').modal('hide');
             this.read();
         });
@@ -245,7 +246,7 @@ export class ViewsController extends BaseController{
         if(!check){
             $('#component_views_modify .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_views_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -263,7 +264,7 @@ export class ViewsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Vista modificada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('views.updated') : 'View updated successfully.');
             $('#component_views_modify').modal('hide');
             this.read();
         });
@@ -279,7 +280,7 @@ export class ViewsController extends BaseController{
         if(!check){
             $('#component_views_delete .notifications').html('');
             wait.Off_();
-            this.notification.warning.Show_('Hay campos inv&aacute;lidos.');
+            this.notification.warning.Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -295,7 +296,7 @@ export class ViewsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Vista eliminada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('views.deleted') : 'View deleted successfully.');
             $('#component_views_delete').modal('hide');
             this.read();
             if(current_view == view_identifier)

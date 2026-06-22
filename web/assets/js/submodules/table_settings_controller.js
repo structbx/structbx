@@ -1,5 +1,6 @@
 import { BaseController } from '../modules/base_controller.js';
 import { ResponseManager } from '../classes/response_manager.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { Table } from '../models/Table.js';
 import { TablePermission } from '../models/TablePermission.js';
@@ -17,8 +18,8 @@ export class TableSettingsController extends BaseController{
         this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_settings_delete .notifications');
 
         this.options_permissions = new wtools.SelectOptions([
-            new wtools.OptionValue("0", "No", true),
-            new wtools.OptionValue("1", "S&iacute;")
+            new wtools.OptionValue("0", window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No', true),
+            new wtools.OptionValue("1", window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
         ]);
 
         const perm_selectors = ['read', 'add', 'modify', 'delete', 'just_owner'];
@@ -28,8 +29,8 @@ export class TableSettingsController extends BaseController{
         }
 
         this.options_public_form = new wtools.SelectOptions([
-            new wtools.OptionValue("0", "No", true),
-            new wtools.OptionValue("1", "S&iacute;")
+            new wtools.OptionValue("0", window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No', true),
+            new wtools.OptionValue("1", window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
         ]);
         this.options_public_form.Build_('#component_settings_general select[name="public_form"]');
     }
@@ -90,7 +91,7 @@ export class TableSettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_settings_general .notifications', 'Configuraciones: General');
             if(!result.Verify_()) return;
             if(response.body.data.length < 1){
-                new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
             $('#component_settings_general input[name="name"]').val(response.body.data[0].name);
@@ -98,7 +99,7 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_general textarea[name="description"]').val(response.body.data[0].description);
             $('#component_settings_general span.link_form').html(`
                 <a href="/form?identifier=${response.body.data[0].identifier}" target="_blank" class="mt-2 d-block form-link">
-                    Ir al formulario p&uacute;blico
+                    ${window.structbxI18n ? window.structbxI18n.t('table_settings.go_to_public_form') : 'Go to public form'}
                 </a>
             `);
         });
@@ -113,14 +114,14 @@ export class TableSettingsController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_settings_general .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
@@ -133,7 +134,7 @@ export class TableSettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_settings_general .notifications', 'Tablas: Editar');
             if(!result.Verify_()) return;
             $('#component_settings_general .notifications').html('');
-            new wtools.Notification('SUCCESS').Show_('Tabla actualizada correctamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.table_updated') : 'Table updated successfully.');
             this.readSettings();
         });
     }
@@ -154,7 +155,7 @@ export class TableSettingsController extends BaseController{
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
@@ -162,7 +163,7 @@ export class TableSettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_delete .notifications', 'Tablas: Eliminar');
             if(!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Tabla eliminada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.table_deleted') : 'Table deleted successfully.');
             window.location.href = `/`;
         });
     }
@@ -185,7 +186,7 @@ export class TableSettingsController extends BaseController{
             if(!result.Verify_()) return;
 
             if(response.body.data.length < 1){
-                new wtools.Notification('SUCCESS', 5000, '#component_settings_permissions .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 5000, '#component_settings_permissions .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 
@@ -206,7 +207,7 @@ export class TableSettingsController extends BaseController{
     preAddPermission(){
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
@@ -215,7 +216,7 @@ export class TableSettingsController extends BaseController{
             try {
                 const tmp = [];
                 if(response.body.data.length < 1){
-                    tmp.push(new wtools.OptionValue("", "No hay usuarios disponibles."));
+                    tmp.push(new wtools.OptionValue("", window.structbxI18n ? window.structbxI18n.t('settings.no_users_available') : 'No users available.'));
                 } else {
                     for(const row of response.body.data){
                         tmp.push(new wtools.OptionValue(row.identifier, row.username));
@@ -231,8 +232,8 @@ export class TableSettingsController extends BaseController{
                 $('#component_settings_permissions_add form select[name="just_owner"]').val("0");
                 $('#component_settings_permissions_add').modal('show');
             } catch(error){
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a los usuarios de la base de datos.');
-                new wtools.Notification('WARNING', 0, '#component_settings_permissions_add .notifications').Show_('No se pudo acceder a los usuarios de la base de datos.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.db_users_failed') : 'Could not access database users.');
+                new wtools.Notification('WARNING', 0, '#component_settings_permissions_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.db_users_failed') : 'Could not access database users.');
             }
         });
     }
@@ -246,7 +247,7 @@ export class TableSettingsController extends BaseController{
         if(!check){
             $('#component_settings_permissions_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -257,7 +258,7 @@ export class TableSettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_permissions_add .notifications', 'Permisos de tabla: A&ntilde;adir');
             if(!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Permiso de tabla creado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_created') : 'Table permission created successfully.');
             this.readPermissions();
             $('#component_settings_permissions_add').modal('hide');
         });
@@ -269,14 +270,14 @@ export class TableSettingsController extends BaseController{
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
         const identifier = $(e.currentTarget).attr('permission-identifier');
         if(identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de permiso de tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_identifier_not_found') : 'Table permission identifier not found.');
             return;
         }
 
@@ -288,7 +289,7 @@ export class TableSettingsController extends BaseController{
             }
 
             if(response.body.data.length < 1){
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el permiso de tabla.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_not_found') : 'Table permission not found.');
                 wait.Off_();
                 return;
             }
@@ -316,7 +317,7 @@ export class TableSettingsController extends BaseController{
         if(!check){
             $('#component_settings_permissions_modify .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_settings_permissions_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -327,7 +328,7 @@ export class TableSettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_permissions_modify .notifications', 'Permiso de tabla: Modificar');
             if(!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Permiso de tabla modificado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_updated') : 'Table permission updated successfully.');
             $('#component_settings_permissions_modify').modal('hide');
             this.readPermissions();
         });
@@ -348,7 +349,7 @@ export class TableSettingsController extends BaseController{
         const table_identifier = this.getTableIdentifier();
         if(table_identifier == undefined){
             wait.Off_();
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la tabla.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
             return;
         }
 
@@ -358,7 +359,7 @@ export class TableSettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_permissions_delete .notifications', 'Permiso de tabla: Eliminar');
             if(!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Permiso de tabla eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_deleted') : 'Table permission deleted.');
             $('#component_settings_permissions_delete').modal('hide');
             $('#component_settings_permissions_modify').modal('hide');
             this.readPermissions();

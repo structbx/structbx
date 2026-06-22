@@ -3,6 +3,7 @@ import * as tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { TableData } from '../models/TableData.js';
 import { TableColumn } from '../models/TableColumn.js';
@@ -31,61 +32,61 @@ export class DataController extends BaseController{
         this.read_mutex = false;
         this.colorsSelect = 
         [
-            {color: '#4361ee', html: `<span class='small' style='background-color:#4361ee;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Principal</span>`},
-            {color: '#3a0ca3', html: `<span class='small' style='background-color:#3a0ca3;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Oscuro</span>`},
-            {color: '#4cc9f0', html: `<span class='small' style='background-color:#4cc9f0;color:#000;padding:2px 8px;border-radius:4px;'>Azul Claro</span>`},
-            {color: '#7209b7', html: `<span class='small' style='background-color:#7209b7;color:#fff;padding:2px 8px;border-radius:4px;'>Púrpura</span>`},
-            {color: '#f72585', html: `<span class='small' style='background-color:#f72585;color:#fff;padding:2px 8px;border-radius:4px;'>Rosa</span>`},
-            {color: '#2ec4b6', html: `<span class='small' style='background-color:#2ec4b6;color:#fff;padding:2px 8px;border-radius:4px;'>Turquesa</span>`},
-            {color: '#e71d36', html: `<span class='small' style='background-color:#e71d36;color:#fff;padding:2px 8px;border-radius:4px;'>Rojo</span>`},
-            {color: '#ff9f1c', html: `<span class='small' style='background-color:#ff9f1c;color:#000;padding:2px 8px;border-radius:4px;'>Naranja</span>`},
-            {color: '#ffd166', html: `<span class='small' style='background-color:#ffd166;color:#000;padding:2px 8px;border-radius:4px;'>Amarillo</span>`},
-            {color: '#06d6a0', html: `<span class='small' style='background-color:#06d6a0;color:#000;padding:2px 8px;border-radius:4px;'>Verde</span>`},
-            {color: '#118ab2', html: `<span class='small' style='background-color:#118ab2;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Marino</span>`},
-            {color: '#073b4c', html: `<span class='small' style='background-color:#073b4c;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Noche</span>`},
-            {color: '#ef476f', html: `<span class='small' style='background-color:#ef476f;color:#fff;padding:2px 8px;border-radius:4px;'>Coral</span>`},
-            {color: '#9b5de5', html: `<span class='small' style='background-color:#9b5de5;color:#fff;padding:2px 8px;border-radius:4px;'>Lila</span>`},
-            {color: '#00bbf9', html: `<span class='small' style='background-color:#00bbf9;color:#fff;padding:2px 8px;border-radius:4px;'>Celeste</span>`},
-            {color: '#00f5d4', html: `<span class='small' style='background-color:#00f5d4;color:#000;padding:2px 8px;border-radius:4px;'>Cian</span>`},
-            {color: '#fee440', html: `<span class='small' style='background-color:#fee440;color:#000;padding:2px 8px;border-radius:4px;'>Amarillo Limón</span>`},
-            {color: '#f15bb5', html: `<span class='small' style='background-color:#f15bb5;color:#fff;padding:2px 8px;border-radius:4px;'>Rosa Fuerte</span>`},
-            {color: '#9b2226', html: `<span class='small' style='background-color:#9b2226;color:#fff;padding:2px 8px;border-radius:4px;'>Rojo Vino</span>`},
-            {color: '#005f73', html: `<span class='small' style='background-color:#005f73;color:#fff;padding:2px 8px;border-radius:4px;'>Verde Azulado</span>`},
-            {color: '#0a9396', html: `<span class='small' style='background-color:#0a9396;color:#fff;padding:2px 8px;border-radius:4px;'>Verde Mar</span>`},
-            {color: '#94d2bd', html: `<span class='small' style='background-color:#94d2bd;color:#000;padding:2px 8px;border-radius:4px;'>Verde Pastel</span>`},
-            {color: '#e9d8a6', html: `<span class='small' style='background-color:#e9d8a6;color:#000;padding:2px 8px;border-radius:4px;'>Beige</span>`},
-            {color: '#ee9b00', html: `<span class='small' style='background-color:#ee9b00;color:#000;padding:2px 8px;border-radius:4px;'>Ocre</span>`},
-            {color: '#ca6702', html: `<span class='small' style='background-color:#ca6702;color:#fff;padding:2px 8px;border-radius:4px;'>Marrón</span>`},
-            {color: '#bb3e03', html: `<span class='small' style='background-color:#bb3e03;color:#fff;padding:2px 8px;border-radius:4px;'>Terracota</span>`},
-            {color: '#ae2012', html: `<span class='small' style='background-color:#ae2012;color:#fff;padding:2px 8px;border-radius:4px;'>Rojo Óxido</span>`},
-            {color: '#9b5de5', html: `<span class='small' style='background-color:#9b5de5;color:#fff;padding:2px 8px;border-radius:4px;'>Púrpura Vibrante</span>`},
-            {color: '#f3722c', html: `<span class='small' style='background-color:#f3722c;color:#fff;padding:2px 8px;border-radius:4px;'>Naranja Quemado</span>`},
-            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>Gris Azulado</span>`},
-            {color: '#43aa8b', html: `<span class='small' style='background-color:#43aa8b;color:#fff;padding:2px 8px;border-radius:4px;'>Verde Jade</span>`},
-            {color: '#90be6d', html: `<span class='small' style='background-color:#90be6d;color:#000;padding:2px 8px;border-radius:4px;'>Verde Lima</span>`},
-            {color: '#f9c74f', html: `<span class='small' style='background-color:#f9c74f;color:#000;padding:2px 8px;border-radius:4px;'>Amarillo Mostaza</span>`},
-            {color: '#f8961e', html: `<span class='small' style='background-color:#f8961e;color:#000;padding:2px 8px;border-radius:4px;'>Naranja Calabaza</span>`},
-            {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>Rojo Fuego</span>`},
-            {color: '#277da1', html: `<span class='small' style='background-color:#277da1;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Cobalto</span>`},
-            {color: '#8338ec', html: `<span class='small' style='background-color:#8338ec;color:#fff;padding:2px 8px;border-radius:4px;'>Violeta</span>`},
-            {color: '#3a86ff', html: `<span class='small' style='background-color:#3a86ff;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Brillante</span>`},
-            {color: '#fb5607', html: `<span class='small' style='background-color:#fb5607;color:#fff;padding:2px 8px;border-radius:4px;'>Naranja Neón</span>`},
-            {color: '#ff006e', html: `<span class='small' style='background-color:#ff006e;color:#fff;padding:2px 8px;border-radius:4px;'>Rosa Neón</span>`},
-            {color: '#8338ec', html: `<span class='small' style='background-color:#8338ec;color:#fff;padding:2px 8px;border-radius:4px;'>Púrpura Eléctrico</span>`},
-            {color: '#3a86ff', html: `<span class='small' style='background-color:#3a86ff;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Eléctrico</span>`},
-            {color: '#ffbe0b', html: `<span class='small' style='background-color:#ffbe0b;color:#000;padding:2px 8px;border-radius:4px;'>Amarillo Eléctrico</span>`},
-            {color: '#fb5607', html: `<span class='small' style='background-color:#fb5607;color:#fff;padding:2px 8px;border-radius:4px;'>Naranja Eléctrico</span>`},
-            {color: '#ff006e', html: `<span class='small' style='background-color:#ff006e;color:#fff;padding:2px 8px;border-radius:4px;'>Magenta</span>`},
-            {color: '#4d908e', html: `<span class='small' style='background-color:#4d908e;color:#fff;padding:2px 8px;border-radius:4px;'>Verde Grisáceo</span>`},
-            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Gris</span>`},
-            {color: '#f9844a', html: `<span class='small' style='background-color:#f9844a;color:#000;padding:2px 8px;border-radius:4px;'>Salmón</span>`},
-            {color: '#90be6d', html: `<span class='small' style='background-color:#90be6d;color:#000;padding:2px 8px;border-radius:4px;'>Verde Manzana</span>`},
-            {color: '#f9c74f', html: `<span class='small' style='background-color:#f9c74f;color:#000;padding:2px 8px;border-radius:4px;'>Oro</span>`},
-            {color: '#43aa8b', html: `<span class='small' style='background-color:#43aa8b;color:#fff;padding:2px 8px;border-radius:4px;'>Esmeralda</span>`},
-            {color: '#f3722c', html: `<span class='small' style='background-color:#f3722c;color:#fff;padding:2px 8px;border-radius:4px;'>Calabaza</span>`},
-            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>Pizarra</span>`},
-            {color: '#277da1', html: `<span class='small' style='background-color:#277da1;color:#fff;padding:2px 8px;border-radius:4px;'>Azul Acero</span>`},
-            {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>Carmesí</span>`}
+            {color: '#4361ee', html: `<span class='small' style='background-color:#4361ee;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.primary_blue') : 'Primary Blue'}</span>`},
+            {color: '#3a0ca3', html: `<span class='small' style='background-color:#3a0ca3;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.dark_blue') : 'Dark Blue'}</span>`},
+            {color: '#4cc9f0', html: `<span class='small' style='background-color:#4cc9f0;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.light_blue') : 'Light Blue'}</span>`},
+            {color: '#7209b7', html: `<span class='small' style='background-color:#7209b7;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.purple') : 'Purple'}</span>`},
+            {color: '#f72585', html: `<span class='small' style='background-color:#f72585;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.pink') : 'Pink'}</span>`},
+            {color: '#2ec4b6', html: `<span class='small' style='background-color:#2ec4b6;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.turquoise') : 'Turquoise'}</span>`},
+            {color: '#e71d36', html: `<span class='small' style='background-color:#e71d36;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.red') : 'Red'}</span>`},
+            {color: '#ff9f1c', html: `<span class='small' style='background-color:#ff9f1c;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.orange') : 'Orange'}</span>`},
+            {color: '#ffd166', html: `<span class='small' style='background-color:#ffd166;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.yellow') : 'Yellow'}</span>`},
+            {color: '#06d6a0', html: `<span class='small' style='background-color:#06d6a0;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.green') : 'Green'}</span>`},
+            {color: '#118ab2', html: `<span class='small' style='background-color:#118ab2;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.navy_blue') : 'Navy Blue'}</span>`},
+            {color: '#073b4c', html: `<span class='small' style='background-color:#073b4c;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.night_blue') : 'Night Blue'}</span>`},
+            {color: '#ef476f', html: `<span class='small' style='background-color:#ef476f;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.coral') : 'Coral'}</span>`},
+            {color: '#9b5de5', html: `<span class='small' style='background-color:#9b5de5;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.lilac') : 'Lilac'}</span>`},
+            {color: '#00bbf9', html: `<span class='small' style='background-color:#00bbf9;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.sky_blue') : 'Sky Blue'}</span>`},
+            {color: '#00f5d4', html: `<span class='small' style='background-color:#00f5d4;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.cyan') : 'Cyan'}</span>`},
+            {color: '#fee440', html: `<span class='small' style='background-color:#fee440;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.lime_yellow') : 'Lime Yellow'}</span>`},
+            {color: '#f15bb5', html: `<span class='small' style='background-color:#f15bb5;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.hot_pink') : 'Hot Pink'}</span>`},
+            {color: '#9b2226', html: `<span class='small' style='background-color:#9b2226;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.wine_red') : 'Wine Red'}</span>`},
+            {color: '#005f73', html: `<span class='small' style='background-color:#005f73;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.teal') : 'Teal'}</span>`},
+            {color: '#0a9396', html: `<span class='small' style='background-color:#0a9396;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.sea_green') : 'Sea Green'}</span>`},
+            {color: '#94d2bd', html: `<span class='small' style='background-color:#94d2bd;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.pastel_green') : 'Pastel Green'}</span>`},
+            {color: '#e9d8a6', html: `<span class='small' style='background-color:#e9d8a6;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.beige') : 'Beige'}</span>`},
+            {color: '#ee9b00', html: `<span class='small' style='background-color:#ee9b00;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.ochre') : 'Ochre'}</span>`},
+            {color: '#ca6702', html: `<span class='small' style='background-color:#ca6702;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.brown') : 'Brown'}</span>`},
+            {color: '#bb3e03', html: `<span class='small' style='background-color:#bb3e03;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.terracotta') : 'Terracotta'}</span>`},
+            {color: '#ae2012', html: `<span class='small' style='background-color:#ae2012;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.rust_red') : 'Rust Red'}</span>`},
+            {color: '#9b5de5', html: `<span class='small' style='background-color:#9b5de5;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.vibrant_purple') : 'Vibrant Purple'}</span>`},
+            {color: '#f3722c', html: `<span class='small' style='background-color:#f3722c;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.burnt_orange') : 'Burnt Orange'}</span>`},
+            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.blue_gray') : 'Blue Gray'}</span>`},
+            {color: '#43aa8b', html: `<span class='small' style='background-color:#43aa8b;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.jade_green') : 'Jade Green'}</span>`},
+            {color: '#90be6d', html: `<span class='small' style='background-color:#90be6d;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.lime_green') : 'Lime Green'}</span>`},
+            {color: '#f9c74f', html: `<span class='small' style='background-color:#f9c74f;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.mustard_yellow') : 'Mustard Yellow'}</span>`},
+            {color: '#f8961e', html: `<span class='small' style='background-color:#f8961e;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.pumpkin_orange') : 'Pumpkin Orange'}</span>`},
+            {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.fire_red') : 'Fire Red'}</span>`},
+            {color: '#277da1', html: `<span class='small' style='background-color:#277da1;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.cobalt_blue') : 'Cobalt Blue'}</span>`},
+            {color: '#8338ec', html: `<span class='small' style='background-color:#8338ec;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.violet') : 'Violet'}</span>`},
+            {color: '#3a86ff', html: `<span class='small' style='background-color:#3a86ff;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.bright_blue') : 'Bright Blue'}</span>`},
+            {color: '#fb5607', html: `<span class='small' style='background-color:#fb5607;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.neon_orange') : 'Neon Orange'}</span>`},
+            {color: '#ff006e', html: `<span class='small' style='background-color:#ff006e;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.neon_pink') : 'Neon Pink'}</span>`},
+            {color: '#8338ec', html: `<span class='small' style='background-color:#8338ec;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.electric_purple') : 'Electric Purple'}</span>`},
+            {color: '#3a86ff', html: `<span class='small' style='background-color:#3a86ff;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.electric_blue') : 'Electric Blue'}</span>`},
+            {color: '#ffbe0b', html: `<span class='small' style='background-color:#ffbe0b;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.electric_yellow') : 'Electric Yellow'}</span>`},
+            {color: '#fb5607', html: `<span class='small' style='background-color:#fb5607;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.electric_orange') : 'Electric Orange'}</span>`},
+            {color: '#ff006e', html: `<span class='small' style='background-color:#ff006e;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.magenta') : 'Magenta'}</span>`},
+            {color: '#4d908e', html: `<span class='small' style='background-color:#4d908e;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.grayish_green') : 'Grayish Green'}</span>`},
+            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.gray_blue') : 'Gray Blue'}</span>`},
+            {color: '#f9844a', html: `<span class='small' style='background-color:#f9844a;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.salmon') : 'Salmon'}</span>`},
+            {color: '#90be6d', html: `<span class='small' style='background-color:#90be6d;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.apple_green') : 'Apple Green'}</span>`},
+            {color: '#f9c74f', html: `<span class='small' style='background-color:#f9c74f;color:#000;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.gold') : 'Gold'}</span>`},
+            {color: '#43aa8b', html: `<span class='small' style='background-color:#43aa8b;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.emerald') : 'Emerald'}</span>`},
+            {color: '#f3722c', html: `<span class='small' style='background-color:#f3722c;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.pumpkin') : 'Pumpkin'}</span>`},
+            {color: '#577590', html: `<span class='small' style='background-color:#577590;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.slate') : 'Slate'}</span>`},
+            {color: '#277da1', html: `<span class='small' style='background-color:#277da1;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.steel_blue') : 'Steel Blue'}</span>`},
+            {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.crimson') : 'Crimson'}</span>`}
         ];
 
         this.row_cell = (contents) => {
@@ -201,8 +202,8 @@ export class DataController extends BaseController{
         this.colorSelectAdd = new DOME.CustomSelect('#component_data_add_colorHeader');
         this.colorSelectModify = new DOME.CustomSelect('#component_data_modify_colorHeader');
 
-        this.colorSelectAdd.AddOption_('', '-- Ninguno --');
-        this.colorSelectModify.AddOption_('', '-- Ninguno --');
+        this.colorSelectAdd.AddOption_('', window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --');
+        this.colorSelectModify.AddOption_('', window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --');
         this.colorsSelect.forEach(colorOption => {
             this.colorSelectAdd.AddOption_(colorOption.color, colorOption.html);
             this.colorSelectModify.AddOption_(colorOption.color, colorOption.html);
@@ -457,7 +458,7 @@ export class DataController extends BaseController{
             // Free mutex
             this.freeMutex();
 
-            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error.`);
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('data.error_occurred') : 'An error occurred.');
             return;
         }
     };
@@ -466,7 +467,7 @@ export class DataController extends BaseController{
         try{
             // Get Data Identifier
             if(row_identifier == undefined){
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del registro.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_identifier_not_found') : 'Record identifier not found.');
                 return;
             }
 
@@ -496,7 +497,7 @@ export class DataController extends BaseController{
 
         }
         catch(error){
-            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error: ${error}.`);
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('data.error_with_detail', {error: error}) : `An error occurred: ${error}.`);
             return;
         }
     };
@@ -561,7 +562,7 @@ export class DataController extends BaseController{
         let table_icon = table_element_object.GetIcon_();
 
         if(table_element == undefined){
-            new wtools.Notification('ERROR').Show_('Error al crear un elemento de tabla.');
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('data.table_element_create_error') : 'Error creating a table element.');
             return false;
         }
 
@@ -615,7 +616,7 @@ export class DataController extends BaseController{
                 // Handle zero results
                 if(response_data.body.data.length < 1){
                     wait.Off_();
-                    new wtools.Notification('WARNING').Show_('Debe crear columnas para agregar registros.');
+                    new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.create_columns_first') : 'You must create columns to add records.');
                     return;
                 }
                 
@@ -641,7 +642,7 @@ export class DataController extends BaseController{
             });
 
         } catch(error) {
-            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error: ${error}.`);
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('data.error_with_detail', {error: error}) : `An error occurred: ${error}.`);
             return;
         }
     };
@@ -655,7 +656,7 @@ export class DataController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_data_add .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_data_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_data_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -673,7 +674,7 @@ export class DataController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Registro guardado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_saved') : 'Record saved.');
             $('#component_data_add').modal('hide');
             this.changeIntVerification();
         });
@@ -688,7 +689,7 @@ export class DataController extends BaseController{
             let identifier = $(e.currentTarget).attr('identifier');
             if(identifier == undefined){
                 wait.Off_();
-                new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del registro.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_identifier_not_found') : 'Record identifier not found.');
                 return;
             }
             $('#component_data_modify input[name="identifier"]').val(identifier);
@@ -711,7 +712,7 @@ export class DataController extends BaseController{
                 // Handle no results or zero results
                 if(response_data.body.data.length < 1){
                     wait.Off_();
-                    new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                    new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                     return;
                 }
 
@@ -745,7 +746,7 @@ export class DataController extends BaseController{
             });
 
         } catch(error) {
-            new wtools.Notification('ERROR').Show_(`Ocurri&oacute; un error: ${error}.`);
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('data.error_with_detail', {error: error}) : `An error occurred: ${error}.`);
             return;
         }
     }
@@ -759,7 +760,7 @@ export class DataController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_data_modify .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_data_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_data_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -776,7 +777,7 @@ export class DataController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Registro Actualizado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_updated') : 'Record updated.');
             $('#component_data_modify').modal('hide');
             this.changeIntVerification();
         });
@@ -814,7 +815,7 @@ export class DataController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Registro eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_deleted') : 'Record deleted.');
             $('#component_data_delete').modal('hide');
             $('#component_data_modify').modal('hide');
             this.changeIntVerification();
@@ -845,10 +846,10 @@ export class DataController extends BaseController{
             document.body.removeChild(a);
 
             wait.Off_();
-            new wtools.Notification('SUCCESS').Show_('Exportaci&oacute;n exitosa');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('data.export_successful') : 'Export successful.');
         } catch(error) {
             wait.Off_();
-            new wtools.Notification('WARNING').Show_(`Error al descargar el archivo: ${error}.`);
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.download_error', {error: error}) : `Error downloading file: ${error}.`);
         }
     }
 }

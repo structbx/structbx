@@ -3,6 +3,7 @@ import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { ViewSort } from '../models/ViewSort.js';
 import { TableColumn } from '../models/TableColumn.js';
@@ -169,7 +170,7 @@ export class SortsController extends BaseController{
             // Handle zero results
             if(response_data.body.data.length < 1){
                 $('#sorts_count').text('').toggleClass('d-none', true);
-                $(`#component_sorts_read .contents`).html('<span class="text-muted p-2">No hay ordenamientos</span>');
+                $(`#component_sorts_read .contents`).html(`<span class="text-muted p-2">${window.structbxI18n ? window.structbxI18n.t('sorts.no_sorts') : 'No sorts.'}</span>`);
                 return;
             }
 
@@ -202,14 +203,14 @@ export class SortsController extends BaseController{
 
         // Validate inputs
         if (column_identifier === "" || sort === ""){
-            new wtools.Notification('WARNING').Show_('Todos los campos del ordenamiento son obligatorios.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.all_fields_required') : 'All sort fields are required.');
             wait.Off_();
             return;
         }
         
         // Validate sort value (ASC or DESC)
         if (sort !== 'ASC' && sort !== 'DESC'){
-            new wtools.Notification('WARNING').Show_('El tipo de ordenamiento debe ser ASC o DESC.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.invalid_type') : 'Sort type must be ASC or DESC.');
             wait.Off_();
             return;
         }
@@ -243,7 +244,7 @@ export class SortsController extends BaseController{
         const sort_element = $(e.currentTarget).parent();
         const sort_identifier = sort_element.attr('sort-identifier');
         if(sort_identifier === undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.identifier_not_found') : 'Sort identifier not found.');
             return;
         }
 
@@ -254,13 +255,13 @@ export class SortsController extends BaseController{
 
         // Validate inputs
         if (column_identifier === "" || sort === ""){
-            new wtools.Notification('WARNING').Show_('Todos los campos del ordenamiento son obligatorios.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.all_fields_required') : 'All sort fields are required.');
             return;
         }
         
         // Validate sort value (ASC or DESC)
         if (sort !== 'ASC' && sort !== 'DESC'){
-            new wtools.Notification('WARNING').Show_('El tipo de ordenamiento debe ser ASC o DESC.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.invalid_type') : 'Sort type must be ASC or DESC.');
             return;
         }
         
@@ -302,7 +303,7 @@ export class SortsController extends BaseController{
         const sort_element = $(e.currentTarget).parent();
         const sort_identifier = sort_element.attr('sort-identifier');
         if(sort_identifier === undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.identifier_not_found') : 'Sort identifier not found.');
             return;
         }
 
@@ -328,7 +329,7 @@ export class SortsController extends BaseController{
         const sort_element = $(e.currentTarget).parent();
         const sort_identifier = sort_element.attr('sort-identifier');
         if(sort_identifier === undefined){
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador del ordenamiento.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('sorts.identifier_not_found') : 'Sort identifier not found.');
             return;
         }
 
