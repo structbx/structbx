@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Inicio - StructBX</title>
+        <title data-i18n="index.page_title">Home - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
         <!-- CSS Libraries -->
@@ -46,7 +46,7 @@
                         <div class="pb-2 mb-3 border-bottom d-flex">
                             <ol class="breadcrumb h4 me-auto flex-grow-1 align-self-center mb-0">
                                 <li class="breadcrumb-item database_name"></li>
-                                <li class="breadcrumb-item active" aria-current="page">Tablas</li>
+                                <li class="breadcrumb-item active" aria-current="page" data-i18n="index.breadcrumb_tables">Tables</li>
                             </ol>
                             <!-- Tables: Search -->
                             <div class="d-flex gap-2">
@@ -54,8 +54,8 @@
                                     <span class="input-group-text bg-white border-end-0 pe-0">
                                         <i class="fas fa-search text-muted"></i>
                                     </span>
-                                    <input type="text" class="form-control border-start-0 ps-2" id="table_search" placeholder="Buscar tablas por nombre..." autocomplete="off">
-                                    <button class="btn btn-outline-secondary border" type="button" id="table_search_clear" title="Limpiar b&uacute;squeda">
+                                    <input type="text" class="form-control border-start-0 ps-2" id="table_search" data-i18n-placeholder="index.search_placeholder" placeholder="Search tables by name..." autocomplete="off">
+                                    <button class="btn btn-outline-secondary border" type="button" id="table_search_clear" data-i18n-title="index.search_clear_title" title="Clear search">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -63,7 +63,7 @@
                             <!-- /Tables: Search -->
 
                             <div class="p-2">
-                                <button class="btn btn-dark-shadow table_add">
+                                <button class="btn btn-dark-shadow table_add" data-i18n-title="index.add_table_title" title="Add new table">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -81,7 +81,7 @@
 
                             </div>
                             <!-- /Contents -->
-                            
+
                         </article>
                         <!-- /Tables: Read -->
 
@@ -90,8 +90,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title">
-                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir nueva tabla
+                                        <h5 class="modal-title" data-i18n="index.modal_add_title">
+                                            <i class="fas fa-plus-circle me-2"></i>Add new table
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -100,22 +100,22 @@
                                         <table class="table">
                                             <tbody>
                                                 <tr>
-                                                    <td>Nombre</td>
+                                                    <td data-i18n="index.modal_name">Name</td>
                                                     <td><input class="form-control" type="text" name="name" required></td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Descripci&oacute;n</td>
+                                                    <td data-i18n="index.modal_description">Description</td>
                                                     <td><textarea class="form-control" type="text" name="description"></textarea></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="index.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-plus-circle me-2"></i>Crear
+                                        <button type="submit" class="btn btn-primary" data-i18n="index.create">
+                                            <i class="fas fa-plus-circle me-2"></i>Create
                                         </button>
                                     </div>
                                 </form>
@@ -129,7 +129,7 @@
                     <footer class="main_footer container">
                     </footer>
                     <!-- /Footer -->
-                    
+
                 </main>
                 <!-- /Main content -->
 
@@ -139,7 +139,7 @@
                     </div>
                 </div>
                 <!-- Notifications -->
-        
+
             </div>
         </div>
 
