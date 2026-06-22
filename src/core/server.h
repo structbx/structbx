@@ -49,7 +49,7 @@ class StructBX::Core::Server : public Util::ServerApplication
         int main(const std::vector<std::string>& args) override;
 
     protected:
-        void SetupParams_(HTTPServerParams::Ptr params);
+        void SetupParams_(HTTPServerParams* params);
 
     private:
         bool use_ssl_;

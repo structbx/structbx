@@ -11,11 +11,12 @@ Server::Server(HandlerFactory* handler_factory) :
 
 }
 
-void Server::SetupParams_(HTTPServerParams::Ptr params)
+void Server::SetupParams_(HTTPServerParams* params)
 {
     params->setServerName(server_name_);
     params->setMaxQueued(Tools::SettingsManager::GetSetting_("max_queued", 1000));
     params->setMaxThreads(Tools::SettingsManager::GetSetting_("max_threads", 16));
+    params->setThreadPriority(Poco::Thread::PRIO_NORMAL);
 }
 
 void Server::initialize(Application& self)
@@ -45,12 +46,12 @@ int Server::main(const std::vector<std::string>&)
     if(use_ssl_)
     {
         SecureServerSocket secure_server_socket(Tools::SettingsManager::GetSetting_("port", 8080));
-        http_server_ = std::make_unique<HTTPServer>(handler_factory_, secure_server_socket, new HTTPServerParams);
+        http_server_ = std::make_unique<HTTPServer>(handler_factory_, secure_server_socket, server_params);
     }
     else
     {
         ServerSocket server_socket(Tools::SettingsManager::GetSetting_("port", 8080));
-        http_server_ = std::make_unique<HTTPServer>(handler_factory_, server_socket, new HTTPServerParams);
+        http_server_ = std::make_unique<HTTPServer>(handler_factory_, server_socket, server_params);
     }
 
     http_server_->start();
