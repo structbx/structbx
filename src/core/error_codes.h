@@ -1,3 +1,30 @@
+// ═══════════════════════════════════════════════════════════════════════
+// ERROR CODE SYSTEM
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Every error uses the ERR_CODE macro which produces:
+//     "file:func:task:error_id"
+//
+//   file     — the .cpp file name (e.g. "databases.cpp")
+//   func     — the method name     (e.g. "createDatabase")
+//   task     — the step that failed (e.g. "validate_input")
+//   error_id — short error identifier (e.g. "name_empty")
+//
+// HOW TO ADD A NEW ERROR CODE:
+//   1. Define the constant with the pattern ERR_AREA_DESCRIPTION
+//   2. Group it under the relevant controller comment section
+//   3. Example:
+//        #define ERR_DB_NAME_EMPTY ERR_CODE("databases.cpp", "createDatabase", "validate_input", "name_empty")
+//
+// USAGE IN C++:
+//   action()->set_custom_error_code(ERR_DB_NAME_EMPTY);
+//   return JSONResponse_(..., ERR_DB_NAME_EMPTY);   (optional third parameter)
+//
+// SYNC REQUIREMENT:
+//   Every constant here MUST have a matching entry in:
+//     web/assets/js/i18n/errorCodes.js
+//   using the exact same key string, with en/es translations.
+// ═══════════════════════════════════════════════════════════════════════
 
 #ifndef STRUCTBX_CORE_ERRORCODES
 #define STRUCTBX_CORE_ERRORCODES

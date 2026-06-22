@@ -1,3 +1,26 @@
+// ═══════════════════════════════════════════════════════════════════════
+// BACKEND ERROR CODE TRANSLATIONS
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Each key MUST exactly match the string produced by ERR_CODE in
+// src/core/error_codes.h (format: "file:func:task:error_id").
+//
+// HOW TO ADD:
+//   1. Find the new constant in error_codes.h (e.g. ERR_DB_NAME_EMPTY)
+//   2. The macro produces: "databases.cpp:createDatabase:validate_input:name_empty"
+//   3. Add an entry with that exact string as key:
+//        "databases.cpp:createDatabase:validate_input:name_empty": {
+//            en: "English message.",
+//            es: "Spanish message."
+//        }
+//
+// RULES:
+//   - Always provide both "en" (default) and "es".
+//   - Plain text only — no HTML allowed.
+//   - Group entries by section (// Databases, // Users, etc.).
+//   - Keep alphabetical order within each section.
+// ═══════════════════════════════════════════════════════════════════════
+
 export const errorCodes = {
     // Databases
     "databases.cpp:createDatabase:validate_input:name_empty": {

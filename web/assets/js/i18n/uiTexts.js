@@ -1,3 +1,38 @@
+// ═══════════════════════════════════════════════════════════════════════
+// FRONTEND UI TEXT TRANSLATIONS
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Two usage patterns:
+//
+// 1. FROM JAVASCRIPT (controllers / submodules):
+//      i18n.t('section.key')                   → "textContent"
+//      i18n.t('section.key', {param: value})   → with ${param} interpolation
+//
+// 2. FROM HTML (data-i18n attributes):
+//      data-i18n="section.key"                 → replaces textContent
+//      data-i18n-html="section.key"            → replaces innerHTML
+//      data-i18n-placeholder="section.key"     → replaces placeholder
+//      data-i18n-title="section.key"           → replaces title
+//      data-i18n-alt="section.key"             → replaces alt
+//      data-i18n-aria-label="section.key"      → replaces aria-label
+//
+// HOW TO ADD A NEW TRANSLATION:
+//   1. Pick a key with format:  section.descriptive_name
+//      (e.g. "settings.database_name", "table.modal_add_column")
+//   2. Decide whether it is used from JS (i18n.t()) or HTML (data-i18n)
+//   3. Add it under the relevant section:
+//        "settings.database_name": {
+//            en: "Database",
+//            es: "Base de datos"
+//        }
+//   4. For text containing HTML, suffix the key with _html
+//      and use data-i18n-html in the HTML element.
+//   5. For variable interpolation use ${name} in the string
+//      and pass values as the second argument to i18n.t().
+//
+// NOTE: HTML-only keys are grouped at the bottom under "HTML static text".
+// ═══════════════════════════════════════════════════════════════════════
+
 export const uiTexts = {
     // Response Manager
     "response.no_permissions": {
