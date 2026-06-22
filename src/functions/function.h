@@ -47,6 +47,7 @@ class StructBX::Functions::Function : public HTTP::ResponseManager
         std::string get_target() const { return target_; }
         bool get_error() const { return error_; }
         std::string get_error_message() const { return error_message_; }
+        std::string get_error_code() const { return error_code_; }
         bool get_remove_file_on_modify() const { return remove_file_on_modify_; }
         ResponseType get_response_type() const { return response_type_; }
         HTTP::EnumMethods get_method() const { return method_; }
@@ -124,6 +125,7 @@ class StructBX::Functions::Function : public HTTP::ResponseManager
         std::string target_;
         bool error_;
         std::string error_message_;
+        std::string error_code_;
         bool remove_file_on_modify_;
         ResponseType response_type_;
         HTTP::EnumMethods method_;

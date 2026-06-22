@@ -9,6 +9,7 @@ Function::Function() :
     ,target_("")
     ,error_(false)
     ,error_message_("ERR38HJ95K1NA")
+    ,error_code_("")
     ,remove_file_on_modify_(true)
     ,response_type_(ResponseType::kJSON)
     ,method_(HTTP::EnumMethods::kHTTP_GET)
@@ -26,6 +27,7 @@ Function::Function(std::string endpoint, HTTP::EnumMethods method, ResponseType 
     ,target_("")
     ,error_(false)
     ,error_message_("ERR38HJ95K1NA")
+    ,error_code_("")
     ,remove_file_on_modify_(true)
     ,response_type_(response_type)
     ,method_(method)
@@ -102,7 +104,7 @@ void Function::Process_(HTTP::Request::HTTPServerRequestPtr request, HTTP::Reque
                 {
                     if(error_)
                     {
-                        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_);
+                        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_, error_code_);
                         json_sent = true;
                         Tools::OutputLogger::Debug_("Error on function.cpp on Process_(): " + error_message_);
                         return;
@@ -121,7 +123,7 @@ void Function::Process_(HTTP::Request::HTTPServerRequestPtr request, HTTP::Reque
                 {
                     if(error_)
                     {
-                        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_);
+                        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_, error_code_);
                         json_sent = true;
                         Tools::OutputLogger::Debug_("Error on function.cpp on Process_(): " + error_message_);
                         return;
@@ -164,7 +166,7 @@ void Function::Process_(HTTP::Request::HTTPServerRequestPtr request, HTTP::Reque
     catch(std::runtime_error& error)
     {
         if(!json_sent)
-            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_);
+            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_, error_code_);
 
         Tools::OutputLogger::Error_("Error on function.cpp on Process_(): " + error_message_);
         return;
@@ -172,7 +174,7 @@ void Function::Process_(HTTP::Request::HTTPServerRequestPtr request, HTTP::Reque
     catch(std::exception& error)
     {
         if(!json_sent)
-            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_);
+            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, error_message_, error_code_);
 
         Tools::OutputLogger::Error_("Error on function.cpp on Process_(): " + error_message_);
         return;
@@ -198,6 +200,7 @@ bool Function::ProcessAction_(Action::Ptr action)
     {
         error_ = true;
         error_message_ = action->get_custom_error();
+        error_code_ = action->get_custom_error_code();
         return false;
     }
 
@@ -206,6 +209,7 @@ bool Function::ProcessAction_(Action::Ptr action)
     {
         error_ = true;
         error_message_ = action->get_custom_error();
+        error_code_ = action->get_custom_error_code();
         return false;
     }
     return true;
