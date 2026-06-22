@@ -292,7 +292,7 @@ export class TableElements
         if(value != undefined && value != '')
         {
             result += `
-                <a class="link mt-2" target="_blank" href="/api/tables/data/file/read?filepath=${value}&table-identifier=${this.table_identifier}">Ver</a>
+                <a class="link mt-2" target="_blank" href="/api/tables/data/file/read?filepath=${value}&table-identifier=${this.table_identifier}">${window.structbxI18n ? window.structbxI18n.t('table_elements.view') : 'View'}</a>
                 <td>
             `;
         }

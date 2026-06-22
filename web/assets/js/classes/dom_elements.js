@@ -1,10 +1,13 @@
 export class CustomSelect
 {
-    constructor(element)
+    constructor(element, options = {})
     {
         // 1. Variables
         const self = this;
         this.open = false;
+        const i18n = window.structbxI18n;
+        this.selectText = options.selectText || (i18n ? i18n.t('custom_select.select_option') : 'Select an Option...');
+        this.searchText = options.searchText || (i18n ? i18n.t('custom_select.search') : 'Search options...');
         
         // 2. Save the original selector/element
         this.originalElement = element;
@@ -15,12 +18,12 @@ export class CustomSelect
             <div class="custom-select-container">
                 <input type="hidden" class="selectValue" name="selected_option" value="">
                 <div class="custom-select-display form-control d-flex justify-content-between align-items-center shadow-sm" tabindex="0">
-                    <span class="selectedText">Select an Option...</span>
+                    <span class="selectedText">${this.selectText}</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="custom-select-dropdown shadow-lg d-none">
                     <div class="p-2 border-bottom">
-                        <input type="text" class="form-control searchBox" placeholder="Search options...">
+                        <input type="text" class="form-control searchBox" placeholder="${this.searchText}">
                     </div>
                     <ul class="selectOptions custom-select-list list-unstyled mb-0">
                     </ul>
@@ -198,7 +201,7 @@ export class CustomSelect
             if ($item.hasClass('selected'))
             {
                 this.hiddenInput.val('');
-                this.selectedText.html('Select an Option...');
+                this.selectedText.html(this.selectText);
             }
             $item.remove();
             return true;
@@ -253,19 +256,24 @@ export class Footers
     footer()
     {
         let year = new Date().getFullYear();
+        const i18n = window.structbxI18n;
+        const copyright = i18n ? i18n.t('footer.copyright', { year }) : `Copyright &copy; ${year} StructBX.`;
+        const privacy = i18n ? i18n.t('footer.privacy_policy') : 'Pol&iacute;tica de privacidad';
+        const terms = i18n ? i18n.t('footer.terms_conditions') : 'T&eacute;rminos y condiciones';
+        const license = i18n ? i18n.t('footer.license') : 'Licencia Apache 2.0';
         $(".main_footer").append
         (`
             <div class="py-3 my-4">
                 <div class="d-flex align-items-center justify-content-between small">
-                    <div class="text-muted">Copyright &copy; ${year} StructBX.</div>
+                    <div class="text-muted">${copyright}</div>
                     <div>
                         <a target="_blank" href="https://structbx.com">structbx.com</a>
                         &middot;
-                        <a target="_blank" href="https://structbx.com/assets/files/terms_and_conditions.pdf">Pol&iacute;tica de privacidad</a>
+                        <a target="_blank" href="https://structbx.com/assets/files/terms_and_conditions.pdf">${privacy}</a>
                         &middot;
-                        <a target="_blank" href="https://structbx.com/assets/files/privacy_policy.pdf">T&eacute;rminos y condiciones</a>
+                        <a target="_blank" href="https://structbx.com/assets/files/privacy_policy.pdf">${terms}</a>
                         &middot;
-                        <a target="_blank" href="https://www.apache.org/licenses/LICENSE-2.0">Licencia Apache 2.0</a>
+                        <a target="_blank" href="https://www.apache.org/licenses/LICENSE-2.0">${license}</a>
                     </div>
                 </div>
             </div>
@@ -278,6 +286,7 @@ export class Headers
     constructor(){}
     header()
     {
+        const currentLang = localStorage.getItem('structbx_lang') || 'en';
         $("#header_main").append
         (`
             <div class="container-xxl d-flex justify-content-between">
@@ -312,6 +321,19 @@ export class Headers
                         </li>
                         <div class="vr mx-4 d-none d-md-inline-block"></div>
                         <li class="nav-item me-2">
+                            <div class="dropdown">
+                                <a class="btn btn-ligth dropdown-toggle" type="button" id="language_selector_btn" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-globe me-1"></i>
+                                    <span id="language_selector_text">${currentLang === 'es' ? 'ES' : 'EN'}</span>
+                                </a>
+                                <ul class="dropdown-menu bg-dark" aria-labelledby="language_selector_btn">
+                                    <li><a class="dropdown-item text-light language-option ${currentLang === 'en' ? 'active' : ''}" href="#" data-lang="en">EN - English</a></li>
+                                    <li><a class="dropdown-item text-light language-option ${currentLang === 'es' ? 'active' : ''}" href="#" data-lang="es">ES - Español</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <div class="vr mx-4 d-none d-md-inline-block"></div>
+                        <li class="nav-item me-2">
                             <div class="d-flex align-items-center h-100 text-center">
                                 <a class="btn btn-sm btn-outline-light py-2 px-4 d-block d-md-inline-block w-100 mb-2 mb-md-0 go-button" go-path="/settings" go-hash="#my_account" href="#">
                                     <span class="me-2"><i class="fas fa-user"></i></span>
@@ -333,7 +355,15 @@ export class Headers
                     </ul>
                 </div>
             </div>
-        `);    
+        `);
+
+        $(document).on('click', '.language-option', function(e)
+        {
+            e.preventDefault();
+            const lang = $(this).data('lang');
+            localStorage.setItem('structbx_lang', lang);
+            location.reload();
+        });
     }
 }
 
@@ -343,8 +373,10 @@ export class Sidebars
     sidebarMenu ()
     {
         let sidebar_menu = $('<nav class="nav nav-pills flex-column justify-contents-between pt-4"></nav>');
+        const i18n = window.structbxI18n;
+        const dbHeading = i18n ? i18n.t('sidebar.databases') : 'DATABASES';
         sidebar_menu.append($(`
-            <h5 class="small text-uppercase text-muted">BASES DE DATOS</h5>
+            <h5 class="small text-uppercase text-muted">${dbHeading}</h5>
             <div id="component_sidebar_databases">
                 <div class="notifications"></div>
                 <div class="contents"></div>

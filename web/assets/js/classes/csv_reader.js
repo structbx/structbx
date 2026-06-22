@@ -21,7 +21,7 @@ export class CSVReader
     
         if (!file)
         {
-            callback(CSVReaderState().ERROR, "Por favor, selecciona un archivo CSV.");
+            callback(CSVReaderState().ERROR, window.structbxI18n ? window.structbxI18n.t('csv.select_file') : 'Please select a CSV file.');
             return;
         }
     
@@ -62,7 +62,7 @@ export class CSVReader
     
         reader.onerror = function(event)
         {
-            callback(CSVReaderState().ERROR, `Error al leer el archivo: ${event.target.error}`);
+            callback(CSVReaderState().ERROR, window.structbxI18n ? window.structbxI18n.t('csv.read_error', {error: event.target.error}) : 'Error reading file: ' + event.target.error);
         };
     
         reader.readAsText(file);

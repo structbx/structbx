@@ -12,18 +12,46 @@ export class ResponseManager
         else
             this.target = ' (' + target + ')';
     }
+
+    getI18n_()
+    {
+        return window.structbxI18n || null;
+    }
+
+    getDisplayMessage_()
+    {
+        const i18n = this.getI18n_();
+        if (!i18n || i18n.getLang() === 'en')
+        {
+            return this.response.body.message;
+        }
+        // Spanish: try to translate error code
+        if (this.response.body.error_code)
+        {
+            const translated = i18n.translateError(this.response.body.error_code);
+            if (translated) return translated;
+        }
+        return this.response.body.message;
+    }
+
     Verify_()
     {
         let randomSuffix = tools.randomGenerator(5);
+        const i18n = this.getI18n_();
+        const t = (key, params) => i18n ? i18n.t(key, params) : key;
+        const displayMessage = this.getDisplayMessage_() || '';
         if(this.response.status >= 200 && this.response.status < 300)
         {
             return true;
         }
         else if(this.response.status == 401)
         {
+            const title = i18n ? i18n.t('response.no_permissions') : 'No tiene permisos para acceder a este recurso.';
+            const labelTarget = i18n ? i18n.t('response.target') : 'Target';
+            const labelServer = i18n ? i18n.t('response.server_response') : 'Server response';
             this.Warning_().Show_(`
                 <p>
-                    No tiene permisos para acceder a este recurso. 
+                    ${title}
                     <a href="" class="btn" data-bs-toggle="collapse" data-bs-target="#notification_collapse_${randomSuffix}" aria-expanded="false" aria-controls="notification_collapse_${randomSuffix}">
                         <i class="fas fa-caret-down"></i>
                     </a>
@@ -31,8 +59,8 @@ export class ResponseManager
                 <div class="collapse" id="notification_collapse_${randomSuffix}">
                     <div class="card card-body">
                         <ul>
-                            <li>Target: ${this.target}</li>
-                            <li>Server response: ${this.response.body.message == undefined ? "" : this.response.body.message}</li>
+                            <li>${labelTarget}: ${this.target}</li>
+                            <li>${labelServer}: ${displayMessage}</li>
                         </ul>
                     </div>
                 </div>
@@ -43,10 +71,12 @@ export class ResponseManager
         {
             if(this.response != undefined && this.response.body != undefined && this.response.body.message != undefined)
             {
-                const error_message = this.response.body.message;
+                const title = i18n ? i18n.t('response.server_error') : 'Hubo un error en la comunicaci&oacute;n con el servidor.';
+                const labelTarget = i18n ? i18n.t('response.target') : 'Target';
+                const labelServer = i18n ? i18n.t('response.server_response') : 'Server response';
                 this.Error_().Show_(`
                     <p>
-                        Hubo un error en la comunicaci&oacute;n con el servidor. 
+                        ${title}
                         <a href="" class="btn" data-bs-toggle="collapse" data-bs-target="#notification_collapse_${randomSuffix}" aria-expanded="false" aria-controls="notification_collapse_${randomSuffix}">
                             <i class="fas fa-caret-down"></i>
                         </a>
@@ -54,8 +84,8 @@ export class ResponseManager
                     <div class="collapse" id="notification_collapse_${randomSuffix}">
                         <div class="card card-body">
                             <ul>
-                                <li>Target: ${this.target}</li>
-                                <li>Server response: ${error_message == undefined ? "" : error_message}</li>
+                                <li>${labelTarget}: ${this.target}</li>
+                                <li>${labelServer}: ${displayMessage}</li>
                             </ul>
                         </div>
                     </div>
@@ -67,10 +97,12 @@ export class ResponseManager
         {
             if(this.response != undefined && this.response.body != undefined && this.response.body.message != undefined)
             {
-                const error_message = this.response.body.message;
+                const title = i18n ? i18n.t('response.operation_error') : 'Hubo un error al realizar la operaci&oacute;n.';
+                const labelTarget = i18n ? i18n.t('response.target') : 'Target';
+                const labelServer = i18n ? i18n.t('response.server_response') : 'Server response';
                 this.Warning_().Show_(`
                     <p>
-                        Hubo un error al realizar la operaci&oacute;n. 
+                        ${title}
                         <a href="" class="btn" data-bs-toggle="collapse" data-bs-target="#notification_collapse_${randomSuffix}" aria-expanded="false" aria-controls="notification_collapse_${randomSuffix}">
                             <i class="fas fa-caret-down"></i>
                         </a>
@@ -78,8 +110,8 @@ export class ResponseManager
                     <div class="collapse" id="notification_collapse_${randomSuffix}">
                         <div class="card card-body">
                             <ul>
-                                <li>Target: ${this.target}</li>
-                                <li>Server response: ${error_message == undefined ? "" : error_message}</li>
+                                <li>${labelTarget}: ${this.target}</li>
+                                <li>${labelServer}: ${displayMessage}</li>
                             </ul>
                         </div>
                     </div>
