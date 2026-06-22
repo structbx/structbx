@@ -1,5 +1,6 @@
 
 #include "controllers/tables/views.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -42,7 +43,7 @@ void Views::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -77,7 +78,7 @@ void Views::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -87,7 +88,7 @@ void Views::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -121,7 +122,7 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         return true;
@@ -131,7 +132,7 @@ void Views::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -162,7 +163,7 @@ void Views::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         return true;
@@ -172,7 +173,7 @@ void Views::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -202,7 +203,7 @@ void Views::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;

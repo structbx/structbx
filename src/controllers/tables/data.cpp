@@ -4,6 +4,7 @@
 
 #include "controllers/tables/data.h"
 #include "controllers/tables/column_types.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
@@ -39,7 +40,8 @@ void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr ac
     {
         if(action.get_results()->size() < 1)
         {
-            action.set_custom_error("No posee los permisos");
+            action.set_custom_error("You do not have the required permissions.");
+            action.set_custom_error_code(ERR_DATA_NO_PERMISSION);
             return false;
         }
 
@@ -50,7 +52,7 @@ void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr ac
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -78,7 +80,8 @@ void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action
     {
         if(action.get_results()->size() < 1)
         {
-            action.set_custom_error("No posee los permisos");
+            action.set_custom_error("You do not have the required permissions.");
+            action.set_custom_error_code(ERR_DATA_NO_PERMISSION);
             return false;
         }
 
@@ -89,7 +92,7 @@ void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -116,7 +119,8 @@ void Tables::Data::VerifyPermissionsAdd::A1(StructBX::Functions::Action::Ptr act
     {
         if(action.get_results()->size() < 1)
         {
-            action.set_custom_error("No posee los permisos");
+            action.set_custom_error("You do not have the required permissions.");
+            action.set_custom_error_code(ERR_DATA_NO_PERMISSION);
             return false;
         }
 
@@ -127,7 +131,7 @@ void Tables::Data::VerifyPermissionsAdd::A1(StructBX::Functions::Action::Ptr act
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -154,7 +158,8 @@ void Tables::Data::VerifyPermissionsModify::A1(StructBX::Functions::Action::Ptr 
     {
         if(action.get_results()->size() < 1)
         {
-            action.set_custom_error("No posee los permisos");
+            action.set_custom_error("You do not have the required permissions.");
+            action.set_custom_error_code(ERR_DATA_NO_PERMISSION);
             return false;
         }
 
@@ -165,7 +170,7 @@ void Tables::Data::VerifyPermissionsModify::A1(StructBX::Functions::Action::Ptr 
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -192,7 +197,8 @@ void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr 
     {
         if(action.get_results()->size() < 1)
         {
-            action.set_custom_error("No posee los permisos");
+            action.set_custom_error("You do not have the required permissions.");
+            action.set_custom_error_code(ERR_DATA_NO_PERMISSION);
             return false;
         }
 
@@ -203,7 +209,7 @@ void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr 
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -231,7 +237,7 @@ void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::P
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -461,7 +467,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error x7oJ3q1f1I");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The table identifier is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
 
@@ -471,13 +477,13 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         {
             if(!default_view->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error i0p2hoyosbsL");
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
                 return;
             }
             auto default_view_identifier = default_view->get_results()->First_();
             if(default_view_identifier->IsNull_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 64vv3gtgM8dI");
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
                 return;
             }
             Query::Parameter::Ptr param(
@@ -490,7 +496,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
         if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": " + table_columns->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, table_columns->get_custom_error(), table_columns->get_custom_error_code());
             return;
         }
 
@@ -504,13 +510,13 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             from_link = true;
             if(!fpv2->Work_() && self.get_current_user().get_type() != "system")
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv2->get_identifier() + ": " + fpv2->get_custom_error());
+                self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv2->get_custom_error(), fpv2->get_custom_error_code());
                 return;
             }
         }
         else if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -560,18 +566,18 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 link_to_action->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(link_to->ToString_())), "link_to");
                 if(!link_to_action->Work_())
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error p2j1bX1t3E");
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Action failed.", ERR_ACTION_FAILED);
                     return;
                 }
                 if(link_to_action->get_results()->size() < 1)
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error aKX1v3bT9C");
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "The requested table does not exist.", ERR_TBL_NOT_FOUND);
                     return;
                 }
                 auto display_value = link_to_action->get_results()->begin()->get()->ExtractField_("identifier");
                 if(display_value->IsNull_())
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error fAztExxyqM1X");
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "The requested table does not exist.", ERR_TBL_NOT_FOUND);
                     return;
                 }
                 
@@ -611,7 +617,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Verify if columns is empty
         if(columns == "")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No existen columnas en la tabla");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "There are no columns in this table.", ERR_ACTION_FAILED);
             return;
         }
 
@@ -670,7 +676,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + just_owner->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
         // Get just_owner value
@@ -755,7 +761,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         table_data->set_sql_code(sql_code);
         if(!table_data->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error UgOMMObhM2");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "An internal error occurred.", ERR_SRV_INTERNAL);
             return;
         }
 
@@ -798,7 +804,7 @@ void Tables::Data::Read::GetDefaultView(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -825,7 +831,7 @@ void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -835,7 +841,7 @@ void Tables::Data::Read::GetTableColumns(StructBX::Functions::Action::Ptr action
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -874,7 +880,7 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
         if (changeInt_param == self.get_parameters().end())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
-                "El par\u00e1metro changeInt es obligatorio");
+                "The changeInt parameter is required.", ERR_ACTION_FAILED);
             return;
         }
         changeInt_val = changeInt_param->get()->ToString_();
@@ -883,7 +889,7 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
         if (tableId_param == self.get_parameters().end())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
-                "El par\u00e1metro table-identifier es obligatorio");
+                "The table-identifier parameter is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
         tableId_val = tableId_param->get()->ToString_();
@@ -909,7 +915,7 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
             if (!action.Work_())
             {
                 self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
-                    action.get_custom_error());
+                    action.get_custom_error(), ERR_ACTION_FAILED);
                 return;
             }
 
@@ -958,12 +964,12 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
         // Execute actions
         if(!action1->Work_())
         {
-            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "Archivo no encontrado en la tabla actual");
+            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "File not found in the current table.");
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -971,7 +977,7 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
         auto filepath = self.GetParameter_("filepath");
         if(filepath == self.get_parameters().end())
         {
-            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "Archivo no encontrado en la tabla actual");
+            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "File not found in the current table.");
             return;
         }
 
@@ -979,7 +985,7 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
         {
-            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "Archivo no encontrado en la tabla actual");
+            self.HTMLResponse_(HTTP::Status::kHTTP_NOT_FOUND, "File not found in the current table.");
             return;
         }
 
@@ -1011,7 +1017,7 @@ void Tables::Data::ReadFile::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1050,17 +1056,17 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         // Execute actions
         if(!table_info->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_info->get_identifier() + ": nrjlOllSqm");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": 9e8LhYKOdu");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -1068,7 +1074,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error qZESgpGtiSrW");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The table identifier is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
 
@@ -1081,7 +1087,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         // Verify that columns is not empty
         if(columns == "")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Debes crear columnas para poder guardar informaci&oacute;n");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "You must create columns to be able to save data.", ERR_ACTION_FAILED);
             return;
         }
 
@@ -1110,7 +1116,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         self.IdentifyParameters_(save_record);
         if(!save_record->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error fECruxvqCZ: No se pudo guardar el registro. " + save_record->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to save the record. " + save_record->get_custom_error(), ERR_ACTION_FAILED);
             return;
         }
 
@@ -1133,7 +1139,8 @@ void Tables::Data::Add::GetTableInfo(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La tabla solicitada no existe");
+            self.set_custom_error("The requested table does not exist.");
+            self.set_custom_error_code(ERR_TBL_NOT_FOUND);
             return false;
         }
 
@@ -1145,7 +1152,7 @@ void Tables::Data::Add::GetTableInfo(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1166,7 +1173,7 @@ void Tables::Data::Add::GetTableColumnsInfo(StructBX::Functions::Action::Ptr act
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1200,17 +1207,17 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": UMKBSk3ntgzw");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": 05U44IYhi8D8");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -1218,7 +1225,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error hyW0LbxgV2oO");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The table identifier is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
 
@@ -1315,7 +1322,8 @@ void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La tabla solicitado no existe");
+            self.set_custom_error("The requested table does not exist.");
+            self.set_custom_error_code(ERR_TBL_NOT_FOUND);
             return false;
         }
 
@@ -1327,7 +1335,7 @@ void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1350,7 +1358,7 @@ void Tables::Data::Import::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1388,12 +1396,12 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         // Execute actions
         if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": Fr5MHxX1wQ");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -1402,7 +1410,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         auto column_identifier = self.GetParameter_("identifier");
         if(table_identifier == self.get_parameters().end() || column_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 6KTJ9kfXrGAH");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The table identifier is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
 
@@ -1415,7 +1423,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         // Verify that columns is not empty
         if(columns == "")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Debes crear columnas para poder guardar informaci&oacute;n");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "You must create columns to be able to save data.", ERR_ACTION_FAILED);
             return;
         }
 
@@ -1434,7 +1442,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         {
             if(param->get_value()->ToString_() == "")
             {
-                param->set_error("El identificador no puede estar vacío");
+                param->set_error("The identifier cannot be empty.");
             }
 
             return true;
@@ -1448,7 +1456,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         // Setup just owner
         if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + just_owner->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
         // Get just_owner value
@@ -1471,7 +1479,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
         self.IdentifyParameters_(modify_record);
         if(!modify_record->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error UyUKjUef7b: No se pudo guardar el registro.");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to save the record.", ERR_ACTION_FAILED);
             return;
         }
 
@@ -1500,7 +1508,7 @@ void Tables::Data::Modify::GetTableColumns(StructBX::Functions::Action::Ptr acti
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1534,12 +1542,12 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
         // Execute actions
         if(!table_columns->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + table_columns->get_identifier() + ": PYaZ1nddvm");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
         if(!fpv->Work_() && self.get_current_user().get_type() != "system")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error " + fpv->get_identifier() + ": " + fpv->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
             return;
         }
 
@@ -1547,7 +1555,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
         auto table_identifier = self.GetParameter_("table-identifier");
         if(table_identifier == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error KOd3Qv3vHtqc");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The table identifier is required.", ERR_DATA_TABLE_ID_EMPTY);
             return;
         }
 
@@ -1591,7 +1599,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             {
                 if(param->get_value()->ToString_() == "")
                 {
-                    param->set_error("El identificador no puede estar vacío");
+                    param->set_error("The identifier cannot be empty.");
                 }
 
                 return true;
@@ -1599,7 +1607,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             self.IdentifyParameters_(get_filepath);
             if(!get_filepath->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + get_filepath->get_identifier() + ": PIvGrSKDYx");
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
                 return;
             }
             auto filepath = get_filepath->get_results()->First_();
@@ -1624,7 +1632,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
         self.IdentifyParameters_(delete_record);
         if(!delete_record->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error VF1ACrujc7");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Action failed.", ERR_ACTION_FAILED);
             return;
         }
 
@@ -1653,7 +1661,7 @@ void Tables::Data::Delete::GetTableColumns(StructBX::Functions::Action::Ptr acti
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1667,7 +1675,7 @@ void Tables::Data::Delete::SetIdentifierParam(StructBX::Functions::Action::Ptr a
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identifier de registro no puede estar vacío");
+            param->set_error("The record identifier cannot be empty.");
             return false;
         }
         return true;
@@ -1685,7 +1693,7 @@ bool Tables::Data::ParameterVerification::Verify(Query::Parameter::Ptr param)
             if(default_value->ToString_() == "")
             {
                 // default value is empty
-                param->set_error("El parámetro " + param->get_name() + " es obligatorio");
+                param->set_error("The parameter " + param->get_name() + " is required.");
                 return false;
             }
             else
@@ -1712,7 +1720,7 @@ bool Tables::Data::ParameterVerification::Verify(Query::Parameter::Ptr param)
                 if(required->Int_() == 1)
                 {
                     // if value is required
-                param->set_error("El parámetro " + param->get_name() + " es obligatorio");
+                param->set_error("The parameter " + param->get_name() + " is required.");
                     return false;
                 }
                 else
@@ -1811,7 +1819,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 {
                     if(param->get_value()->ToString_() == "")
                     {
-                        param->set_error("El identificador no puede estar vacío");
+                        param->set_error("The identifier cannot be empty.");
                     }
 
                     return true;
@@ -1819,7 +1827,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 self.IdentifyParameters_(action2_1);
                 if(!action2_1->Work_())
                 {
-                    self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2_1->get_identifier() + ": yKqkgKKfdg");
+                    self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Action failed.", ERR_ACTION_FAILED);
                     return;
                 }
                 auto filepath = action2_1->get_results()->First_();
@@ -1839,7 +1847,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 {
                     if(!fp.Delete())
                     {
-                        self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error en par&aacute;metro (" + identifier->ToString_() + "): " + fp.error);
+                        self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error in parameter (" + identifier->ToString_() + "): " + fp.error, ERR_ACTION_FAILED);
                         return;
                     }
                 }
@@ -1848,7 +1856,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
             // Step 7: Save the new file
             if(!fp.Save())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error en par&aacute;metro (" + identifier->ToString_() + "): " + fp.error);
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error in parameter (" + identifier->ToString_() + "): " + fp.error, ERR_ACTION_FAILED);
                 return;
             }
 
@@ -1914,17 +1922,17 @@ bool Tables::Data::FileProcessing::Save()
     
     if(!file_manager->ChangePathAndFilename_(front_file, file_manager->get_directory_base()))
     {
-        error = "Error al subir el archivo.";
+        error = "Error uploading the file.";
         return false;
     }
     if(!file_manager->IsSupported_())
     {
-        error = "Archivo no soportado.";
+        error = "Unsupported file.";
         return false;
     }
     if(!file_manager->VerifyMaxFileSize_())
     {
-        error = "El archivo debe ser de menos de 5MB.";
+        error = "The file must be less than 5MB.";
         return false;
     }
     file_manager->UploadFile_();

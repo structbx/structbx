@@ -1,6 +1,7 @@
 
 #include "controllers/tables/filters.h"
 #include "tools/dvalue.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -44,7 +45,7 @@ void Filters::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -54,7 +55,7 @@ void Filters::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -84,7 +85,7 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         // Get filter position (last + 10)
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -99,7 +100,7 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -133,7 +134,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de operación no puede estar vacío");
+            param->set_error("The operation type cannot be empty.");
             return false;
         }
         if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
@@ -147,7 +148,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El valor no puede estar vacío");
+            param->set_error("The value cannot be empty.");
             return false;
         }
         return true;
@@ -157,7 +158,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("La posición no puede estar vacía");
+            param->set_error("The position cannot be empty.");
             return false;
         }
         return true;
@@ -167,7 +168,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("is-active no puede estar vacío");
+            param->set_error("The is-active parameter cannot be empty.");
             return false;
         }
         return true;
@@ -178,7 +179,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -188,7 +189,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -198,7 +199,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -219,7 +220,7 @@ void Filters::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -229,7 +230,7 @@ void Filters::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -262,7 +263,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -272,7 +273,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de operación no puede estar vacío");
+            param->set_error("The operation type cannot be empty.");
             return false;
         }
         if(valid_filters_ops.find(param->get_value()->ToString_()) == valid_filters_ops.end())
@@ -286,7 +287,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El valor no puede estar vacío");
+            param->set_error("The value cannot be empty.");
             return false;
         }
         return true;
@@ -296,7 +297,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("is-active no puede estar vacío");
+            param->set_error("The is-active parameter cannot be empty.");
             return false;
         }
         return true;
@@ -307,7 +308,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The identifier cannot be empty.");
             return false;
         }
         return true;
@@ -317,7 +318,7 @@ void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -359,13 +360,13 @@ Filters::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         auto new_position = action1->get_results()->First_();
         if(new_position->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición del filtro");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Could not move the filter position.");
             return;
         }
         
@@ -393,7 +394,7 @@ Filters::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
 
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -418,7 +419,7 @@ void Filters::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -464,7 +465,7 @@ void Filters::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El parámetro visible  no puede estar vacío");
+            param->set_error("The visible parameter cannot be empty.");
             return false;
         }
         return true;
@@ -474,7 +475,7 @@ void Filters::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacía");
+            param->set_error("The identifier cannot be empty.");
             return false;
         }
         return true;
@@ -484,7 +485,7 @@ void Filters::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -514,7 +515,7 @@ void Filters::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de filtro no puede estar vacío");
+            param->set_error("The filter identifier cannot be empty.");
             return false;
         }
         return true;
@@ -525,7 +526,7 @@ void Filters::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;

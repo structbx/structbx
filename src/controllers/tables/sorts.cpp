@@ -1,5 +1,6 @@
 
 #include "controllers/tables/sorts.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -43,7 +44,7 @@ void Sorts::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -53,7 +54,7 @@ void Sorts::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -83,7 +84,7 @@ Sorts::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
         // Get sort position (last + 10)
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -98,7 +99,7 @@ Sorts::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
 
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -132,13 +133,13 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de ordenamiento no puede estar vacío");
+            param->set_error("The sort type cannot be empty.");
             return false;
         }
         
         if(valid_sorts.find(param->get_value()->ToString_()) == valid_sorts.end())
         {
-            param->set_error("El tipo de ordenamiento debe ser ASC o DESC");
+            param->set_error("The sort type must be ASC or DESC.");
             return false;
         }
         return true;
@@ -149,7 +150,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("La posición no puede estar vacía");
+            param->set_error("The position cannot be empty.");
             return false;
         }
         return true;
@@ -159,7 +160,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("is-active no puede estar vacío");
+            param->set_error("The is-active parameter cannot be empty.");
             return false;
         }
         return true;
@@ -170,7 +171,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -180,7 +181,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -190,7 +191,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -211,7 +212,7 @@ void Sorts::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -221,7 +222,7 @@ void Sorts::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -254,7 +255,7 @@ void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -265,13 +266,13 @@ void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de ordenamiento no puede estar vacío");
+            param->set_error("The sort type cannot be empty.");
             return false;
         }
         
         if(valid_sorts.find(param->get_value()->ToString_()) == valid_sorts.end())
         {
-            param->set_error("El tipo de ordenamiento debe ser ASC o DESC");
+            param->set_error("The sort type must be ASC or DESC.");
             return false;
         }
         return true;
@@ -282,7 +283,7 @@ void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("is-active no puede estar vacío");
+            param->set_error("The is-active parameter cannot be empty.");
             return false;
         }
         return true;
@@ -293,7 +294,7 @@ void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The identifier cannot be empty.");
             return false;
         }
         return true;
@@ -303,7 +304,7 @@ void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -345,13 +346,13 @@ Sorts::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tool
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         auto new_position = action1->get_results()->First_();
         if(new_position->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición del ordenamiento");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Could not move the sort position.");
             return;
         }
         
@@ -379,7 +380,7 @@ Sorts::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tool
 
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -404,7 +405,7 @@ void Sorts::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -450,7 +451,7 @@ void Sorts::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El parámetro is-active no puede estar vacío");
+            param->set_error("The is-active parameter cannot be empty.");
             return false;
         }
         return true;
@@ -460,7 +461,7 @@ void Sorts::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The identifier cannot be empty.");
             return false;
         }
         return true;
@@ -470,7 +471,7 @@ void Sorts::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -500,7 +501,7 @@ void Sorts::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de ordenamiento no puede estar vacío");
+            param->set_error("The sort identifier cannot be empty.");
             return false;
         }
         return true;
@@ -511,7 +512,7 @@ void Sorts::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;

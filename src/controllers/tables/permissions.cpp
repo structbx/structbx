@@ -1,5 +1,6 @@
 
 #include "controllers/tables/permissions.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -43,7 +44,7 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -103,7 +104,7 @@ void Permissions::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identifier del permiso de tabla no puede estar vacío");
+            param->set_error("The table permission identifier cannot be empty.");
             return false;
         }
         return true;
@@ -113,7 +114,7 @@ void Permissions::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -151,7 +152,7 @@ void Permissions::ReadUsersOut::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -233,7 +234,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de usuario no puede estar vacío");
+            param->set_error("The user identifier cannot be empty.");
             return false;
         }
         return true;
@@ -244,7 +245,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -321,7 +322,7 @@ void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identifier del permiso de tabla no puede estar vacío");
+            param->set_error("The table permission identifier cannot be empty.");
             return false;
         }
         return true;
@@ -331,7 +332,7 @@ void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -361,7 +362,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del permiso de la tabla no puede estar vacío");
+            param->set_error("The table permission identifier cannot be empty.");
             return false;
         }
         return true;
@@ -371,7 +372,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;

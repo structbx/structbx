@@ -2,6 +2,7 @@
 #include "controllers/tables/columns.h"
 #include "controllers/tables/column_types.h"
 #include "tools/dvalue.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::Tables;
 
@@ -53,7 +54,7 @@ void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -89,7 +90,7 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -99,7 +100,7 @@ void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -142,7 +143,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -152,7 +153,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(column_identifier)), "identifier");
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -183,7 +184,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
         if(!action4->Work_())
         {
             delete_column_table(column_identifier);
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action4->get_identifier() + ": " + action4->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action4->get_custom_error(), action4->get_custom_error_code());
             return;
         }
 
@@ -201,7 +202,8 @@ void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("La tabla solicitada no existe");
+            self.set_custom_error("The requested table does not exist.");
+            self.set_custom_error_code(ERR_TBL_NOT_FOUND);
             return false;
         }
 
@@ -213,7 +215,7 @@ void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -237,17 +239,17 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre debe ser una cadena de texto");
+            param->set_error("The name must be a text string.");
             return false;
         }
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         if(param->get_value()->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 dígitos");
+            param->set_error("The name cannot be less than 3 characters.");
             return false;
         }
         return true;
@@ -262,7 +264,7 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
         }
         else
         {
-            param->set_error("El valor de obligatorio debe ser boleano");
+            param->set_error("The required value must be boolean.");
             return false;
         }
         return true;
@@ -274,7 +276,7 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de columna no puede estar vacío");
+            param->set_error("The column type cannot be empty.");
             return false;
         }
         return true;
@@ -293,7 +295,7 @@ void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -323,7 +325,7 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
         // Execute actions
         if(!action1->Work_() || action1->get_results()->begin() == action1->get_results()->end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -372,13 +374,13 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
             );
             if(!action_alter_table->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action_alter_table->get_identifier() + ": " + action_alter_table->get_custom_error());
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_alter_table->get_custom_error(), action_alter_table->get_custom_error_code());
                 return;
             }
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -396,7 +398,8 @@ void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("La columna solicitada no existe");
+            self.set_custom_error("The requested column does not exist.");
+            self.set_custom_error_code(ERR_COL_NOT_FOUND);
             return false;
         }
 
@@ -408,7 +411,7 @@ void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -429,17 +432,17 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre debe ser una cadena de texto");
+            param->set_error("The name must be a text string.");
             return false;
         }
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         if(param->get_value()->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 dígitos");
+            param->set_error("The name cannot be less than 3 characters.");
             return false;
         }
         return true;
@@ -453,7 +456,7 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
         }
         else
         {
-            param->set_error("El valor de obligatorio debe ser boleano");
+            param->set_error("The required value must be boolean.");
             return false;
         }
         return true;
@@ -465,7 +468,7 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El tipo de columna no puede estar vacío");
+            param->set_error("The column type cannot be empty.");
             return false;
         }
         return true;
@@ -484,7 +487,7 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -494,7 +497,7 @@ void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador del formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -539,7 +542,7 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -547,7 +550,7 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
         auto new_position = action1->get_results()->First_();
         if(new_position->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "No se pudo mover la posición de la columna");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Could not move the column position.");
             return;
         }
 
@@ -583,7 +586,7 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -591,7 +594,7 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
         insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier2");
         if(!insert_column_override->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + insert_column_override->get_identifier() + ": " + insert_column_override->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, insert_column_override->get_custom_error(), insert_column_override->get_custom_error_code());
             return;
         }
 
@@ -629,7 +632,7 @@ void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -653,7 +656,7 @@ void Columns::ModifyPosition::InsertColumnOverride(StructBX::Functions::Action::
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -685,7 +688,7 @@ Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -700,7 +703,7 @@ Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
         insert_column_override->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(view_identifier->get()->ToString_())), "view-identifier2");
         if(!insert_column_override->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + insert_column_override->get_identifier() + ": " + insert_column_override->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, insert_column_override->get_custom_error(), insert_column_override->get_custom_error_code());
             return;
         }
 
@@ -723,7 +726,7 @@ void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El parámetro visible  no puede estar vacío");
+            param->set_error("The visible parameter cannot be empty.");
             return false;
         }
         return true;
@@ -733,7 +736,7 @@ void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -743,7 +746,7 @@ void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de la vista no puede estar vacío");
+            param->set_error("The view identifier cannot be empty.");
             return false;
         }
         return true;
@@ -766,7 +769,7 @@ void Columns::ModifyVisible::InsertColumnOverride(StructBX::Functions::Action::P
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -799,7 +802,7 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
         // Execute action 1
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -827,12 +830,12 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
             "DROP COLUMN IF EXISTS " + column_identifier->get()->ToString_());
         if(!delete_from_table->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + delete_from_table->get_identifier() + ": " + delete_from_table->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, delete_from_table->get_custom_error(), delete_from_table->get_custom_error_code());
             return;
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -855,7 +858,8 @@ void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La columna solicitada no existe en la tabla actual");
+            self.set_custom_error("The requested column does not exist in the current table.");
+            self.set_custom_error_code(ERR_COL_NOT_IN_TABLE);
             return false;
         }
 
@@ -867,7 +871,7 @@ void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;
@@ -878,7 +882,7 @@ void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de formulario no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -894,7 +898,7 @@ void Columns::Delete::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de columna no puede estar vacío");
+            param->set_error("The column identifier cannot be empty.");
             return false;
         }
         return true;

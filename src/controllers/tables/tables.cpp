@@ -3,6 +3,7 @@
 #include "controllers/tables/column_types.h"
 #include "functions/action.h"
 #include "tools/random_generator.h"
+#include "core/error_codes.h"
 #include <Poco/JSON/Object.h>
 
 using namespace StructBX::Controllers::Tables;
@@ -43,7 +44,7 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
         // Action1: Read all tables en database
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to Read all tables en database 36i89vE0XqYr");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Table not found in current database.", ERR_TBL_NOT_FOUND);
             return;
         }
 
@@ -62,7 +63,7 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
                 "FROM " + database_id + "." + identifier.get()->ToString_());
             if(!action2.Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error JNt2Std2sh");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to count table records.", ERR_ACTION_FAILED);
                 return;
             }
 
@@ -123,7 +124,7 @@ void Tables::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -185,14 +186,14 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         // Action 1: Verify that the table name don't exists in current database
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to Verify that the table name don't exists in current database 2Orhhz7lUEbJ");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Table name verification failed.", ERR_TBL_NOT_FOUND);
             return;
         }
         // Action 2: Add the new table
         action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "identifier");
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error to add the new table oF4Ksu32OEYm");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to add new table.", ERR_TBL_CREATE_FAIL);
             return;
         }
 
@@ -200,7 +201,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         action3_1->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!action3_1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3_1->get_identifier() + ": " + action3_1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action3_1->get_custom_error(), action3_1->get_custom_error_code());
             return;
         }
 
@@ -210,7 +211,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         add_view->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!add_view->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + add_view->get_identifier() + ": " + add_view->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, add_view->get_custom_error(), add_view->get_custom_error_code());
             return;
         }
 
@@ -220,7 +221,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         add_default_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
         if(!add_default_column->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + add_default_column->get_identifier() + ": " + add_default_column->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, add_default_column->get_custom_error(), add_default_column->get_custom_error_code());
             return;
         }
 
@@ -243,7 +244,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         );
         if(!action4->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error " + action4->get_identifier() + ": No se pudo crear la tabla");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create the table.", ERR_TBL_CREATE_FAIL);
             delete_table(table_identifier);
 
             return;
@@ -262,7 +263,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
             }
             if(!file.createDirectory())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos de la tabla");
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create table file directory.", ERR_DB_DIR_CREATE_FAIL);
                 delete_table(table_identifier);
                 return;
             }
@@ -274,14 +275,14 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         {
             delete_table(table_identifier);
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Add::Add(): " + e.displayText());
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create form file directory.", ERR_DB_DIR_CREATE_FAIL);
             return;
         }
         catch(std::exception& e)
         {
             delete_table(table_identifier);
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Add::Add(): " + std::string(e.what()));
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo crear el directorio de archivos del formulario");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create form file directory.", ERR_DB_DIR_CREATE_FAIL);
             return;
         }
 
@@ -299,7 +300,8 @@ void Tables::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Una tabla con este nombre para esta base de datos ya existe");
+            self.set_custom_error("A table with this name already exists in this database.");
+            self.set_custom_error_code(ERR_TBL_CREATE_FAIL);
             return false;
         }
 
@@ -311,7 +313,7 @@ void Tables::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         return true;
@@ -330,17 +332,17 @@ void Tables::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre debe ser una cadena de texto");
+            param->set_error("The name must be a string.");
             return false;
         }
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         if(param->get_value()->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 dígitos");
+            param->set_error("The name must be at least 3 characters.");
             return false;
         }
         return true;
@@ -418,7 +420,8 @@ void Tables::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La tabla solicitada no existe");
+            self.set_custom_error("The requested table does not exist.");
+            self.set_custom_error_code(ERR_TBL_NOT_FOUND);
             return false;
         }
 
@@ -430,7 +433,7 @@ void Tables::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -446,7 +449,8 @@ void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Una tabla con este nombre en esta base de datos ya existe");
+            self.set_custom_error("A table with this name already exists in this database.");
+            self.set_custom_error_code(ERR_TBL_UPDATE_FAIL);
             return false;
         }
 
@@ -458,7 +462,7 @@ void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         return true;
@@ -469,7 +473,7 @@ void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador no puede estar vacío");
+            param->set_error("The identifier cannot be empty.");
             return false;
         }
         return true;
@@ -491,17 +495,17 @@ void Tables::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre debe ser una cadena de texto");
+            param->set_error("The name must be a string.");
             return false;
         }
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre no puede estar vacío");
+            param->set_error("The name cannot be empty.");
             return false;
         }
         if(param->get_value()->ToString_().size() < 3)
         {
-            param->set_error("El nombre no puede ser menor a 3 caracteres");
+            param->set_error("The name must be at least 3 characters.");
             return false;
         }
         return true;
@@ -515,7 +519,7 @@ void Tables::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -546,14 +550,14 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         // Action 1: Verify tables existence
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error Verify tables existence WSDjvfkKGUSu");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Table existence verification failed.", ERR_TBL_NOT_FOUND);
             return;
         }
             
         auto identifier = self.GetParameter_("identifier");
         if(identifier == action1->get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error J5pktjAN5K");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Table identifier not provided.", ERR_TBL_ID_EMPTY);
             return;
         }
 
@@ -562,7 +566,7 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         action3->set_sql_code("DROP TABLE IF EXISTS " + database_id + "." + identifier->get()->ToString_());
         if(!action3->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error lOuU13kOu6, asegúrese que no hayan enlaces creados hacia su formulario");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Cannot delete table, there are references to it.", ERR_TBL_DELETE_FAIL);
             return;
         }
 
@@ -570,7 +574,7 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         self.IdentifyParameters_(action2);
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error kJ79T9LBRw");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to delete table record.", ERR_TBL_DELETE_FAIL);
             return;
         }
 
@@ -593,13 +597,13 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         catch(Poco::FileException& e)
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Delete::Delete(): " + e.displayText());
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo borrar el directorio de archivos del formulario");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to delete form file directory.", ERR_DB_DIR_CREATE_FAIL);
             return;
         }
         catch(std::exception& e)
         {
             StructBX::Tools::OutputLogger::Debug_("Error on controllers/tables/tables.cpp on Delete::Delete(): " + std::string(e.what()));
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error: No se pudo borrar el directorio de archivos del formulario");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to delete form file directory.", ERR_DB_DIR_CREATE_FAIL);
             return;
         }
         
@@ -617,7 +621,8 @@ void Tables::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() != 1)
         {
-            self.set_custom_error("La tabla solicitada no existe");
+            self.set_custom_error("The requested table does not exist.");
+            self.set_custom_error_code(ERR_TBL_NOT_FOUND);
             return false;
         }
 
@@ -629,7 +634,7 @@ void Tables::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
