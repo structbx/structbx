@@ -133,7 +133,8 @@ Query::Parameter::Ptr Action::AddParameter_(std::string name, Query::Field::Posi
 
 bool Action::Work_()
 {
-    Tools::OutputLogger::Debug_("Action " + identifier_);
+    if (!suppress_debug_)
+        Tools::OutputLogger::Debug_("Action " + identifier_);
 
     // Compose query
     ComposeQuery_();
@@ -183,12 +184,15 @@ bool Action::ComposeQuery_()
         // Set the parameters
             for(auto& param : parameters_)
             {
-                if(param->get_value()->TypeIsIqual_(Tools::DValue::Type::kEmpty))
-                    Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": -- EMPTY VALUE --");
-                else if(param->ToString_().size() < 1000)
-                    Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": " + param->ToString_());
-                else
-                    Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": -- BIG STRING --");
+                if (!suppress_debug_)
+                {
+                    if(param->get_value()->TypeIsIqual_(Tools::DValue::Type::kEmpty))
+                        Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": -- EMPTY VALUE --");
+                    else if(param->ToString_().size() < 1000)
+                        Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": " + param->ToString_());
+                    else
+                        Tools::OutputLogger::Debug_("Parameter in ComposeQuery_(): " + param->get_name() + ": -- BIG STRING --");
+                }
                 
                 // Setup positional parameter
                 SetupPositionParameter_(param);
@@ -234,7 +238,8 @@ bool Action::ComposeQuery_()
             }
 
         // Return
-            Tools::OutputLogger::Debug_("Final query: " + query_->toString());
+            if (!suppress_debug_)
+                Tools::OutputLogger::Debug_("Final query: " + query_->toString());
             return true;
     }
     catch(MySQL::MySQLException& error)

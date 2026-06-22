@@ -1,4 +1,7 @@
 
+#include <chrono>
+#include <thread>
+
 #include "controllers/tables/data.h"
 #include "controllers/tables/column_types.h"
 
@@ -858,43 +861,77 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/data/read/changeInt", HTTP::EnumMethods::kHTTP_GET);
 
-    // Action 1: Get Change int
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    function->SetupCustomProcess_([](StructBX::Functions::Function& self)
+    {
+        // Read parameters from function parameters
+        std::string changeInt_val;
+        std::string tableId_val;
+        int timeout = 25000;
+
+        auto changeInt_param = self.GetParameter_("changeInt");
+        if (changeInt_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                "El par\u00e1metro changeInt es obligatorio");
+            return;
+        }
+        changeInt_val = changeInt_param->get()->ToString_();
+
+        auto tableId_param = self.GetParameter_("table-identifier");
+        if (tableId_param == self.get_parameters().end())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                "El par\u00e1metro table-identifier es obligatorio");
+            return;
+        }
+        tableId_val = tableId_param->get()->ToString_();
+
+        auto timeout_param = self.GetParameter_("timeout");
+        if (timeout_param != self.get_parameters().end())
+            timeout = std::stoi(timeout_param->get()->ToString_());
+
+        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+
+        while (true)
+        {
+            StructBX::Functions::Action action("a1");
+            action.set_suppress_debug(true);
+            action.set_sql_code(
+                "SELECT id, id_row, operation, id_table "
+                "FROM changes "
+                "WHERE id > ? AND id_table = ?"
+            );
+            action.AddParameter_("changeInt", changeInt_val, false);
+            action.AddParameter_("table-identifier", tableId_val, false);
+
+            if (!action.Work_())
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                    action.get_custom_error());
+                return;
+            }
+
+            if (action.get_results()->size() > 0)
+            {
+                self.CompoundResponse_(HTTP::Status::kHTTP_OK,
+                    action.CreateJSONResult_());
+                return;
+            }
+
+            if (std::chrono::steady_clock::now() >= deadline)
+            {
+                self.CompoundResponse_(HTTP::Status::kHTTP_OK,
+                    action.CreateJSONResult_());
+                return;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        }
+    });
 
     get_functions()->push_back(function);
-}
-
-void Tables::Data::ReadChangeInt::A1(StructBX::Functions::Action::Ptr action)
-{
-    action->set_sql_code(
-        "SELECT id, id_row, operation, id_table "
-        "FROM changes "
-        "WHERE "
-            "id > ? "
-            "AND id_table = ?"
-    );
-
-    action->AddParameter_("changeInt", "", true)
-    ->SetupCondition_("condition-changeInt", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El entero de cambio no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() == "")
-        {
-            param->set_error("El identificador de formulario no puede estar vacío");
-            return false;
-        }
-        return true;
-    });
 }
 
 Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)

@@ -117,6 +117,7 @@ class StructBX::Functions::Action
         void set_error(bool error) { error_ = error; };
         void set_sql_code(std::string sql_code) { sql_code_ = sql_code; };
         void set_final_query(std::string final_query) {final_query_ = final_query;}
+        void set_suppress_debug(bool val) { suppress_debug_ = val; }
 
         void ReplaceParamater_(Query::Parameter::Ptr parameter);
         void SetValueToParamater_(Tools::DValue::Ptr value, std::string name);
@@ -166,6 +167,7 @@ class StructBX::Functions::Action
         std::shared_ptr<Data::Session> session_;
         std::shared_ptr<Data::Statement> query_;
         std::mutex mutex_;
+        bool suppress_debug_ = false;
         
 };
 

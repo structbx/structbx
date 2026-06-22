@@ -145,8 +145,6 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         struct ReadChangeInt : public Tools::FunctionData
         {
             ReadChangeInt(Tools::FunctionData& function_data);
-
-            void A1(StructBX::Functions::Action::Ptr action);
         };
         struct ReadFile : public Tools::FunctionData
         {

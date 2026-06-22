@@ -270,8 +270,18 @@ export class DataController extends BaseController{
             this.export();
         });
 
-        // Start polling for real-time updates
-        setInterval(() => this.changeIntVerification(), 5000);
+        // Start long polling for real-time updates
+        const longPoll = () => {
+            try {
+                this.changeIntVerification().finally(() => {
+                    setTimeout(longPoll, 500);
+                });
+            } catch(e) {
+                console.error('Error en long-poll:', e);
+                setTimeout(longPoll, 5000);
+            }
+        };
+        longPoll();
     }
 
     clear()
@@ -442,9 +452,6 @@ export class DataController extends BaseController{
 
                 // Free mutex
                 this.freeMutex();
-
-                // Change int verification
-                this.changeIntVerification();
             });
         } catch(error) {
             // Free mutex
@@ -494,9 +501,13 @@ export class DataController extends BaseController{
         }
     };
     
+    _viewHasFilterOrSort(){
+        return $('#filters_count').text().trim() !== '' || $('#sorts_count').text().trim() !== '';
+    }
+
     changeIntVerification(){
         // Request
-        this.tableData.changeInt(this.changeInt, this.getTableIdentifier()).then((response_data) =>
+        return this.tableData.changeInt(this.changeInt, this.getTableIdentifier()).then((response_data) =>
         {
             const data = response_data.body.data;
             if(data != undefined && data.length > 0){
@@ -526,7 +537,11 @@ export class DataController extends BaseController{
                                 break;
                         }
                     }
-                    if(reload) {
+                    // If there are active filters/sorts, updateRow() is not safe:
+                    // a changed row might no longer match the filter, or might
+                    // need to move to a different sort position. Force a full
+                    // reload to keep the view consistent.
+                    if(reload || (updates.length > 0 && this._viewHasFilterOrSort())) {
                         this.read(true);
                     } else {
                         for(const id of deletes)
