@@ -1,5 +1,6 @@
 
 #include "controllers/forms/forms.h"
+#include "core/error_codes.h"
 #include "functions/action.h"
 #include "security/permissions_manager.h"
 #include "sessions/sessions_manager.h"
@@ -41,7 +42,7 @@ void Forms::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -69,7 +70,7 @@ void Forms::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla principal no puede estar vacío");
+            param->set_error("The main table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -79,7 +80,7 @@ void Forms::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El identificador de tabla no puede estar vacío");
+            param->set_error("The table identifier cannot be empty.");
             return false;
         }
         return true;
@@ -155,7 +156,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error sOAIsi80PllR");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -163,7 +164,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->Int_() != 1)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error sp289WDFFpw289m");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -171,7 +172,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         auto database_id = pfv->get_results()->ExtractField_(0, 1);
         if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -179,7 +180,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         CreateSystemUser system_user;
         if(system_user.error)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error adLfo2Mq4p1");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -187,7 +188,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         auto table_identifier_param = self.GetParameter_("table-identifier");
         if(table_identifier_param == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error pdfkiwe23sdZp");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -239,13 +240,13 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error 5u2UPHVRHkF6");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->ToString_() != "1")
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "Error 5hXOSg5yxPtW");
+            self.JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -253,7 +254,7 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         auto database_id = pfv->get_results()->ExtractField_(0, 1);
         if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error yIIoOO4kx6oc");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -261,7 +262,7 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         CreateSystemUser system_user;
         if(system_user.error)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error dSRRU2lecYSy");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -269,7 +270,7 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         auto table_identifier_param = self.GetParameter_("table-identifier");
         if(table_identifier_param == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error NeoVkUb6flhl");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -321,7 +322,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error kdb5OAI0PllR");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -329,7 +330,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->Int_() != 1)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error 2VJ7Bf7M9Wuk");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -337,7 +338,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
         auto database_id = pfv->get_results()->ExtractField_(0, 1);
         if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -345,7 +346,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
         CreateSystemUser system_user;
         if(system_user.error)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error adPe2Wq14p1");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -353,7 +354,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
         auto table_identifier_param = self.GetParameter_("table-identifier");
         if(table_identifier_param == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error h3K0Jq9Zp");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -407,7 +408,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error sOAIsi80PllR");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -415,7 +416,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->Int_() != 1)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error sp289WDFFpw289m");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -423,7 +424,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         auto database_id = pfv->get_results()->ExtractField_(0, 1);
         if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -431,7 +432,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         CreateSystemUser system_user;
         if(system_user.error)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error adLfo2Mq4p1");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -439,7 +440,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         auto table_identifier_param = self.GetParameter_("table-identifier");
         if(table_identifier_param == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error pdfkiwe23sdZp");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -491,7 +492,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Error SD43DFSkdsi32");
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -499,7 +500,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->Int_() != 1)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SOWP342sdLDS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -507,7 +508,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
         auto database_id = pfv->get_results()->ExtractField_(0, 1);
         if(database_id->IsNull_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Error SD4Fa4fLDS");
+            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_FORM_NOT_FOUND);
             return;
         }
         
@@ -515,7 +516,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
         CreateSystemUser system_user;
         if(system_user.error)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error aSo4F1Dq4p1");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
@@ -523,7 +524,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
         auto table_identifier_param = self.GetParameter_("table-identifier");
         if(table_identifier_param == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error dDK34SLDO34");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
             return;
         }
 
