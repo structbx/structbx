@@ -3,6 +3,7 @@ import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
 import { Form } from '../models/Form.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { ColumnType } from '../constants/column_types.js';
 
@@ -33,7 +34,7 @@ export class FormsController extends BaseController
     {
         const table_identifier = wtools.GetUrlSearchParam('identifier');
         if(table_identifier == undefined)
-            new wtools.Notification('ERROR').Show_('No se encontr&oacute; el identificador del formulario.');
+            new wtools.Notification('ERROR').Show_(window.structbxI18n ? window.structbxI18n.t('forms.identifier_not_found') : 'Form identifier not found.');
         return table_identifier;
     }
 
@@ -78,7 +79,7 @@ export class FormsController extends BaseController
             new wtools.ElementState('#wait_animation_page', true, 'block',
                 new wtools.FullScreenMessage(`
                     <img src="/assets/images/logo.png" alt="StructBX Logo" width="50" height="50" class="d-inline-block align-text-top me-2">
-                    No se puede acceder al formulario, ve a <a href="/">Inicio</a>
+                    ${window.structbxI18n ? window.structbxI18n.t('forms.cannot_access') : 'Cannot access the form, go to <a href="/">Home</a>'}
                 `).message
             );
             console.error(error);
@@ -153,7 +154,7 @@ export class FormsController extends BaseController
             new wtools.ElementState('#wait_animation_page', true, 'block',
                 new wtools.FullScreenMessage(`
                     <img src="/assets/images/logo.png" alt="StructBX Logo" width="50" height="50" class="d-inline-block align-text-top me-2">
-                    No se puede acceder al formulario, ve a <a href="/">Inicio</a>
+                    ${window.structbxI18n ? window.structbxI18n.t('forms.cannot_access') : 'Cannot access the form, go to <a href="/">Home</a>'}
                 `).message
             );
             console.error(error);
@@ -171,7 +172,7 @@ export class FormsController extends BaseController
         {
             wait.Off_();
             $('#component_form_addData .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_form_addData .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_form_addData .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 

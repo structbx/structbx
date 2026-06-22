@@ -1,4 +1,5 @@
 import { BaseController } from './base_controller.js';
+import { I18n } from '../i18n/i18n.js';
 import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
@@ -45,16 +46,16 @@ export class StartController extends BaseController {
         // SELECT options
         const options_states = new wtools.SelectOptions
         ([
-            new wtools.OptionValue("activo", "Activo", true)
-            ,new wtools.OptionValue("inactivo", "Inactivo")
+            new wtools.OptionValue("activo", window.structbxI18n.t('start.active'), true)
+            ,new wtools.OptionValue("inactivo", window.structbxI18n.t('start.inactive'))
         ]);
         options_states.Build_('#component_tables_add select[name="state"]');
         options_states.Build_('#component_tables_modify select[name="state"]');
 
         const options_privacity = new wtools.SelectOptions
         ([
-            new wtools.OptionValue("publico", "P&uacute;blico", true)
-            ,new wtools.OptionValue("interno", "Interno")
+            new wtools.OptionValue("publico", window.structbxI18n.t('start.public'), true)
+            ,new wtools.OptionValue("interno", window.structbxI18n.t('start.internal'))
         ]);
         options_privacity.Build_('#component_tables_add select[name="privacity"]');
         options_privacity.Build_('#component_tables_modify select[name="privacity"]');
@@ -91,8 +92,8 @@ export class StartController extends BaseController {
             if (query !== '' && visibleCount === 0) {
                 const total = $items.length;
                 const note = total === 0
-                    ? 'No hay tablas disponibles.'
-                    : 'Ninguna tabla coincide con la b&uacute;squeda.';
+                    ? window.structbxI18n.t('start.no_tables')
+                    : window.structbxI18n.t('start.no_search_match');
                 $('#component_tables_read .contents').append(`
                     <div class="table-search-no-results text-center">
                         <i class="fas fa-search mb-2 d-block"></i>
@@ -131,7 +132,7 @@ export class StartController extends BaseController {
                 $('#component_tables_read .contents').append(`
                     <div class="p-2 text-center">
                         <button class="btn btn-primary table_add">
-                            <i class="fas fa-plus"></i> Crear tabla
+                            <i class="fas fa-plus"></i> ${window.structbxI18n.t('start.create_table')}
                         </button>
                     </div>
                 `)
@@ -195,7 +196,7 @@ export class StartController extends BaseController {
         {
             $('#component_tables_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_tables_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_tables_add .notifications').Show_(window.structbxI18n.t('login.invalid_fields'));
             return;
         }
 
@@ -210,7 +211,7 @@ export class StartController extends BaseController {
             if(!result.Verify_())
                 return;
             
-            new wtools.Notification('SUCCESS').Show_('Tabla creado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n.t('start.table_created'));
             $('#component_tables_add').modal('hide');
             wtools.CleanForm('#component_tables_add form');
             $('#component_tables_add form').removeClass('was-validated');

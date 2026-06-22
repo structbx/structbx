@@ -2,6 +2,7 @@ import { BaseController } from './base_controller.js';
 import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { Session } from '../models/Session.js';
 import { Table } from '../models/Table.js';
@@ -82,8 +83,8 @@ export class TableController extends BaseController {
 
             if (query !== '' && visibleCount === 0) {
                 const note = $items.length === 0
-                    ? 'Sin tablas disponibles.'
-                    : 'Ninguna tabla coincide.';
+                    ? window.structbxI18n ? window.structbxI18n.t('table.no_tables') : 'No tables available.'
+                    : window.structbxI18n ? window.structbxI18n.t('table.no_search_match') : 'No tables match.';
                 $('#component_sidebar_tables .contents').append(`
                     <div class="sidebar-search-no-results text-muted small text-center py-2">
                         ${note}
@@ -172,7 +173,7 @@ export class TableController extends BaseController {
 
             // Handle zero results
             if(response_data.body.data == undefined || response_data.body.data.length < 1){
-                new wtools.Notification('SUCCESS', 0, '#component_sidebar_tables .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 0, '#component_sidebar_tables .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 

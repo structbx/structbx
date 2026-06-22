@@ -1,5 +1,6 @@
 import { BaseController } from './base_controller.js';
 import * as Tools from '../classes/tools.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { Session } from '../models/Session.js';
 import { Database } from '../models/Database.js';
@@ -68,7 +69,7 @@ export class LoginController extends BaseController {
             if(response_data.status == 401 || response_data.status != 200 
                 || response_data.body.data == undefined 
                 || response_data.body.data.length < 1){
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a la base de datos.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('login.database_access_failed') : 'Could not access the database.');
 
                 // Logout
                 this.session.logout().then((logout_response) => {
@@ -78,7 +79,7 @@ export class LoginController extends BaseController {
                         window.location.href = "/login/";
                     }
                     else
-                        new wtools.Notification('WARNING').Show_('No se pudo cerrar la sesi&oacute;n.');
+                        new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('login.logout_failed') : 'Could not close the session.');
 
                     return;
                 })
@@ -101,7 +102,7 @@ export class LoginController extends BaseController {
             $('#component_login .notifications').html('');
             wait.Off_();
             new wtools.Notification('WARNING', 5000, '#component_login .notifications')
-                .Show_('Hay campos inv&aacute;lidos.');
+                .Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -116,15 +117,15 @@ export class LoginController extends BaseController {
 
             // Notifications
             if(response_data.status == 200){
-                new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_('Inicio de sesi&oacute;n exitoso. Espere...');
+                new wtools.Notification('SUCCESS', 0, '#component_login .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.success') : 'Login successful. Please wait...');
                 this.setupDatabaseIdentifier();
                 return;
             } else if(response_data.status == 401){
                 $('#component_login form input[name=password]').val('');
-                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Usuario o contrase&ntilde;a incorrectos.");
+                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_credentials') : 'Invalid username or password.');
             } else {
                 $('#component_login form input[name=password]').val('');
-                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_("Error al iniciar sesi&oacute;n");
+                new wtools.Notification('ERROR', 0, '#component_login .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.error') : 'Error logging in.');
             }
         });
     }

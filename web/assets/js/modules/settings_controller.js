@@ -3,6 +3,7 @@ import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
+import { I18n } from '../i18n/i18n.js';
 
 // Data models
 import { Session } from '../models/Session.js';
@@ -66,8 +67,8 @@ export class SettingsController extends BaseController{
 
         this.options_user_status = new wtools.SelectOptions
         ([
-            new wtools.OptionValue("active", "Activo", true)
-            ,new wtools.OptionValue("inactive", "Inactivo")
+            new wtools.OptionValue("active", window.structbxI18n ? window.structbxI18n.t('start.active') : 'Active', true)
+            ,new wtools.OptionValue("inactive", window.structbxI18n ? window.structbxI18n.t('start.inactive') : 'Inactive')
         ]);
         this.options_user_status.Build_('#component_users_add select[name="status"]');
         this.options_user_status.Build_('#component_users_modify select[name="status"]');
@@ -161,7 +162,7 @@ export class SettingsController extends BaseController{
             const input = $('#component_my_account_apikey input[name="api_key"]')[0];
             input.select();
             document.execCommand('copy');
-            new wtools.Notification('SUCCESS').Show_('API key copiada al portapapeles.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.api_key_copied') : 'API key copied to clipboard.');
         });
 
         // ---- GROUPS ----
@@ -236,7 +237,7 @@ export class SettingsController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
-                new wtools.Notification('WARNING', '#component_instance_name_read .notifications').Show_('No se pudo acceder al nombre de la instancia.');
+                new wtools.Notification('WARNING', '#component_instance_name_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('base.instance_name_failed') : 'Could not access instance name.');
                 return;
             }
 
@@ -253,7 +254,7 @@ export class SettingsController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_instance_name_read .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_instance_name_read .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_instance_name_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -270,7 +271,7 @@ export class SettingsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Nombre de instancia modificada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.instance_name_updated') : 'Instance name updated successfully.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
         });
@@ -286,7 +287,7 @@ export class SettingsController extends BaseController{
         if(!check){
             wait.Off_();
             $('#component_instance_logo_read .notifications').html('');
-            new wtools.Notification('WARNING', 5000, '#component_instance_logo_read .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_instance_logo_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -302,7 +303,7 @@ export class SettingsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Logo de instancia modificada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.logo_updated') : 'Instance logo updated successfully.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
         });
@@ -318,13 +319,15 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_users_read .notifications', 'Usuarios: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_users_read .notifications').Show_('No se pudo acceder a los usuarios.');
+                new wtools.Notification('WARNING', '#component_users_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.users_read_failed') : 'Could not access users.');
                 return;
             }
             $('#component_users_read .notifications').html('');
             $('#component_users_read table tbody').html('');
             new wtools.UIElementsCreator('#component_users_read table tbody', response.body.data).Build_(row => {
-                const statusText = row.status === 'active' ? 'Activo' : 'Inactivo';
+                const statusText = row.status === 'active'
+                    ? (window.structbxI18n ? window.structbxI18n.t('start.active') : 'Active')
+                    : (window.structbxI18n ? window.structbxI18n.t('start.inactive') : 'Inactive');
                 const elements = [
                     `<td scope="row">${row.username}</td>`,
                     `<td scope="row">${statusText}</td>`,
@@ -343,7 +346,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_my_account_general .notifications').Show_('No se pudo acceder al usuario actual.');
+                new wtools.Notification('WARNING', '#component_my_account_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_read_failed') : 'Could not access current user.');
                 return;
             }
             $('#component_my_account_general input[name="username"]').val(response.body.data[0].username);
@@ -357,7 +360,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_my_account_general .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_my_account_general .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_my_account_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const data = new FormData($('#component_my_account_general form')[0]);
@@ -365,7 +368,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Modificar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario actual modificado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_updated') : 'Current user updated successfully.');
         });
     }
 
@@ -376,7 +379,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_my_account_change_password .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_my_account_change_password .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_my_account_change_password .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const data = new FormData($('#component_my_account_change_password form')[0]);
@@ -384,7 +387,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'Contrase&ntilde;a: Modificar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Contrase&ntilde;a modificada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.password_updated') : 'Password updated successfully.');
             wtools.CleanForm($('#component_my_account_change_password form'));
             $('#component_my_account_change_password form').removeClass('was-validated');
         });
@@ -397,7 +400,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_users_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_users_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_users_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const data = new FormData($('#component_users_add form')[0]);
@@ -405,7 +408,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_add .notifications', 'Usuarios: A&ntilde;adir');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario creado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_created') : 'User created successfully.');
             this.readUsers();
             wtools.CleanForm($('#component_users_add form'));
             $('#component_users_add').modal('hide');
@@ -415,7 +418,7 @@ export class SettingsController extends BaseController{
     preModifyUser(e){
         const identifier = $(e.currentTarget).attr('user-identifier');
         if (!identifier) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de usuario.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_identifier_not_found') : 'User identifier not found.');
             return;
         }
         const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
@@ -424,7 +427,7 @@ export class SettingsController extends BaseController{
                 const result = new ResponseManager(response, '', 'Usuarios: Modificar');
                 if (!result.Verify_()) return;
                 if (response.body.data.length < 1) {
-                    new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                    new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                     wait.Off_();
                     return;
                 }
@@ -446,7 +449,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_users_modify .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_users_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_users_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const data = new FormData($('#component_users_modify form')[0]);
@@ -454,7 +457,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_modify .notifications', 'Usuarios: Modificar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario modificado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_updated') : 'User updated successfully.');
             this.readUsers();
             wtools.CleanForm($('#component_users_modify form'));
             $('#component_users_modify').modal('hide');
@@ -469,7 +472,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_users_delete .notifications', 'Usuarios: Eliminar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_deleted') : 'User deleted.');
             $('#component_users_delete').modal('hide');
             $('#component_users_modify').modal('hide');
             this.readUsers();
@@ -492,7 +495,7 @@ export class SettingsController extends BaseController{
                 select.Build_(selector);
                 if (callback) callback();
             } catch (error) {
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a grupos.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.groups_read_failed') : 'Could not access groups.');
             }
         });
     }
@@ -504,7 +507,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_groups_read .notifications', 'Grupos: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_groups_read .notifications').Show_('No se pudo acceder a los grupos.');
+                new wtools.Notification('WARNING', '#component_groups_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.groups_read_failed') : 'Could not access groups.');
                 return;
             }
             $('#component_groups_read .notifications').html('');
@@ -525,7 +528,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_groups_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_groups_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_groups_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const group = $('#component_groups_add form input[name=group]').val();
@@ -533,7 +536,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_groups_add .notifications', 'Grupos: A&ntilde;adir');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Grupo agregado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_added') : 'Group added successfully.');
             this.readGroups();
             wtools.CleanForm($('#component_groups_add form'));
             $('#component_groups_add').modal('hide');
@@ -542,7 +545,7 @@ export class SettingsController extends BaseController{
     preModifyGroup(e){
         const identifier = $(e.currentTarget).attr('group-identifier');
         if (!identifier) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de grupo.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_identifier_not_found') : 'Group identifier not found.');
             return;
         }
         const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
@@ -550,7 +553,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '', 'Grupos: Modificar');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('SUCCESS').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
             wtools.CleanForm($('#component_groups_modify form'));
@@ -567,7 +570,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_groups_modify .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_groups_modify .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_groups_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const identifier = $('#component_groups_modify form input[name=identifier]').val();
@@ -576,7 +579,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_groups_modify .notifications', 'Grupos: Modificar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Grupo modificado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_updated') : 'Group updated successfully.');
             this.readGroups();
             wtools.CleanForm($('#component_groups_modify form'));
             $('#component_groups_modify').modal('hide');
@@ -598,7 +601,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_groups_delete .notifications', 'Grupos: Eliminar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Grupo eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_deleted') : 'Group deleted.');
             $('#component_groups_modify').modal('hide');
             $('#component_groups_delete').modal('hide');
             this.readGroups();
@@ -621,7 +624,7 @@ export class SettingsController extends BaseController{
                 return;
 
             if(response.body.data.length < 1) {
-                new wtools.Notification('SUCCESS', 0, '#component_databases_read .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 0, '#component_databases_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 
@@ -647,7 +650,7 @@ export class SettingsController extends BaseController{
         if(!check) {
             $('#component_databases_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -660,7 +663,7 @@ export class SettingsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Base de datos creada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_created') : 'Database created successfully.');
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             location.reload();
         });
@@ -673,7 +676,7 @@ export class SettingsController extends BaseController{
         const identifier = $(e.currentTarget).attr('database-identifier');
         const name = $(e.currentTarget).attr('database-name');
         if (!identifier) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el identificador de la base de datos.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_identifier_not_found') : 'Database identifier not found.');
             return;
         }
         this.currentDatabaseIdentifier = identifier;
@@ -691,7 +694,7 @@ export class SettingsController extends BaseController{
             if (response.body.data.length < 1) {
                 $('#component_databases_users_read table tbody').html('');
                 $('#component_databases_users_read .notifications').html('');
-                new wtools.Notification('SUCCESS', 0, '#component_databases_users_read .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 0, '#component_databases_users_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
             $('#component_databases_users_read .notifications').html('');
@@ -708,7 +711,7 @@ export class SettingsController extends BaseController{
 
     preAddDatabaseUser(){
         if (!this.currentDatabaseIdentifier) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; la base de datos seleccionada.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_not_found') : 'Selected database not found.');
             return;
         }
         const select = new wtools.SelectOptions();
@@ -716,7 +719,7 @@ export class SettingsController extends BaseController{
             try {
                 const tmp = [];
                 if (response.body.data.length < 1) {
-                    tmp.push(new wtools.OptionValue("", "No hay usuarios disponibles."));
+                    tmp.push(new wtools.OptionValue("", window.structbxI18n ? window.structbxI18n.t('settings.no_users_available') : 'No users available.'));
                 } else {
                     for (const row of response.body.data) {
                         tmp.push(new wtools.OptionValue(row.identifier, row.username));
@@ -726,7 +729,7 @@ export class SettingsController extends BaseController{
                 select.Build_('#component_databases_users_add select[name="id_user"]');
                 $('#component_databases_users_add').modal('show');
             } catch (error) {
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a los usuarios disponibles.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.users_available_read_failed') : 'Could not access available users.');
             }
         });
     }
@@ -738,7 +741,7 @@ export class SettingsController extends BaseController{
         if (!check) {
             $('#component_databases_users_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_databases_users_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_databases_users_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
         const id_user = $('#component_databases_users_add select[name=id_user]').val();
@@ -746,7 +749,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_databases_users_add .notifications', 'Usuarios de BD: A&ntilde;adir');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario agregado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_added') : 'User added successfully.');
             this.readDatabaseUsers();
             wtools.CleanForm($('#component_databases_users_add form'));
             $('#component_databases_users_add').modal('hide');
@@ -757,7 +760,7 @@ export class SettingsController extends BaseController{
         const identifier = $(e.currentTarget).attr('user-identifier');
         const username = $(e.currentTarget).attr('user-username');
         if (!identifier || !username) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; la informaci&oacute;n del usuario.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_info_not_found') : 'User information not found.');
             return;
         }
         $('#component_databases_users_delete input[name=id]').val(identifier);
@@ -773,7 +776,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
             const result = new ResponseManager(response, '#component_databases_users_delete .notifications', 'Usuarios de BD: Eliminar');
             if (!result.Verify_()) return;
-            new wtools.Notification('SUCCESS').Show_('Usuario eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_deleted') : 'User deleted.');
             $('#component_databases_users_delete').modal('hide');
             this.readDatabaseUsers();
         });
@@ -794,7 +797,7 @@ export class SettingsController extends BaseController{
                 select.Build_('#component_permissions_read select[name="id_group"]');
                 this.readPermissions();
             } catch (error) {
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a grupos.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.groups_read_failed') : 'Could not access groups.');
             }
         });
     }
@@ -818,7 +821,7 @@ export class SettingsController extends BaseController{
             if(response.body.data.length < 1) {
                 $('#component_permissions_read table tbody').html('');
                 $('#component_permissions_read .notifications').html('');
-                new wtools.Notification('SUCCESS', 0, '#component_permissions_read .notifications').Show_('Sin resultados.');
+                new wtools.Notification('SUCCESS', 0, '#component_permissions_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
 
@@ -838,7 +841,7 @@ export class SettingsController extends BaseController{
     preAddPermission() {
         const id_group = $('#component_permissions_read select[name=id_group]').val();
         if (!id_group) {
-            new wtools.Notification('WARNING').Show_('Debe seleccionar un grupo primero.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.select_group_first') : 'You must select a group first.');
             return;
         }
 
@@ -847,7 +850,7 @@ export class SettingsController extends BaseController{
             try {
                 const tmp = [];
                 if (response.body.data.length < 1) {
-                    tmp.push(new wtools.OptionValue("", "No hay endpoints disponibles."));
+                    tmp.push(new wtools.OptionValue("", window.structbxI18n ? window.structbxI18n.t('settings.no_endpoints_available') : 'No endpoints available.'));
                 } else {
                     for (const row of response.body.data) {
                         tmp.push(new wtools.OptionValue(row.endpoint, row.title));
@@ -859,7 +862,7 @@ export class SettingsController extends BaseController{
                 $('#component_permissions_add input[name=id_group]').val(id_group);
                 $('#component_permissions_add').modal('show');
             } catch (error) {
-                new wtools.Notification('WARNING').Show_('No se pudo acceder a los endpoints.');
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.endpoints_read_failed') : 'Could not access endpoints.');
             }
         });
     }
@@ -873,7 +876,7 @@ export class SettingsController extends BaseController{
         if(!check) {
             $('#component_permissions_add .notifications').html('');
             wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_permissions_add .notifications').Show_('Hay campos inv&aacute;lidos.');
+            new wtools.Notification('WARNING', 5000, '#component_permissions_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
             return;
         }
 
@@ -886,7 +889,7 @@ export class SettingsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Permiso agregado exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.permission_added') : 'Permission added successfully.');
             this.readPermissions();
             wtools.CleanForm($('#component_permissions_add form'));
             $('#component_permissions_add').modal('hide');
@@ -897,7 +900,7 @@ export class SettingsController extends BaseController{
         const endpoint = $(e.currentTarget).attr('permission-endpoint');
         const endpoint_name = $(e.currentTarget).attr('permission-endpoint-name');
         if (!endpoint) {
-            new wtools.Notification('WARNING').Show_('No se encontr&oacute; el endpoint de permiso.');
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.permission_endpoint_not_found') : 'Permission endpoint not found.');
             return;
         }
 
@@ -921,7 +924,7 @@ export class SettingsController extends BaseController{
             if(!result.Verify_())
                 return;
 
-            new wtools.Notification('SUCCESS').Show_('Permiso eliminado.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.permission_deleted') : 'Permission deleted.');
             $('#component_permissions_delete').modal('hide');
             this.readPermissions();
         });
@@ -958,7 +961,7 @@ export class SettingsController extends BaseController{
             const key = response.body.api_key;
             const input = $('#component_my_account_apikey input[name="api_key"]');
             input.val(key).data('full', key).attr('type', 'text');
-            new wtools.Notification('SUCCESS').Show_('API key generada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.api_key_generated') : 'API key generated successfully.');
         });
     }
 
@@ -971,7 +974,7 @@ export class SettingsController extends BaseController{
 
             const input = $('#component_my_account_apikey input[name="api_key"]');
             input.val('').data('full', '');
-            new wtools.Notification('SUCCESS').Show_('API key revocada exitosamente.');
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.api_key_revoked') : 'API key revoked successfully.');
         });
     }
 }

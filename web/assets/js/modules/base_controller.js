@@ -1,6 +1,7 @@
 import * as tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import {ResponseManager} from '../classes/response_manager.js';
+import { I18n } from '../i18n/i18n.js';
 
 import { Instance } from '../models/Instance.js';
 import { Permission } from '../models/Permission.js';
@@ -13,6 +14,10 @@ import { DatabaseUser } from '../models/DatabaseUser.js';
 
 export class BaseController {
     constructor(){
+        if (!window.structbxI18n)
+        {
+            window.structbxI18n = new I18n();
+        }
         this.apiBase = "/api";
         this.user_permissions = [];
         this.tables_permissions = [];
