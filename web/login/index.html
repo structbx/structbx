@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Iniciar sesión - StructBX</title>
+        <title data-i18n="login.page_title">Login - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
         <!-- CSS Libraries -->
@@ -30,50 +30,50 @@
                 <div class="col-lg-6">
                     <div class="login-left">
                         <div class="login-header">
-                            <h2>Bienvenido de nuevo</h2>
-                            <p>Inicia sesión para acceder a tu plataforma de gestión de bases de datos</p>
+                            <h2 data-i18n="login.welcome_back">Welcome back</h2>
+                            <p data-i18n="login.welcome_message">Log in to access your database management platform</p>
                         </div>
-                        
+
                         <form class="needs-validation" novalidate>
                             <div class="notifications mb-3"></div>
-                            
+
                             <div class="mb-3">
-                                <label for="user" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="user" name="username" placeholder="nombre@ejemplo.com" required>
-                                <div class="invalid-feedback">
-                                    Por favor ingresa un correo electrónico válido.
+                                <label for="user" class="form-label" data-i18n="login.email_label">Email</label>
+                                <input type="email" class="form-control" id="user" name="username" data-i18n-placeholder="login.email_placeholder" placeholder="name@example.com" required>
+                                <div class="invalid-feedback" data-i18n="login.email_invalid">
+                                    Please enter a valid email.
                                 </div>
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label for="password" class="form-label">Contraseña</label>
+                                <label for="password" class="form-label" data-i18n="login.password_label">Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                                    <input type="password" class="form-control" id="password" name="password" data-i18n-placeholder="login.password_placeholder" placeholder="Enter your password" required>
                                     <button type="button" class="toggle-password" id="togglePassword">
                                         <i class="far fa-eye"></i>
                                     </button>
                                 </div>
-                                <div class="invalid-feedback">
-                                    Por favor ingresa tu contraseña.
+                                <div class="invalid-feedback" data-i18n="login.password_required">
+                                    Please enter your password.
                                 </div>
                             </div>
-                            
+
                             <!--<div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="rememberMe">
                                 <label class="form-check-label" for="rememberMe">
-                                    Recordar mis datos
+                                    Remember me
                                 </label>
                             </div>-->
-                            
-                            <button class="w-100 btn btn-login text-white" type="submit">Iniciar sesión</button>
-                            
+
+                            <button class="w-100 btn btn-login text-white" type="submit" data-i18n="login.submit">Log in</button>
+
                             <!--<div class="login-links">
-                                <a href="/recover/">¿Olvidaste tu contraseña?</a>
-                                <p class="mt-3">¿No tienes cuenta? <a href="/signin/">Regístrate aquí</a></p>
+                                <a href="/recover/">Forgot your password?</a>
+                                <p class="mt-3">Don't have an account? <a href="/signin/">Register here</a></p>
                             </div>-->
-                            
+
                             <!--<div class="social-login">
-                                <p>O inicia sesión con</p>
+                                <p>Or log in with</p>
                                 <div class="social-buttons">
                                     <a href="#" class="social-btn">
                                         <i class="fab fa-google"></i>
@@ -89,35 +89,35 @@
                         </form>
                     </div>
                 </div>
-                
+
                 <!-- Login Sidebar -->
                 <div class="col-lg-6">
                     <div class="login-right">
                         <div>
                             <div class="brand-logo">
-                                <img src="/assets/images/logo-w.png" alt="StructBX Logo" width="40px">
+                                <img src="/assets/images/logo-w.png" alt="StructBX Logo" width="40px" data-i18n-alt="login.brand_logo_alt">
                             </div>
-                            
+
                             <div class="feature-card">
                                 <i class="fas fa-database"></i>
-                                <h4>Gestión de Bases de Datos</h4>
-                                <p>Crea y administra tus bases de datos de forma intuitiva</p>
+                                <h4 data-i18n="login.feature_db_title">Database Management</h4>
+                                <p data-i18n="login.feature_db_desc">Create and manage your databases intuitively</p>
                             </div>
-                            
+
                             <div class="feature-card">
                                 <i class="fas fa-table"></i>
-                                <h4>Tablas Relacionadas</h4>
-                                <p>Establece relaciones entre tablas fácilmente</p>
+                                <h4 data-i18n="login.feature_table_title">Related Tables</h4>
+                                <p data-i18n="login.feature_table_desc">Easily establish relationships between tables</p>
                             </div>
-                            
+
                             <div class="feature-card">
                                 <i class="fas fa-eye"></i>
-                                <h4>Vistas Personalizadas</h4>
-                                <p>Crea vistas con filtros predefinidos para un acceso rápido</p>
+                                <h4 data-i18n="login.feature_views_title">Custom Views</h4>
+                                <p data-i18n="login.feature_views_desc">Create views with predefined filters for quick access</p>
                             </div>
-                            
+
                             <div class="mt-4">
-                                <p>¿Aún no conoces StructBX? <a href="https://structbx.com" class="text-white fw-bold">Descubre más</a></p>
+                                <p data-i18n-html="login.feature_discover_html">Don't know StructBX yet? <a href="https://structbx.com" class="text-white fw-bold">Discover more</a></p>
                             </div>
                         </div>
                     </div>

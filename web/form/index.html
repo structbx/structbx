@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Fomulario - StructBX</title>
+        <title data-i18n="form.page_title">Form - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
         <!-- CSS files -->
@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="/assets/css/form.css">
         <link rel="stylesheet" href="/assets/css/custom-select.css">
         <!-- /CSS files -->
-        
+
         <!-- JS Libraries -->
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"  crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
@@ -44,14 +44,14 @@
                                 <div class="form-header">
                                     <div class="header-content">
                                         <h1 class="form-title"></h1>
-                                        <p class="form-description">Agrega un nuevo registro enviando este formulario</p>
-                                        <div class="form-info">
-                                            <span class="required-indicator">*</span> Indica un campo requerido
+                                        <p class="form-description" data-i18n="form.form_description">Add a new record by submitting this form</p>
+                                        <div class="form-info" data-i18n-html="form.required_indicator_html">
+                                            <span class="required-indicator">*</span> Indicates a required field
                                         </div>
                                     </div>
                                 </div>
                                 <!-- /Header -->
-                
+
                                 <form class="elegant-form contents">
                                     <div class="notifications"></div>
                                     <table class="table table-form">
@@ -59,13 +59,13 @@
                                         </tbody>
                                     </table>
                                     <div class="mt-2">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-plus-circle me-2"></i>Enviar formulario
+                                        <button type="submit" class="btn btn-primary" data-i18n="form.submit">
+                                            <i class="fas fa-plus-circle me-2"></i>Submit form
                                         </button>
                                     </div>
                                 </form>
-                
-                                <!-- Modal de Confirmación -->
+
+                                <!-- Success Modal -->
                                 <div id="component_form_successModal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false"  tabindex="-1">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
@@ -73,10 +73,10 @@
                                                 <div class="success-icon">
                                                     <i class="fas fa-check-circle"></i>
                                                 </div>
-                                                <h3 class="mt-4 mb-3">¡Formulario enviado!</h3>
-                                                <p class="text-muted mb-4">Su registro ha sido guardado en la correspondiente tabla.</p>
-                                                <button type="button" class="btn btn-primary" onclick="location.reload()">
-                                                    Continuar
+                                                <h3 class="mt-4 mb-3" data-i18n="form.success_title">Form submitted!</h3>
+                                                <p class="text-muted mb-4" data-i18n="form.success_message">Your record has been saved in the corresponding table.</p>
+                                                <button type="button" class="btn btn-primary" onclick="location.reload()" data-i18n="form.form_continue">
+                                                    Continue
                                                 </button>
                                             </div>
                                         </div>
@@ -93,7 +93,7 @@
                     <footer class="main_footer container">
                     </footer>
                     <!-- /Footer -->
-                    
+
                 </main>
                 <!-- /Main content -->
 
@@ -103,7 +103,7 @@
                     </div>
                 </div>
                 <!-- Notifications -->
-        
+
             </div>
         </div>
 

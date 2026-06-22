@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Configuraciones - StructBX</title>
+        <title data-i18n="settings.page_title">Settings - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
         <!-- CSS Libraries -->
@@ -41,37 +41,37 @@
                                 <div class="nav-item" permission-endpoint="/api/databases/read">
                                     <a class="menu_databases nav-link mb-2" href="#databases" menu="databases">
                                         <i class="fas fa-building"></i>
-                                        <span class="ms-2">Bases de datos</span>
+                                        <span class="ms-2" data-i18n="settings.menu_databases">Databases</span>
                                     </a>
                                 </div>
                                 <div class="nav-item">
                                     <a class="menu_my_account nav-link mb-2" href="#my_account" menu="my_account">
                                         <i class="fas fa-user"></i>
-                                        <span class="ms-2">Mi cuenta</span>
+                                        <span class="ms-2" data-i18n="settings.menu_my_account">My Account</span>
                                     </a>
                                 </div>
                                 <div class="nav-item" permission-endpoint="/api/general/instanceName/modify">
                                     <a class="menu_instance nav-link mb-2" href="#instance" menu="instance">
                                         <i class="fas fa-home"></i>
-                                        <span class="ms-2">Instancia</span>
+                                        <span class="ms-2" data-i18n="settings.menu_instance">Instance</span>
                                     </a>
                                 </div>
                                 <div class="nav-item" permission-endpoint="/api/general/users/read">
                                     <a class="menu_users nav-link mb-2" href="#users" menu="users">
                                         <i class="fas fa-users"></i>
-                                        <span class="ms-2">Usuarios</span>
+                                        <span class="ms-2" data-i18n="settings.menu_users">Users</span>
                                     </a>
                                 </div>
                                 <div class="nav-item" permission-endpoint="/api/general/groups/read">
                                     <a class="menu_groups nav-link mb-2" href="#groups" menu="groups">
                                         <i class="fas fa-users-cog"></i>
-                                        <span class="ms-2">Grupos</span>
+                                        <span class="ms-2" data-i18n="settings.menu_groups">Groups</span>
                                     </a>
                                 </div>
                                 <div class="nav-item" permission-endpoint="/api/general/permissions/read">
                                     <a class="menu_permissions nav-link mb-2" href="#permissions" menu="permissions">
                                         <i class="fas fa-user-lock"></i>
-                                        <span class="ms-2">Permisos</span>
+                                        <span class="ms-2" data-i18n="settings.menu_permissions">Permissions</span>
                                     </a>
                                 </div>
                             </nav>
@@ -83,8 +83,8 @@
                             <section class="section_databases d-none" permission-endpoint="/api/databases/read">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Bases de datos</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_databases">Databases</li>
                                     </ol>
                                 </div>
 
@@ -94,7 +94,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Mis bases de datos</span>
+                                                <span class="fw-bold" data-i18n="settings.my_databases">My databases</span>
                                             </div>
                                             <div class="p-2">
                                                 <button class="btn btn-dark-shadow add">
@@ -105,17 +105,17 @@
                                         <!-- /Card header -->
                                         <!-- Contents -->
                                         <div class="mb-2 mt-4">
-                                            
+
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
                                                     <thead class="table-light text-center align-middle text-nowrap">
                                                         <tr>
-                                                            <th scope="col">Base de datos</th>
-                                                            <th scope="col">Almacenamiento en DB</th>
-                                                            <th scope="col">Almacenamiento en Disco</th>
-                                                            <th scope="col">Descripci&oacute;n</th>
-                                                            <th scope="col">Fecha de creaci&oacute;n</th>
+                                                            <th scope="col" data-i18n="settings.database_name">Database</th>
+                                                            <th scope="col" data-i18n="settings.db_storage_db">DB Storage</th>
+                                                            <th scope="col" data-i18n="settings.db_storage_disk">Disk Storage</th>
+                                                            <th scope="col" data-i18n="settings.description">Description</th>
+                                                            <th scope="col" data-i18n="settings.created_at">Created at</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -125,7 +125,7 @@
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Databases: Read -->
@@ -135,8 +135,8 @@
                                     <div class="modal-dialog modal-lg">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-plus-circle me-2"></i>Crear nueva base de datos
+                                                <h5 class="modal-title" data-i18n="settings.modal_create_db">
+                                                    <i class="fas fa-plus-circle me-2"></i>Create new database
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -145,22 +145,22 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Nombre</td>
+                                                            <td data-i18n="settings.name">Name</td>
                                                             <td><input class="form-control" type="text" name="name" required></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Descripci&oacute;n</td>
+                                                            <td data-i18n="settings.description">Description</td>
                                                             <td><textarea class="form-control" type="text" name="description"></textarea></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-plus-circle me-2"></i>Crear
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.create">
+                                                    <i class="fas fa-plus-circle me-2"></i>Create
                                                 </button>
                                             </div>
                                         </form>
@@ -173,7 +173,7 @@
                                     <article class="card p-4 bg-white mb-4">
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Usuarios de base de datos: <span class="database-name"></span></span>
+                                                <span class="fw-bold" data-i18n="settings.db_users"><span class="database-name"></span></span>
                                             </div>
                                             <div class="p-2">
                                                 <button class="btn btn-dark-shadow add">
@@ -187,8 +187,8 @@
                                                 <table class="table table-hover table-bordered">
                                                     <thead class="table-light text-center align-middle text-nowrap">
                                                         <tr>
-                                                            <th scope="col">Usuario</th>
-                                                            <th scope="col">Creado</th>
+                                                            <th scope="col" data-i18n="settings.user">User</th>
+                                                            <th scope="col" data-i18n="settings.created">Created</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody></tbody>
@@ -204,8 +204,8 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir usuario a base de datos
+                                                <h5 class="modal-title" data-i18n="settings.modal_add_db_user">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add user to database
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -214,7 +214,7 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Usuario</td>
+                                                            <td data-i18n="settings.user">User</td>
                                                             <td>
                                                                 <select class="form-select" name="id_user" required></select>
                                                             </td>
@@ -223,11 +223,11 @@
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.add">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add
                                                 </button>
                                             </div>
                                         </form>
@@ -240,22 +240,22 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-times me-2"></i>Eliminar usuario de base de datos
+                                                <h5 class="modal-title" data-i18n="settings.modal_remove_db_user">
+                                                    <i class="fas fa-times me-2"></i>Remove user from database
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="notifications"></div>
                                                 <input type="hidden" name="id" required>
-                                                <p>Seguro desea eliminar al usuario <strong class="username"></strong> de esta base de datos?</p>
+                                                <p data-i18n-html="settings.confirm_remove_user">Are you sure you want to remove the user <strong class="username"></strong> from this database?</p>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-times me-2"></i>Borrar
+                                                <button type="submit" class="btn btn-danger" data-i18n="settings.borrar">
+                                                    <i class="fas fa-times me-2"></i>Delete
                                                 </button>
                                             </div>
                                         </form>
@@ -270,8 +270,8 @@
                             <section class="section_my_account d-none">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Mi cuenta</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_my_account">My Account</li>
                                     </ol>
                                 </div>
 
@@ -280,7 +280,7 @@
                                     <!-- Card header -->
                                     <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                         <div class="flex-grow-1 align-self-center">
-                                            <span class="fw-bold">Informaci&oacute;n general</span>
+                                            <span class="fw-bold" data-i18n="settings.my_account_general">General Information</span>
                                         </div>
                                     </header>
                                     <!-- /Card header -->
@@ -292,19 +292,19 @@
                                             <table class="table">
                                                 <tbody>
                                                     <tr>
-                                                        <th scope="row">Correo electr&oacute;nico</th>
+                                                        <th scope="row" data-i18n="settings.email">Email</th>
                                                         <td scope="row"><input type="email" class="form-control" name="username"></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
                                             <div class="mt-2">
-                                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.save">Save</button>
                                             </div>
                                         </form>
 
                                     </div>
                                     <!-- /Contents -->
-                                    
+
                                 </article>
                                 <!-- /My Account: General -->
 
@@ -313,7 +313,7 @@
                                     <!-- Card header -->
                                     <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                         <div class="flex-grow-1 align-self-center">
-                                            <span class="fw-bold">Cambiar contrase&ntilde;a</span>
+                                            <span class="fw-bold" data-i18n="settings.change_password">Change password</span>
                                         </div>
                                     </header>
                                     <!-- /Card header -->
@@ -325,27 +325,27 @@
                                             <table class="table">
                                                 <tbody>
                                                     <tr>
-                                                        <th scope="row">Contrase&ntilde;a actual</th>
+                                                        <th scope="row" data-i18n="settings.current_password">Current password</th>
                                                         <td scope="row"><input type="password" class="form-control" name="current_password" required></td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Nueva contrase&ntilde;a</th>
+                                                        <th scope="row" data-i18n="settings.new_password">New password</th>
                                                         <td scope="row"><input type="password" class="form-control" name="new_password" required></td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Repetir contrase&ntilde;a actual</th>
+                                                        <th scope="row" data-i18n="settings.repeat_password">Repeat new password</th>
                                                         <td scope="row"><input type="password" class="form-control" name="new_password2" required></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
                                             <div class="mt-2">
-                                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.save">Save</button>
                                             </div>
                                         </form>
-                                        
+
                                     </div>
                                     <!-- /Contents -->
-                                    
+
                                 </article>
                                 <!-- /My Account: Change password -->
 
@@ -353,7 +353,7 @@
                                 <article id="component_my_account_apikey" class="card p-4 bg-white mb-4">
                                     <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                         <div class="flex-grow-1 align-self-center">
-                                            <span class="fw-bold">API Key</span>
+                                            <span class="fw-bold" data-i18n="settings.api_key">API Key</span>
                                         </div>
                                     </header>
                                     <div class="mb-2 mt-4">
@@ -361,27 +361,27 @@
                                         <div class="notifications"></div>
 
                                         <div class="apikey-display mb-3">
-                                            <label class="form-label">Tu API Key</label>
+                                            <label class="form-label" data-i18n="settings.your_api_key">Your API Key</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control" name="api_key" readonly>
-                                                <button class="btn btn-outline-secondary copy" title="Copiar al portapapeles">
+                                                <button class="btn btn-outline-secondary copy" data-i18n-title="settings.copy_clipboard_title" title="Copy to clipboard">
                                                     <i class="fas fa-copy"></i>
                                                 </button>
-                                                <button class="btn btn-outline-secondary toggle-show" title="Mostrar/Ocultar">
+                                                <button class="btn btn-outline-secondary toggle-show" data-i18n-title="settings.toggle_show_title" title="Show/Hide">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
-                                            <small class="text-muted">
-                                                Usa este header en tus peticiones: <code>X-API-Key: &lt;tu_key&gt;</code>
+                                            <small class="text-muted" data-i18n-html="settings.api_key_usage_html">
+                                                Use this header in your requests: <code>X-API-Key: &lt;your_key&gt;</code>
                                             </small>
                                         </div>
 
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-primary generate">
-                                                <i class="fas fa-key me-2"></i>Generar nueva
+                                            <button class="btn btn-primary generate" data-i18n="settings.generate_new">
+                                                <i class="fas fa-key me-2"></i>Generate new
                                             </button>
-                                            <button class="btn btn-danger revoke">
-                                                <i class="fas fa-trash me-2"></i>Revocar
+                                            <button class="btn btn-danger revoke" data-i18n="settings.revoke">
+                                                <i class="fas fa-trash me-2"></i>Revoke
                                             </button>
                                         </div>
 
@@ -396,8 +396,8 @@
                             <section class="section_instance d-none" permission-endpoint="/api/general/instanceName/read">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Instancia</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_instance">Instance</li>
                                     </ol>
                                 </div>
 
@@ -407,7 +407,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Nombre de instancia</span>
+                                                <span class="fw-bold" data-i18n="settings.instance_name">Instance name</span>
                                             </div>
                                         </header>
                                         <!-- /Card header -->
@@ -419,19 +419,19 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <th scope="row">Nombre de la instancia</th>
+                                                            <th scope="row" data-i18n="settings.instance_name_label">Instance name</th>
                                                             <td scope="row"><input type="text" class="form-control" name="name"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                                 <div class="mt-2">
-                                                    <button type="submit" class="btn btn-primary">Guardar</button>
-                                                </div>    
+                                                    <button type="submit" class="btn btn-primary" data-i18n="settings.save">Save</button>
+                                                </div>
                                             </form>
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Instance: Name: Read -->
@@ -442,7 +442,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Logo de la instancia</span>
+                                                <span class="fw-bold" data-i18n="settings.instance_logo">Instance logo</span>
                                             </div>
                                         </header>
                                         <!-- /Card header -->
@@ -451,25 +451,25 @@
 
                                             <div class="notifications"></div>
                                             <div class="text-center mb-4">
-                                                <img src="/api/general/instanceLogo/read" width="200px" src="" alt="Logo actual de la instancia">
+                                                <img src="/api/general/instanceLogo/read" width="200px" src="" alt="Current instance logo" data-i18n-alt="settings.instance_logo_current_alt">
                                             </div>
                                             <form novalidate>
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <th scope="row">Imagen (Solo .png, jpeg o jpg < 5 MB)</th>
+                                                            <th scope="row" data-i18n="settings.instance_logo_upload">Image (Only .png, .jpeg or .jpg < 5 MB)</th>
                                                             <td scope="row"><input type="file" class="form-control" name="logo" required></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                                 <div class="mt-2">
-                                                    <button type="submit" class="btn btn-primary">Guardar</button>
-                                                </div>    
+                                                    <button type="submit" class="btn btn-primary" data-i18n="settings.save">Save</button>
+                                                </div>
                                             </form>
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Instance: Logo: Read -->
@@ -481,8 +481,8 @@
                             <section class="section_users d-none" permission-endpoint="/api/general/users/read">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Usuarios</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_users">Users</li>
                                     </ol>
                                 </div>
 
@@ -492,7 +492,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Usuarios</span>
+                                                <span class="fw-bold" data-i18n="settings.users">Users</span>
                                             </div>
                                             <div class="p-2">
                                                 <button class="btn btn-dark-shadow add">
@@ -509,10 +509,10 @@
                                                 <table class="table table-hover table-bordered">
                                                     <thead class="table-light text-center align-middle text-nowrap">
                                                         <tr>
-                                                            <th scope="col">Usuario</th>
-                                                            <th scope="col">Estado</th>
-                                                            <th scope="col">Grupo</th>
-                                                            <th scope="col">Creado</th>
+                                                            <th scope="col" data-i18n="settings.user">User</th>
+                                                            <th scope="col" data-i18n="settings.status">Status</th>
+                                                            <th scope="col" data-i18n="settings.group">Group</th>
+                                                            <th scope="col" data-i18n="settings.created">Created</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -522,7 +522,7 @@
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Users: Read -->
@@ -532,8 +532,8 @@
                                     <div class="modal-dialog modal-lg">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir nuevo usuario
+                                                <h5 class="modal-title" data-i18n="settings.modal_add_user">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add new user
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -542,15 +542,15 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Correo</td>
+                                                            <td data-i18n="settings.email">Email</td>
                                                             <td><input class="form-control" type="email" name="username" required></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Contrase&ntilde;a</td>
+                                                            <td data-i18n="settings.password">Password</td>
                                                             <td><input class="form-control" type="password" name="password" required></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Grupo</td>
+                                                            <td data-i18n="settings.group">Group</td>
                                                             <td>
                                                                 <select class="form-select" name="id_group" required></select>
                                                             </td>
@@ -559,11 +559,11 @@
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.add">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add
                                                 </button>
                                             </div>
                                         </form>
@@ -576,8 +576,8 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-pen me-2"></i>Editar usuario
+                                                <h5 class="modal-title" data-i18n="settings.modal_edit_user">
+                                                    <i class="fas fa-pen me-2"></i>Edit user
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -588,21 +588,21 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Correo</td>
+                                                            <td data-i18n="settings.email">Email</td>
                                                             <td><input class="form-control" type="email" name="username" required></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Contrase&ntilde;a</td>
+                                                            <td data-i18n="settings.password">Password</td>
                                                             <td><input class="form-control" type="password" name="password"></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Estado</td>
+                                                            <td data-i18n="settings.status">Status</td>
                                                             <td>
                                                                 <select class="form-select" name="status" required></select>
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Grupo</td>
+                                                            <td data-i18n="settings.group">Group</td>
                                                             <td>
                                                                 <select class="form-select" name="id_group" required></select>
                                                             </td>
@@ -611,14 +611,14 @@
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="delete btn btn-danger me-auto">
-                                                    <i class="fas fa-times me-2"></i>Eliminar usuario
+                                                <button type="button" class="delete btn btn-danger me-auto" data-i18n="settings.modal_delete_user">
+                                                    <i class="fas fa-times me-2"></i>Delete user
                                                 </button>
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-pen me-2"></i>Modificar
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.modal_edit_user">
+                                                    <i class="fas fa-pen me-2"></i>Modify
                                                 </button>
                                             </div>
                                         </form>
@@ -631,22 +631,22 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="component_users_delete_label">
-                                                    <i class="fas fa-times me-2"></i>Eliminar usuario
+                                                <h5 class="modal-title" id="component_users_delete_label" data-i18n="settings.modal_delete_user">
+                                                    <i class="fas fa-times me-2"></i>Delete user
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="notifications"></div>
                                                 <input type="hidden" name="identifier" required>
-                                                <p>Seguro desea eliminar el usuario <strong class="username"></strong></p>
+                                                <p data-i18n="settings.confirm_delete_user">Are you sure you want to delete the user <strong class="username"></strong></p>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-times me-2"></i>Borrar
+                                                <button type="submit" class="btn btn-danger" data-i18n="settings.borrar">
+                                                    <i class="fas fa-times me-2"></i>Delete
                                                 </button>
                                             </div>
                                         </form>
@@ -661,8 +661,8 @@
                             <section class="section_groups d-none" permission-endpoint="/api/general/groups/read">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Grupos</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_groups">Groups</li>
                                     </ol>
                                 </div>
 
@@ -672,7 +672,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Grupos</span>
+                                                <span class="fw-bold" data-i18n="settings.groups">Groups</span>
                                             </div>
                                             <div class="p-2">
                                                 <button class="btn btn-dark-shadow add">
@@ -683,7 +683,7 @@
                                         <!-- /Card header -->
                                         <!-- Contents -->
                                         <div class="mb-2 mt-4">
-                                            
+
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
@@ -694,7 +694,7 @@
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Groups: Read -->
@@ -704,8 +704,8 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir nuevo grupo
+                                                <h5 class="modal-title" data-i18n="settings.modal_add_group">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add new group
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -714,18 +714,18 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Nombre</td>
+                                                            <td data-i18n="settings.name">Name</td>
                                                             <td><input class="form-control" type="text" name="group" required maxlength="100"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.add">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add
                                                 </button>
                                             </div>
                                         </form>
@@ -738,8 +738,8 @@
                                     <div class="modal-dialog modal-lg">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-pen me-2"></i>Editar grupo
+                                                <h5 class="modal-title" data-i18n="settings.modal_edit_group">
+                                                    <i class="fas fa-pen me-2"></i>Edit group
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -750,21 +750,21 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Nombre</td>
+                                                            <td data-i18n="settings.name">Name</td>
                                                             <td><input class="form-control" type="text" name="group" required maxlength="100"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="delete btn btn-danger me-auto">
-                                                    <i class="fas fa-times me-2"></i>Eliminar grupo
+                                                <button type="button" class="delete btn btn-danger me-auto" data-i18n="settings.eliminar_grupo">
+                                                    <i class="fas fa-times me-2"></i>Delete group
                                                 </button>
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-pen me-2"></i>Modificar
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.modal_edit_group">
+                                                    <i class="fas fa-pen me-2"></i>Modify
                                                 </button>
                                             </div>
                                         </form>
@@ -777,22 +777,22 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-times me-2"></i>Eliminar grupo
+                                                <h5 class="modal-title" data-i18n="settings.eliminar_grupo">
+                                                    <i class="fas fa-times me-2"></i>Delete group
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="notifications"></div>
                                                 <input type="hidden" name="identifier" required>
-                                                <p>Seguro desea eliminar el grupo <strong class="group"></strong></p>
+                                                <p data-i18n="settings.confirm_delete_group">Are you sure you want to delete the group <strong class="group"></strong></p>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-times me-2"></i>Borrar
+                                                <button type="submit" class="btn btn-danger" data-i18n="settings.borrar">
+                                                    <i class="fas fa-times me-2"></i>Delete
                                                 </button>
                                             </div>
                                         </form>
@@ -807,8 +807,8 @@
                             <section class="section_permissions d-none" permission-endpoint="/api/general/permissions/read">
                                 <div class="pb-2 mb-3 border-bottom">
                                     <ol class="breadcrumb h4">
-                                        <li class="breadcrumb-item">Configuraciones</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Permisos</li>
+                                        <li class="breadcrumb-item" data-i18n="settings.breadcrumb">Settings</li>
+                                        <li class="breadcrumb-item active" aria-current="page" data-i18n="settings.menu_permissions">Permissions</li>
                                     </ol>
                                 </div>
 
@@ -818,7 +818,7 @@
                                         <!-- Card header -->
                                         <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                             <div class="flex-grow-1 align-self-center">
-                                                <span class="fw-bold">Permisos</span>
+                                                <span class="fw-bold" data-i18n="settings.menu_permissions">Permissions</span>
                                             </div>
                                             <div class="p-2">
                                                 <select class="form-select" name="id_group" required></select>
@@ -832,15 +832,15 @@
                                         <!-- /Card header -->
                                         <!-- Contents -->
                                         <div class="mb-2 mt-4">
-                                            
+
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
                                                     <thead class="table-light text-center align-middle text-nowrap">
                                                         <tr>
-                                                            <th scope="col">Permiso</th>
-                                                            <th scope="col">Acci&oacute;n</th>
-                                                            <th scope="col">Creado</th>
+                                                            <th scope="col" data-i18n="settings.permission_col">Permission</th>
+                                                            <th scope="col" data-i18n="settings.action_col">Action</th>
+                                                            <th scope="col" data-i18n="settings.created">Created</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -850,7 +850,7 @@
 
                                         </div>
                                         <!-- /Contents -->
-                                        
+
                                     </article>
                                 </section>
                                 <!-- /Permissions: Read -->
@@ -860,8 +860,8 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir nuevo permiso
+                                                <h5 class="modal-title" data-i18n="settings.modal_add_permission">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add new permission
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -871,7 +871,7 @@
                                                 <table class="table">
                                                     <tbody>
                                                         <tr>
-                                                            <td>Endpoint</td>
+                                                            <td data-i18n="settings.modal_endpoint">Endpoint</td>
                                                             <td>
                                                                 <select class="form-select" name="endpoint" required></select>
                                                             </td>
@@ -880,11 +880,11 @@
                                                 </table>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir
+                                                <button type="submit" class="btn btn-primary" data-i18n="settings.add">
+                                                    <i class="fas fa-plus-circle me-2"></i>Add
                                                 </button>
                                             </div>
                                         </form>
@@ -897,22 +897,22 @@
                                     <div class="modal-dialog">
                                         <form class="modal-content" novalidate>
                                             <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-times me-2"></i>Eliminar permiso
+                                                <h5 class="modal-title" data-i18n="settings.modal_delete_permission">
+                                                    <i class="fas fa-times me-2"></i>Delete permission
                                                 </h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="notifications"></div>
                                                 <input type="hidden" name="endpoint" required>
-                                                <p>Seguro desea eliminar el permiso <strong class="value"></strong></p>
+                                                <p data-i18n="settings.confirm_delete_permission">Are you sure you want to delete the permission <strong class="value"></strong></p>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-times me-2"></i>Borrar
+                                                <button type="submit" class="btn btn-danger" data-i18n="settings.borrar">
+                                                    <i class="fas fa-times me-2"></i>Delete
                                                 </button>
                                             </div>
                                         </form>
@@ -934,7 +934,7 @@
                     </div>
                 </div>
                 <!-- Notifications -->
-        
+
             </div>
         </div>
 

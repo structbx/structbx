@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Tabla - StructBX</title>
+        <title data-i18n="table.page_title">Table - StructBX</title>
         <link rel="icon" type="image/png" href="/assets/images/favicon.png">
 
         <!-- CSS Libraries -->
@@ -38,14 +38,14 @@
                 <!--- Sidebar menu --->
                 <aside id="menu_main" class="sticky-md-top h-100 sidebar col-md-3 col-lg-2 d-md-block bg-light collapse px-4" style="top:5rem">
                     <nav class="nav nav-pills flex-column justify-contents-between pt-4">
-                        <h5 class="small text-uppercase text-muted">TABLAS</h5>
+                        <h5 class="small text-uppercase text-muted" data-i18n="sidebar.databases">TABLES</h5>
 
                         <!-- Sidebar search -->
                         <div class="input-group input-group-sm mb-2 px-1">
                             <span class="input-group-text bg-white border-end-0 pe-1">
                                 <i class="fas fa-search text-muted" style="font-size:0.7rem;"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 ps-1" id="sidebar_table_search" placeholder="Buscar..." autocomplete="off">
+                            <input type="text" class="form-control border-start-0 ps-1" id="sidebar_table_search" data-i18n-placeholder="table.sidebar_search" placeholder="Search..." autocomplete="off">
                         </div>
                         <!-- /Sidebar search -->
 
@@ -85,12 +85,12 @@
                                         <div class="dropdown-menu" style="z-index:1050;">
                                             <div id="component_views_read">
                                                 <div class="notifications"></div>
-                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;" data-i18n="table.create_view">
                                                     <i class="fas fa-plus me-2"></i>
-                                                    Crear nueva vista
+                                                    Create new view
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"><span class="text-muted p-2">No hay vistas</span></div>
+                                                <div class="contents"><span class="text-muted p-2" data-i18n="table.no_views">No views</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -104,12 +104,12 @@
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 300px;">
                                             <div id="component_columns_read">
                                                 <div class="notifications"></div>
-                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;" data-i18n="table.add_column">
                                                     <i class="fas fa-plus me-2"></i>
-                                                    Nueva columna
+                                                    New column
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"><span class="text-muted p-2">No hay columnas</span></div>
+                                                <div class="contents"><span class="text-muted p-2" data-i18n="table.no_columns">No columns</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -130,12 +130,12 @@
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
                                             <div id="component_filters_read">
                                                 <div class="notifications"></div>
-                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;" data-i18n="table.add_filter">
                                                     <i class="fas fa-plus me-2"></i>
-                                                    Agregar filtro
+                                                    Add filter
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"><span class="text-muted p-2">No hay filtros</span></div>
+                                                <div class="contents"><span class="text-muted p-2" data-i18n="table.no_filters">No filters</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -150,12 +150,12 @@
                                         <div class="dropdown-menu" style="z-index:1050;min-width: 500px;">
                                             <div id="component_sorts_read">
                                                 <div class="notifications"></div>
-                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;">
+                                                <div class="py-2 px-4 dropdown-item add" style="cursor:pointer;" data-i18n="table.add_sort">
                                                     <i class="fas fa-plus me-2"></i>
-                                                    Agregar ordenamiento
+                                                    Add sort
                                                 </div>
                                                 <hr class="dropdown-divider">
-                                                <div class="contents"><span class="text-muted p-2">No hay ordenamientos</span></div>
+                                                <div class="contents"><span class="text-muted p-2" data-i18n="table.no_sorts">No sorts</span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -173,18 +173,18 @@
                                         </button>
                                         <ul class="dropdown-menu" style="z-index:1050;">
                                             <li>
-                                                <a class="dropdown-item data_import">
-                                                    Importar data
+                                                <a class="dropdown-item data_import" data-i18n="table.import_data">
+                                                    Import data
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item data_export">
-                                                    Exportar data
+                                                <a class="dropdown-item data_export" data-i18n="table.export_data">
+                                                    Export data
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item go_settings">
-                                                    Configuraci&oacute;n
+                                                <a class="dropdown-item go_settings" data-i18n="table.go_settings">
+                                                    Settings
                                                 </a>
                                             </li>
                                         </ul>
@@ -200,8 +200,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_columns_add_label">
-                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir columna
+                                        <h5 class="modal-title" id="component_columns_add_label" data-i18n="table.modal_add_column">
+                                            <i class="fas fa-plus-circle me-2"></i>Add column
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -210,20 +210,20 @@
                                         <table class="table">
                                             <tbody>
                                                 <tr>
-                                                    <th scope="row">Nombre de columna</th>
+                                                    <th scope="row" data-i18n="table.modal_column_name">Column name</th>
                                                     <td>
-                                                        <input type="text" class="form-control" name="name" value="Nueva columna" required>
+                                                        <input type="text" class="form-control" name="name" value="New column" required>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th scope="row">Tipo</th>
+                                                    <th scope="row" data-i18n="table.modal_column_type">Type</th>
                                                     <td>
                                                         <select class="form-select" name="column_type" required>
                                                         </select>
                                                     </td>
                                                 </tr>
                                                 <tr class="link_to_tr d-none">
-                                                    <th scope="row">Enlazar a</th>
+                                                    <th scope="row" data-i18n="table.modal_column_link">Link to</th>
                                                     <td>
                                                         <select class="form-select" name="link_to">
                                                         </select>
@@ -232,28 +232,28 @@
                                             </tbody>
                                         </table>
                                         <div class="my-2">
-                                            <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                <i class="fas fa-cog me-2"></i>Avanzado
+                                            <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced" data-i18n="table.modal_column_advanced">
+                                                <i class="fas fa-cog me-2"></i>Advanced
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
                                             <table class="table">
                                                 <tbody>
                                                     <tr>
-                                                        <th scope="row">Descripcion</th>
+                                                        <th scope="row" data-i18n="table.modal_column_description">Description</th>
                                                         <td>
                                                             <textarea class="form-control" name="description"></textarea>
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Obligatorio</th>
+                                                        <th scope="row" data-i18n="table.modal_column_required">Required</th>
                                                         <td>
                                                             <select class="form-select" name="required">
                                                             </select>
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Valor por defecto</th>
+                                                        <th scope="row" data-i18n="table.modal_column_default">Default value</th>
                                                         <td>
                                                             <input type="text" class="form-control" name="default_value">
                                                         </td>
@@ -263,11 +263,11 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-plus-circle me-2"></i>Agregar columna
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_add_column_btn">
+                                            <i class="fas fa-plus-circle me-2"></i>Add column
                                         </button>
                                     </div>
                                 </form>
@@ -280,8 +280,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_columns_modify_label">
-                                            <i class="fas fa-pen me-2"></i>Modificar columna
+                                        <h5 class="modal-title" id="component_columns_modify_label" data-i18n="table.modal_modify_column">
+                                            <i class="fas fa-pen me-2"></i>Modify column
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -292,26 +292,26 @@
                                         <table class="table">
                                             <tbody>
                                                 <tr>
-                                                    <th scope="row">Identificador</th>
+                                                    <th scope="row" data-i18n="table.modal_identifier">Identifier</th>
                                                     <td>
                                                         <span class="text-muted identifier"></span>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th scope="row">Nombre de columna</th>
+                                                    <th scope="row" data-i18n="table.modal_column_name">Column name</th>
                                                     <td>
-                                                        <input type="text" class="form-control" name="name" value="Nueva columna" required>
+                                                        <input type="text" class="form-control" name="name" value="New column" required>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th scope="row">Tipo</th>
+                                                    <th scope="row" data-i18n="table.modal_column_type">Type</th>
                                                     <td>
                                                         <select class="form-select" name="column_type">
                                                         </select>
                                                     </td>
                                                 </tr>
                                                 <tr class="link_to_tr d-none">
-                                                    <th scope="row">Enlazar a</th>
+                                                    <th scope="row" data-i18n="table.modal_column_link">Link to</th>
                                                     <td>
                                                         <select class="form-select" name="link_to">
                                                         </select>
@@ -320,28 +320,28 @@
                                             </tbody>
                                         </table>
                                         <div class="my-2">
-                                            <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced">
-                                                <i class="fas fa-cog me-2"></i>Avanzado
+                                            <a class="btn dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#component_columns_add_avanced" aria-expanded="false" aria-controls="component_columns_add_avanced" data-i18n="table.modal_column_advanced">
+                                                <i class="fas fa-cog me-2"></i>Advanced
                                             </a>
                                         </div>
                                         <div class="collapse" id="component_columns_add_avanced">
                                             <table class="table">
                                                 <tbody>
                                                     <tr>
-                                                        <th scope="row">Descripcion</th>
+                                                        <th scope="row" data-i18n="table.modal_column_description">Description</th>
                                                         <td>
                                                             <textarea class="form-control" name="description"></textarea>
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Obligatorio</th>
+                                                        <th scope="row" data-i18n="table.modal_column_required">Required</th>
                                                         <td>
                                                             <select class="form-select" name="required">
                                                             </select>
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th scope="row">Valor por defecto</th>
+                                                        <th scope="row" data-i18n="table.modal_column_default">Default value</th>
                                                         <td>
                                                             <input type="text" class="form-control" name="default_value">
                                                         </td>
@@ -352,14 +352,14 @@
 
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="delete btn btn-danger me-auto">
-                                            <i class="fas fa-times me-2"></i>Borrar columna
+                                        <button type="button" class="delete btn btn-danger me-auto" data-i18n="table.modal_delete_column">
+                                            <i class="fas fa-times me-2"></i>Delete column
                                         </button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-pen me-2"></i>Modificar
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_modify">
+                                            <i class="fas fa-pen me-2"></i>Modify
                                         </button>
                                     </div>
                                 </form>
@@ -372,21 +372,21 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_columns_delete_label">
-                                            <i class="fas fa-times me-2"></i>Borrar columna
+                                        <h5 class="modal-title" id="component_columns_delete_label" data-i18n="table.modal_delete_column">
+                                            <i class="fas fa-times me-2"></i>Delete column
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="identifier" required>
-                                        <p>Seguro desea eliminar la columna <strong class="name"></strong></p>
+                                        <p data-i18n="table.modal_confirm_delete_column">Are you sure you want to delete the column <strong class="name"></strong></p>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar</button>
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-times me-2"></i>Borrar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel</button>
+                                        <button type="submit" class="btn btn-danger" data-i18n="table.delete">
+                                            <i class="fas fa-times me-2"></i>Delete
                                         </button>
                                     </div>
                                 </form>
@@ -400,10 +400,10 @@
 
                         <!-- Data: Read -->
                         <article id="component_data_read">
-                         
+
                             <!-- Contents -->
                             <div class="contents p-0">
-                           
+
                                 <div class="dynamic-table-wrapper">
                                     <div class="dynamic-table" id="dynamicTable">
                                         <div class="table-header" id="tableHeader">
@@ -417,7 +417,7 @@
 
                             </div>
                             <!-- /Contents -->
-                            
+
                         </article>
                         <!-- /Data: Read -->
 
@@ -426,8 +426,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_add_label">
-                                            <i class="fas fa-plus-circle me-2"></i>Nuevo registro
+                                        <h5 class="modal-title" id="component_data_add_label" data-i18n="table.modal_add_record">
+                                            <i class="fas fa-plus-circle me-2"></i>New record
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -438,11 +438,11 @@
                                             <!-- Sub header -->
                                             <ul class="nav nav-pills justify-content-end">
                                                 <li class="nav-item dropdown">
-                                                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#" role="button" aria-expanded="false">Opciones</a>
+                                                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#" role="button" aria-expanded="false" data-i18n="table.modal_options">Options</a>
                                                     <ul class="dropdown-menu p-3" style="min-width: 360px;">
                                                         <li>
                                                             <div class="d-flex justify-content-between align-items-center">
-                                                                <span><i class="fas fa-paint-brush me-2"></i>Color</span>
+                                                                <span data-i18n="table.modal_color"><i class="fas fa-paint-brush me-2"></i>Color</span>
                                                                 <div id="component_data_add_colorHeader"></div>
                                                             </div>
                                                         </li>
@@ -459,11 +459,11 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-plus-circle me-2"></i>Agregar registro
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_add_record_btn">
+                                            <i class="fas fa-plus-circle me-2"></i>Add record
                                         </button>
                                     </div>
                                 </form>
@@ -476,8 +476,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_modify_label">
-                                            <i class="fas fa-pen me-2"></i>Modificar registro
+                                        <h5 class="modal-title" id="component_data_modify_label" data-i18n="table.modal_modify_record">
+                                            <i class="fas fa-pen me-2"></i>Modify record
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -489,11 +489,11 @@
                                             <!-- Sub header -->
                                             <ul class="nav nav-pills justify-content-end">
                                                 <li class="nav-item dropdown">
-                                                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#" role="button" aria-expanded="false">Opciones</a>
+                                                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#" role="button" aria-expanded="false" data-i18n="table.modal_options">Options</a>
                                                     <ul class="dropdown-menu p-3" style="min-width: 360px;">
                                                         <li>
                                                             <div class="d-flex justify-content-between align-items-center">
-                                                                <span><i class="fas fa-paint-brush me-2"></i>Color</span>
+                                                                <span data-i18n="table.modal_color"><i class="fas fa-paint-brush me-2"></i>Color</span>
                                                                 <div id="component_data_modify_colorHeader"></div>
                                                             </div>
                                                         </li>
@@ -510,14 +510,14 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="delete btn btn-danger me-auto">
-                                            <i class="fas fa-times me-2"></i>Borrar registro
+                                        <button type="button" class="delete btn btn-danger me-auto" data-i18n="table.modal_delete_record">
+                                            <i class="fas fa-times me-2"></i>Delete record
                                         </button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-pen me-2"></i>Guardar
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_modify_record_btn">
+                                            <i class="fas fa-pen me-2"></i>Save
                                         </button>
                                     </div>
                                 </form>
@@ -530,22 +530,22 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_delete_label">
-                                            <i class="fas fa-times me-2"></i>Borrar registro
+                                        <h5 class="modal-title" id="component_data_delete_label" data-i18n="table.modal_delete_record">
+                                            <i class="fas fa-times me-2"></i>Delete record
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="identifier" required>
-                                        <p>Seguro desea eliminar el registro ID <strong class="identifier"></strong></p>
+                                        <p data-i18n="table.modal_confirm_delete_record">Are you sure you want to delete the record ID <strong class="identifier"></strong></p>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-times me-2"></i>Borrar
+                                        <button type="submit" class="btn btn-danger" data-i18n="table.delete">
+                                            <i class="fas fa-times me-2"></i>Delete
                                         </button>
                                     </div>
                                 </form>
@@ -558,8 +558,8 @@
                             <div class="modal-dialog">
                                 <form class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_import_label">
-                                            <i class="fas fa-file-import me-2"></i>Importar data
+                                        <h5 class="modal-title" id="component_data_import_label" data-i18n="table.modal_import_title">
+                                            <i class="fas fa-file-import me-2"></i>Import data
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
@@ -568,23 +568,23 @@
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <div class="card">
-                                                    <div class="card-header">Fuente de datos</div>
+                                                    <div class="card-header" data-i18n="table.import_data_source">Data source</div>
                                                     <div class="p-4">
                                                         <table class="table table-bordered">
                                                             <tbody>
                                                                 <tr>
-                                                                    <th scope="row">Archivo fuente</th>
+                                                                    <th scope="row" data-i18n="table.import_source_file">Source file</th>
                                                                     <td>
                                                                         <input type="file" class="form-control" name="file">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Separador</th>
+                                                                    <th scope="row" data-i18n="table.import_separator">Separator</th>
                                                                     <td>
                                                                         <select class="form-select" name="separator">
-                                                                            <option value="TAB">TAB</option>
+                                                                            <option value="TAB" data-i18n="table.import_tab">TAB</option>
                                                                             <option value=",">,</option>
-                                                                            <option value=" ">Espacio</option>
+                                                                            <option value=" " data-i18n="table.import_space">Space</option>
                                                                             <option value=";">;</option>
                                                                         </select>
                                                                     </td>
@@ -596,13 +596,13 @@
                                             </div>
                                             <div class="col-12 col-md-6">
                                                 <div class="card">
-                                                    <div class="card-header">Mapear columnas</div>
+                                                    <div class="card-header" data-i18n="table.import_map_columns">Map columns</div>
                                                     <div class="p-4">
                                                         <table class="table map table-bordered">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Columna fuente</th>
-                                                                    <th>Columna objetivo</th>
+                                                                    <th data-i18n="table.import_source_col">Source column</th>
+                                                                    <th data-i18n="table.import_target_col">Target column</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -613,7 +613,7 @@
                                             </div>
                                         </div>
                                         <div class="card mt-4">
-                                            <div class="card-header">Previsualizaci&oacute;n</div>
+                                            <div class="card-header" data-i18n="table.import_preview">Preview</div>
                                             <div class="p-4">
                                                 <table class="table mt-4 previsualization">
                                                     <thead>
@@ -627,11 +627,11 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-file-import me-2"></i>Importar data
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.import_import">
+                                            <i class="fas fa-file-import me-2"></i>Import data
                                         </button>
                                     </div>
                                 </form>
@@ -644,16 +644,16 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_import_message_label">
-                                            <i class="fas fa-file-import me-2"></i>Mensaje de importaci&oacute;n
+                                        <h5 class="modal-title" id="component_data_import_message_label" data-i18n="table.import_message_title">
+                                            <i class="fas fa-file-import me-2"></i>Import message
                                         </h5>
                                     </div>
                                     <div class="modal-body">
                                         <div class="contents"></div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cerrar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.close">
+                                            <i class="fas fa-arrow-left me-2"></i>Close
                                         </button>
                                     </div>
                                 </form>
@@ -666,22 +666,22 @@
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_data_export_label">
-                                            <i class="fas fa-download me-2"></i>Exportar data
+                                        <h5 class="modal-title" id="component_data_export_label" data-i18n="table.export_export">
+                                            <i class="fas fa-download me-2"></i>Export data
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        
-                                        <p>Confirmar exportar la data junto con los filtros aplicados:</p>
+
+                                        <p data-i18n="table.export_confirm">Confirm to export the data along with the applied filters:</p>
 
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="button" class="btn btn-primary export" data-bs-dismiss="modal">
-                                            <i class="fas fa-download me-2"></i>Exportar data
+                                        <button type="button" class="btn btn-primary export" data-bs-dismiss="modal" data-i18n="table.export_export">
+                                            <i class="fas fa-download me-2"></i>Export data
                                         </button>
                                     </div>
                                 </div>
@@ -694,23 +694,23 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_views_add_label">
-                                            <i class="fas fa-plus-circle me-2"></i>Nueva vista
+                                        <h5 class="modal-title" id="component_views_add_label" data-i18n="table.modal_add_view">
+                                            <i class="fas fa-plus-circle me-2"></i>New view
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="container-xxl">
                                             <div class="notifications"></div>
-                                            <input type="text" name="name" class="form-control" placeholder="Nombre de la vista" required>
+                                            <input type="text" name="name" class="form-control" data-i18n-placeholder="table.modal_view_name_placeholder" placeholder="View name" required>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cerrar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.close">
+                                            <i class="fas fa-arrow-left me-2"></i>Close
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-plus-circle me-2"></i>Agregar
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.add">
+                                            <i class="fas fa-plus-circle me-2"></i>Add
                                         </button>
                                     </div>
                                 </form>
@@ -723,23 +723,23 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_views_modify_label">
-                                            <i class="fas fa-pen me-2"></i>Modificar vista
+                                        <h5 class="modal-title" id="component_views_modify_label" data-i18n="table.modal_modify_view">
+                                            <i class="fas fa-pen me-2"></i>Modify view
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="identifier" required>
-                                        <p>Cambie el nombre de la vista</p>
-                                        <input type="text" name="name" class="form-control" placeholder="Nombre de la vista" required>
+                                        <p data-i18n="table.modal_view_change_name">Change the view name</p>
+                                        <input type="text" name="name" class="form-control" data-i18n-placeholder="table.modal_view_name_placeholder" placeholder="View name" required>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-pen me-2"></i>Actualizar
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.update">
+                                            <i class="fas fa-pen me-2"></i>Update
                                         </button>
                                     </div>
                                 </form>
@@ -752,22 +752,22 @@
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_views_delete_label">
-                                            <i class="fas fa-times me-2"></i>Borrar vista
+                                        <h5 class="modal-title" id="component_views_delete_label" data-i18n="table.modal_delete_view">
+                                            <i class="fas fa-times me-2"></i>Delete view
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="identifier" required>
-                                        <p>Seguro desea eliminar la vista <strong class="name"></strong></p>
+                                        <p data-i18n="table.modal_confirm_delete_view">Are you sure you want to delete the view <strong class="name"></strong></p>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                         </button>
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-times me-2"></i>Borrar
+                                        <button type="submit" class="btn btn-danger" data-i18n="table.delete">
+                                            <i class="fas fa-times me-2"></i>Delete
                                         </button>
                                     </div>
                                 </form>
@@ -780,19 +780,19 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="component_settings_label">
-                                            <i class="fas fa-times me-2"></i>Configuraciones
+                                        <h5 class="modal-title" id="component_settings_label" data-i18n="table.modal_settings_title">
+                                            <i class="fas fa-times me-2"></i>Settings
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        
+
                                         <!-- Settings: General -->
                                         <article id="component_settings_general" class="card p-4 bg-white mb-4">
                                             <!-- Card header -->
                                             <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                                 <div class="flex-grow-1 align-self-center">
-                                                    <span class="fw-bold">General</span>
+                                                    <span class="fw-bold" data-i18n="table.settings_general">General</span>
                                                 </div>
                                             </header>
                                             <!-- /Card header -->
@@ -804,24 +804,24 @@
                                                     <table class="table">
                                                         <tbody>
                                                             <tr>
-                                                                <th scope="row">Nombre</th>
+                                                                <th scope="row" data-i18n="table.settings_name">Name</th>
                                                                 <td><input type="text" class="form-control" name="name"/></td>
                                                             </tr>
                                                             <tr>
-                                                                <th scope="row">Formulario p&uacute;blico</th>
+                                                                <th scope="row" data-i18n="table.settings_public_form">Public form</th>
                                                                 <td>
                                                                     <select class="form-select" name="public_form"></select>
                                                                     <span class="link_form"></span>
                                                                 </td>
                                                             </tr>
                                                             <tr>
-                                                                <th scope="row">Descripci&oacute;n</th>
+                                                                <th scope="row">Description</th>
                                                                 <td><textarea class="form-control" name="description"></textarea></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
                                                     <div class="mt-2">
-                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                        <button type="submit" class="btn btn-primary" data-i18n="table.settings_save">Save</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -834,7 +834,7 @@
                                             <!-- Card header -->
                                             <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                                 <div class="flex-grow-1 align-self-center">
-                                                    <span class="fw-bold">Permisos de la tabla</span>
+                                                    <span class="fw-bold" data-i18n="table.settings_permissions">Table permissions</span>
                                                 </div>
                                                 <div class="p-2 bd-highlight">
                                                     <div class="dropdown">
@@ -853,19 +853,19 @@
                                                     <table class="table table-hover table-bordered">
                                                         <thead class="table-light text-center align-middle text-nowrap">
                                                             <tr>
-                                                                <th scope="col">Usuario</th>
-                                                                <th scope="col">Leer</th>
-                                                                <th scope="col">A&ntilde;adir</th>
-                                                                <th scope="col">Modificar</th>
-                                                                <th scope="col">Eliminar</th>
-                                                                <th scope="col">Solo si es due&ntilde;o</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_user">User</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_read">Read</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_add">Add</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_modify">Modify</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_delete">Delete</th>
+                                                                <th scope="col" data-i18n="table.settings_permissions_just_owner">Owner only</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                                
+
                                             </div>
                                             <!-- /Contents -->
                                         </article>
@@ -876,8 +876,8 @@
                                             <div class="modal-dialog">
                                                 <form class="modal-content" novalidate>
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="component_settings_permissions_add_label">
-                                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir permiso de tabla
+                                                        <h5 class="modal-title" id="component_settings_permissions_add_label" data-i18n="table.modal_add_permission">
+                                                            <i class="fas fa-plus-circle me-2"></i>Add table permission
                                                         </h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
@@ -886,42 +886,42 @@
                                                         <table class="table">
                                                             <tbody>
                                                                 <tr>
-                                                                    <th scope="row">Usuario</th>
+                                                                    <th scope="row" data-i18n="table.modal_user">User</th>
                                                                     <td>
                                                                         <select class="form-select" name="id_user" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso de lectura</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_read">Read permission</th>
                                                                     <td>
                                                                         <select class="form-select" name="read" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para crear entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_create">Permission to create entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="add" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para modificar entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_modify">Permission to modify entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="modify" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para borrar entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_delete">Permission to delete entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="delete" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso solo si es due&ntilde;o</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_owner">Owner only permission</th>
                                                                     <td>
                                                                         <select class="form-select" name="just_owner" required>
                                                                         </select>
@@ -931,11 +931,11 @@
                                                         </table>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                                         </button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <i class="fas fa-plus-circle me-2"></i>A&ntilde;adir permiso
+                                                        <button type="submit" class="btn btn-primary" data-i18n="table.add">
+                                                            <i class="fas fa-plus-circle me-2"></i>Add permission
                                                         </button>
                                                     </div>
                                                 </form>
@@ -948,8 +948,8 @@
                                             <div class="modal-dialog">
                                                 <form class="modal-content" novalidate>
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="component_settings_permissions_modify_label">
-                                                            <i class="fas fa-pen me-2"></i>Modificar permiso de tabla
+                                                        <h5 class="modal-title" id="component_settings_permissions_modify_label" data-i18n="table.modal_modify_permission">
+                                                            <i class="fas fa-pen me-2"></i>Modify table permission
                                                         </h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
@@ -959,41 +959,41 @@
                                                         <table class="table">
                                                             <tbody>
                                                                 <tr>
-                                                                    <th scope="row">Usuario</th>
+                                                                    <th scope="row" data-i18n="table.modal_user">User</th>
                                                                     <td>
                                                                         <input class="form-control" name="id_user" disabled>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso de lectura</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_read">Read permission</th>
                                                                     <td>
                                                                         <select class="form-select" name="read" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para crear entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_create">Permission to create entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="add" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para modificar entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_modify">Permission to modify entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="modify" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso para borrar entradas</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_delete">Permission to delete entries</th>
                                                                     <td>
                                                                         <select class="form-select" name="delete" required>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">Permiso solo si es due&ntilde;o</th>
+                                                                    <th scope="row" data-i18n="table.modal_permission_owner">Owner only permission</th>
                                                                     <td>
                                                                         <select class="form-select" name="just_owner" required>
                                                                         </select>
@@ -1003,14 +1003,14 @@
                                                         </table>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-danger me-auto delete">
-                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        <button type="button" class="btn btn-danger me-auto delete" data-i18n="table.delete">
+                                                            <i class="fas fa-times me-2"></i>Delete
                                                         </button>
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                                         </button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <i class="fas fa-pen me-2"></i>Modificar permiso
+                                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_modify">
+                                                            <i class="fas fa-pen me-2"></i>Modify permission
                                                         </button>
                                                     </div>
                                                 </form>
@@ -1023,22 +1023,22 @@
                                             <div class="modal-dialog">
                                                 <form class="modal-content" novalidate>
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="component_settings_permissions_delete_label">
-                                                            <i class="fas fa-times me-2"></i>Eliminar permiso de tabla
+                                                        <h5 class="modal-title" id="component_settings_permissions_delete_label" data-i18n="table.modal_delete_permission">
+                                                            <i class="fas fa-times me-2"></i>Delete table permission
                                                         </h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="notifications"></div>
                                                         <input type="hidden" name="id" required>
-                                                        <span>Seguro desea eliminar este permiso de tabla:</span>
+                                                        <span data-i18n="table.modal_confirm_delete_permission">Are you sure you want to delete this table permission:</span>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                                         </button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        <button type="submit" class="btn btn-primary" data-i18n="table.delete">
+                                                            <i class="fas fa-times me-2"></i>Delete
                                                         </button>
                                                     </div>
                                                 </form>
@@ -1051,7 +1051,7 @@
                                             <!-- Card header -->
                                             <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
                                                 <div class="flex-grow-1 align-self-center">
-                                                    <span class="fw-bold">Eliminar tabla</span>
+                                                    <span class="fw-bold" data-i18n="table.settings_delete_table">Delete table</span>
                                                 </div>
                                             </header>
                                             <!-- /Card header -->
@@ -1060,8 +1060,8 @@
 
                                                 <div class="notifications"></div>
                                                 <div class="mt-2">
-                                                    <span>Esta acci&oacute;n no se puede deshacer:</span>
-                                                    <button class="btn btn-danger ms-2 delete">Eliminar tabla</button>
+                                                    <span data-i18n="table.settings_irreversible">This action cannot be undone:</span>
+                                                    <button class="btn btn-danger ms-2 delete" data-i18n="table.settings_delete_btn">Delete table</button>
                                                 </div>
                                             </div>
                                             <!-- /Contents -->
@@ -1073,24 +1073,23 @@
                                             <div class="modal-dialog modal-lg">
                                                 <form class="modal-content" novalidate>
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title">
-                                                            <i class="fas fa-times me-2"></i>Eliminar tabla <strong class="header"></strong>
+                                                        <h5 class="modal-title" data-i18n-html="table.modal_delete_table_title">
+                                                            <i class="fas fa-times me-2"></i>Delete table <strong class="header"></strong>
                                                         </h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="notifications"></div>
-                                                        <p>
-                                                            Seguro desea eliminar la tabla <strong class="name"></strong>, esto eliminar&aacute; todos los registros
-                                                            en &eacute;l
+                                                        <p data-i18n-html="table.modal_confirm_delete_table">
+                                                            Are you sure you want to delete the table <strong class="name"></strong>, this will delete all records in it
                                                         </p>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                                            <i class="fas fa-arrow-left me-2"></i>Cancel
                                                         </button>
-                                                        <button type="submit" class="btn btn-danger">
-                                                            <i class="fas fa-times me-2"></i>Eliminar
+                                                        <button type="submit" class="btn btn-danger" data-i18n="table.delete">
+                                                            <i class="fas fa-times me-2"></i>Delete
                                                         </button>
                                                     </div>
                                                 </form>
@@ -1116,7 +1115,7 @@
                     </div>
                 </div>
                 <!-- Notifications -->
-        
+
             </div>
         </div>
 
