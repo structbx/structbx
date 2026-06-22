@@ -1,5 +1,6 @@
 
 #include "handlers/backend_handler.h"
+#include "core/error_codes.h"
 
 using namespace StructBX;
 using namespace StructBX::Handlers;
@@ -44,7 +45,7 @@ void BackendHandler::Process_()
     // Verify sessions
     if(!VerifySession_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
-        JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Session not found.");
+        JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_AUTH_SESSION_NOT_FOUND);
         return;
     }
 
@@ -57,7 +58,7 @@ void BackendHandler::Process_()
     // Route identification
     if(!IdentifyRoute_())
     {
-        JSONResponse_(HTTP::Status::kHTTP_NOT_FOUND, "The requested endpoint (" + get_properties().method + ") is not available.");
+        JSONResponse_(HTTP::Status::kHTTP_NOT_FOUND, ERR_AUTH_ENDPOINT_NOT_FOUND);
         return;
     }
 
@@ -68,14 +69,14 @@ void BackendHandler::Process_()
     // Verify permissions
     if(!VerifyPermissions_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
-        JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "The user does not have the permissions to perform this operation.");
+        JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_AUTH_NO_PERMISSION);
         return;
     }
 
     // Verify if user is active
     if(!VerifyActiveUser_() && get_security_type() == Security::SecurityType::kDisableAll)
     {
-        JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, "The user is inactive.");
+        JSONResponse_(HTTP::Status::kHTTP_FORBIDDEN, ERR_AUTH_USER_INACTIVE);
         return;
     }
 

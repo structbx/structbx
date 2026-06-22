@@ -1,5 +1,6 @@
 
 #include "handlers/root_handler.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Handlers;
 
@@ -27,12 +28,12 @@ void RootHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& 
             
             if(!get_http_server_request().has_value())
             {
-                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR6DFQAA39KM");
+                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_MYSQL);
                 return;
             }
             if(!get_http_server_response().has_value())
             {
-                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRIUQP6TYJX0");
+                JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_NO_RESPONSE);
                 return;
             }
 
@@ -53,37 +54,37 @@ void RootHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& 
     catch(MySQL::MySQLException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "ERR88HIP2LOOW");
+        JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_SRV_MYSQL);
     }
     catch(RuntimeException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR43K5648DTY");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_RUNTIME);
     }
     catch(JSON::JSONException& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + error.displayText());
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRUS8M0H0OQ0");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_JSON);
     }
     catch(std::out_of_range& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRABLTCEEY6W");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_OUT_OF_RANGE);
     }
     catch(std::runtime_error& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRDPHNRZNA26");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_RUNTIME);
     }
     catch(std::exception& error)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): " + std::string(error.what()));
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERRJBW4NHLNDZ");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_INTERNAL);
     }
     catch(...)
     {
         Tools::OutputLogger::Error_("Error on root_handler.cpp on handleRequest(): No handled exception.");
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "ERR3XGWKEIEDE" );
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_SRV_UNAVAILABLE );
     }
 }
 

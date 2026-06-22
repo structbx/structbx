@@ -1,5 +1,6 @@
 
 #include "handlers/login_handler.h"
+#include "core/error_codes.h"
 
 using namespace StructBX;
 using namespace StructBX::Handlers;
@@ -27,7 +28,7 @@ void LoginHandler::Process_()
         case HTTP::EnumMethods::kHTTP_OPTIONS:
         case HTTP::EnumMethods::kHTTP_PATCH:
         case HTTP::EnumMethods::kNULL:
-            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The client provided a bad HTTP method.");
+            JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_AUTH_BAD_METHOD);
             break;
     }
 }
@@ -43,7 +44,7 @@ void LoginHandler::Login_()
         EndSession_();
     }
     else
-        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Login route not identified.");
+        JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_AUTH_UNAUTHORIZED);
 }
 
 void LoginHandler::StartSession_()
@@ -78,7 +79,7 @@ void LoginHandler::StartSession_()
         
         if(!get_users_manager().AuthenticateUser_())
         {
-            JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, "Unauthorized user or wrong user or password.");
+            JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, ERR_AUTH_LOGIN_FAIL);
             return;
         }
 
