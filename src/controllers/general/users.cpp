@@ -1,6 +1,7 @@
 
 #include "controllers/general/users.h"
 #include "tools/random_generator.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -73,7 +74,7 @@ Users::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -108,7 +109,8 @@ void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este nombre de usuario ya est&aacute; registrado");
+            self.set_custom_error("This username is already registered.");
+            self.set_custom_error_code(ERR_USR_DUP_USERNAME);
             return false;
         }
 
@@ -120,7 +122,7 @@ void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         return true;
@@ -141,23 +143,23 @@ void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre de usuario debe ser una cadena de texto");
+            param->set_error("The username must be a string.");
             return false;
         }
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 3)
         {
-            param->set_error("El nombre de usuario no puede ser menor a 3 dígitos");
+            param->set_error("The username must be at least 3 characters.");
             return false;
         }
         bool result = Tools::IDChecker().CheckEmail_(param->get_value()->ToString_());
         if(!result)
         {
-            param->set_error("El nombre de usuario solo puede tener a-z, A-Z, 0-9, \"_\", \".\", \"@\", sin espacios en blanco");
+            param->set_error("The username can only contain a-z, A-Z, 0-9, '_', '.', '@', no spaces.");
             return false;
         }
         return true;
@@ -190,25 +192,25 @@ Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& functio
         auto new_password2 = self.GetParameter_("new_password2");
         if(new_password == self.get_parameters().end() || new_password2 == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Hubo un error al modificar la contraseña");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "An error occurred while modifying the password.", ERR_USR_PASSWORD_UPDATE_FAIL);
             return;
         }
         // Verify passwords is same
         if(new_password->get()->ToString_() != new_password2->get()->ToString_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Las contraseñas no coinciden");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The passwords do not match.", ERR_USR_PASSWORD_MISMATCH);
             return;
         }
 
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -227,7 +229,8 @@ void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("La contrase&ntilde;a actual es incorrecta");
+            self.set_custom_error("The current password is incorrect.");
+            self.set_custom_error_code(ERR_USR_CURRENT_PASSWORD_WRONG);
             return false;
         }
 
@@ -239,7 +242,7 @@ void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("La contrase&ntilde;a actual no puede estar vacía");
+            param->set_error("The current password cannot be empty.");
             return false;
         }
 
@@ -265,12 +268,12 @@ void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("La contraseña no puede estar vacía");
+            param->set_error("The password cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 8)
         {
-            param->set_error("La contraseña no puede ser menor a 8 dígitos");
+            param->set_error("The password must be at least 8 characters.");
             return false;
         }
 
@@ -305,12 +308,12 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -318,7 +321,7 @@ Users::Add::Add(Tools::FunctionData& function_data) :
         auto user_id = action2->get_last_insert_id();
         if(user_id < 1)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Hubo un error al guardar el usuario");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "An error occurred while saving the user.", ERR_USR_CREATE_FAIL);
             return;
         }
         
@@ -335,7 +338,8 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este nombre de usuario ya est&aacute; registrado");
+            self.set_custom_error("This username is already registered.");
+            self.set_custom_error_code(ERR_USR_DUP_USERNAME);
             return false;
         }
 
@@ -347,7 +351,7 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         return true;
@@ -369,23 +373,23 @@ void Users::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre de usuario debe ser una cadena de texto");
+            param->set_error("The username must be a string.");
             return false;
         }
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 3)
         {
-            param->set_error("El nombre de usuario no puede ser menor a 3 dígitos");
+            param->set_error("The username must be at least 3 characters.");
             return false;
         }
         bool result = Tools::IDChecker().CheckEmail_(param->get_value()->ToString_());
         if(!result)
         {
-            param->set_error("El nombre de usuario solo puede tener a-z, A-Z, 0-9, \"_\", \".\", \"@\", sin espacios en blanco");
+            param->set_error("The username can only contain a-z, A-Z, 0-9, '_', '.', '@', no spaces.");
             return false;
         }
         return true;
@@ -395,12 +399,12 @@ void Users::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("La contraseña no puede estar vacía");
+            param->set_error("The password cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 8)
         {
-            param->set_error("La contraseña no puede ser menor a 8 dígitos");
+            param->set_error("The password must be at least 8 characters.");
             return false;
         }
 
@@ -415,7 +419,7 @@ void Users::Add::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -449,7 +453,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -457,7 +461,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
         auto password = self.GetParameter_("password");
         if(password == self.get_parameters().end())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error uukK3aINI5");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to update user.", ERR_USR_UPDATE_FAIL);
             return;
         }
 
@@ -466,7 +470,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
         {
             if(!action2->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
                 return;
             }
         }
@@ -474,7 +478,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
         {
             if(!action3->Work_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action3->get_custom_error(), action3->get_custom_error_code());
                 return;
             }
         }
@@ -493,7 +497,8 @@ void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este nombre de usuario ya est&aacute; registrado");
+            self.set_custom_error("This username is already registered.");
+            self.set_custom_error_code(ERR_USR_DUP_USERNAME);
             return false;
         }
 
@@ -505,7 +510,7 @@ void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         return true;
@@ -515,7 +520,7 @@ void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -535,23 +540,23 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre de usuario debe ser una cadena de texto");
+            param->set_error("The username must be a string.");
             return false;
         }
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 3)
         {
-            param->set_error("El nombre de usuario no puede ser menor a 3 dígitos");
+            param->set_error("The username must be at least 3 characters.");
             return false;
         }
         bool result = Tools::IDChecker().CheckEmail_(param->get_value()->ToString_());
         if(!result)
         {
-            param->set_error("El nombre de usuario solo puede tener a-z, A-Z, 0-9, \"_\", \".\", \"@\", sin espacios en blanco");
+            param->set_error("The username can only contain a-z, A-Z, 0-9, '_', '.', '@', no spaces.");
             return false;
         }
         return true;
@@ -561,12 +566,12 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("La contraseña no puede estar vacía");
+            param->set_error("The password cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 8)
         {
-            param->set_error("La contraseña no puede ser menor a 8 dígitos");
+            param->set_error("The password must be at least 8 characters.");
             return false;
         }
 
@@ -580,7 +585,7 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El estado no puede estar vacío");
+            param->set_error("The status cannot be empty.");
             return false;
         }
         return true;
@@ -590,7 +595,7 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -600,7 +605,7 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador del usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -620,23 +625,23 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(!param->get_value()->TypeIsIqual_(StructBX::Tools::DValue::Type::kString))
         {
-            param->set_error("El nombre de usuario debe ser una cadena de texto");
+            param->set_error("The username must be a string.");
             return false;
         }
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de usuario no puede estar vacío");
+            param->set_error("The username cannot be empty.");
             return false;
         }
         if(param->ToString_().size() < 3)
         {
-            param->set_error("El nombre de usuario no puede ser menor a 3 dígitos");
+            param->set_error("The username must be at least 3 characters.");
             return false;
         }
         bool result = Tools::IDChecker().CheckEmail_(param->get_value()->ToString_());
         if(!result)
         {
-            param->set_error("El nombre de usuario solo puede tener a-z, A-Z, 0-9, \"_\", \".\", \"@\", sin espacios en blanco");
+            param->set_error("The username can only contain a-z, A-Z, 0-9, '_', '.', '@', no spaces.");
             return false;
         }
         return true;
@@ -646,7 +651,7 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El estado no puede estar vacío");
+            param->set_error("The status cannot be empty.");
             return false;
         }
         return true;
@@ -656,7 +661,7 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -666,7 +671,7 @@ void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador del usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;
@@ -698,7 +703,7 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->get_value()->ToString_() == "")
         {
-            param->set_error("El id de usuario no puede estar vacío");
+            param->set_error("The user ID cannot be empty.");
             return false;
         }
         return true;

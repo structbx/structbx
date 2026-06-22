@@ -1,5 +1,6 @@
 
 #include "controllers/general/groups.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -59,7 +60,7 @@ void Groups::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -92,7 +93,7 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
 
@@ -102,7 +103,7 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         action2->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(identifier)), "identifier");
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -111,7 +112,7 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         action3->AddParameter_("id_group", identifier, false);
         if(!action3->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action3->get_identifier() + ": " + action3->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action3->get_custom_error(), action3->get_custom_error_code());
             return;
         }
 
@@ -132,7 +133,8 @@ void Groups::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este grupo ya está registrado");
+            self.set_custom_error("This group is already registered.");
+            self.set_custom_error_code(ERR_GRP_DUP_NAME);
             return false;
         }
 
@@ -144,7 +146,7 @@ void Groups::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de grupo no puede estar vacío");
+            param->set_error("The group name cannot be empty.");
             return false;
         }
         return true;
@@ -189,7 +191,8 @@ void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("El grupo al que intenta modificar no existe");
+            self.set_custom_error("The group you are trying to modify does not exist.");
+            self.set_custom_error_code(ERR_ACTION_FAILED);
             return false;
         }
 
@@ -201,7 +204,7 @@ void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -219,7 +222,8 @@ void Groups::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este nombre de grupo ya está registrado");
+            self.set_custom_error("This group name is already registered.");
+            self.set_custom_error_code(ERR_GRP_DUP_NAME);
             return false;
         }
 
@@ -231,7 +235,7 @@ void Groups::Modify::A2(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de grupo no puede estar vacío");
+            param->set_error("The group name cannot be empty.");
             return false;
         }
         return true;

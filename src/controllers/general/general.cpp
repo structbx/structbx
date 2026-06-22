@@ -1,6 +1,7 @@
 
 #include "controllers/general/general.h"
 #include "tools/random_generator.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -55,12 +56,12 @@ General::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_da
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El nombre de la instancia no puede estar vacío");
+            param->set_error("The instance name cannot be empty.");
             return false;
         }
         if(param->ToString_().size() <= 3)
         {
-            param->set_error("El nombre de la instancia no puede tener menos de 3 caracteres");
+            param->set_error("The instance name cannot be less than 3 characters.");
             return false;
         }
         return true;
@@ -114,14 +115,14 @@ General::ApiKeyGenerate::ApiKeyGenerate(Tools::FunctionData& function_data) :
 
         if(!action.Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error al generar la API key.");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to generate API key.", ERR_GEN_API_KEY_FAIL);
             return;
         }
 
         // Return the new API key
         Poco::JSON::Object::Ptr json = new Poco::JSON::Object();
         json->set("api_key", api_key);
-        self.CompoundFillResponse_(HTTP::Status::kHTTP_OK, json, "API key generada exitosamente.");
+        self.CompoundFillResponse_(HTTP::Status::kHTTP_OK, json, "API key generated successfully.");
     });
 
     get_functions()->push_back(function);
@@ -166,7 +167,7 @@ General::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) 
         );
         if(!action->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action->get_identifier() + ": MXGEvEU5KBXG");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to read logo.", ERR_GEN_LOGO_READ_FAIL);
             return;
         }
         
@@ -209,7 +210,7 @@ General::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) 
         }
         else
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error al leer el logo.");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to read logo.", ERR_GEN_LOGO_READ_FAIL);
             return;
         }
     });
@@ -237,7 +238,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
 
         if(!a1.Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + a1.get_identifier() + ": JKxcMl1ilXrK");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to read logo.", ERR_GEN_LOGO_READ_FAIL);
             return;
         }
         
@@ -248,7 +249,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
         
         if(!self.get_file_manager()->ChangePathAndFilename_(front_file, self.get_file_manager()->get_directory_base()))
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error al subir el archivo.");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error uploading the file.");
             return;
         }
         self.get_file_manager()->AddSupportedFile_("png", Files::FileProperties{"image/png", true, {""}});
@@ -257,7 +258,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
         // Is supported
         if(!self.get_file_manager()->IsSupported_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Archivo no soportado, debe ser formato png, jpg o jpeg.");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "File not supported, must be png, jpg or jpeg format.", ERR_FILE_NOT_SUPPORTED);
             return;
         }
 
@@ -265,7 +266,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
         auto tmp_file_size = self.get_file_manager()->get_files().front().get_tmp_file()->getSize();
         if(tmp_file_size > 5000000) // 5MB
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "El archivo debe ser de menos de 5 MB.");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "The file must be less than 5 MB.", ERR_FILE_SIZE_EXCEEDED);
             return;
         }
         self.get_file_manager()->UploadFile_();
@@ -281,7 +282,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
         a2.AddParameter_("logo", front_file.get_requested_path()->getFileName(), false);
         if(!a2.Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + a2.get_identifier() + ": OAw1WyL0qR86");
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Failed to save logo.", ERR_GEN_LOGO_SAVE_FAIL);
             return;
         }
         

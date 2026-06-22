@@ -1,5 +1,6 @@
 
 #include "controllers/general/permissions.h"
+#include "core/error_codes.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -40,7 +41,7 @@ void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -96,7 +97,7 @@ void Permissions::ReadOutGroup::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -126,13 +127,13 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         // Execute actions
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -155,7 +156,8 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() > 0)
         {
-            self.set_custom_error("Este permiso ya está registrado en este grupo");
+            self.set_custom_error("This permission is already registered in this group.");
+            self.set_custom_error_code(ERR_PER_DUP_IN_GROUP);
             return false;
         }
 
@@ -167,7 +169,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El endpoint no puede estar vacío");
+            param->set_error("The endpoint cannot be empty.");
             return false;
         }
         return true;
@@ -177,7 +179,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El id de grupo no puede estar vacío");
+            param->set_error("The group ID cannot be empty.");
             return false;
         }
         return true;
@@ -219,13 +221,13 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
         // Execute actions
         if(!action1->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action1->get_identifier() + ": " + action1->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
             return;
         }
         // Execute actions
         if(!action2->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error " + action2->get_identifier() + ": " + action2->get_custom_error());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
 
@@ -248,7 +250,8 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(self.get_results()->size() < 1)
         {
-            self.set_custom_error("El permiso al que intenta borrar no existe");
+            self.set_custom_error("The permission you are trying to delete does not exist.");
+            self.set_custom_error_code(ERR_PER_NOT_OWNED);
             return false;
         }
 
@@ -260,7 +263,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El endpoint de permiso no puede estar vacío");
+            param->set_error("The permission endpoint cannot be empty.");
             return false;
         }
         return true;
@@ -270,7 +273,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     {
         if(param->ToString_() == "")
         {
-            param->set_error("El identificador de grupo de permiso no puede estar vacío");
+            param->set_error("The permission group identifier cannot be empty.");
             return false;
         }
         return true;
