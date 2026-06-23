@@ -1,5 +1,5 @@
 
-name: Publish StructBX Docker image
+name: Publish StructBX Docker image and static binaries
 
 on:
   release:
@@ -80,3 +80,57 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+  # ─── Static binary release ─────────────────────────────────────────
+  build-and-upload-binary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake g++ \
+            libpoco-dev \
+            libmariadb-dev \
+            libyaml-cpp-dev \
+            libssl-dev \
+            zlib1g-dev
+          sudo npm install -g npm
+
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm install
+
+      - name: Configure (static release)
+        run: |
+          cmake -S . -B build-static \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_STATIC=ON \
+            -DCMAKE_INSTALL_PREFIX=/tmp/structbx-install
+          cmake --build build-static --parallel $(nproc)
+          cmake --install build-static --prefix /tmp/structbx-install
+
+      - name: Package binary
+        run: |
+          BIN_NAME="structbx-server-linux-amd64"
+          cp /tmp/structbx-install/bin/structbx-server "/tmp/${BIN_NAME}"
+          strip "/tmp/${BIN_NAME}"
+
+      - name: Package web files
+        run: |
+          tar czf /tmp/structbx-web.tar.gz -C web .
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            /tmp/structbx-server-linux-amd64 \
+            /tmp/structbx-web.tar.gz \
+            --clobber

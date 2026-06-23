@@ -11,6 +11,22 @@ set(LIB_DEPENDECIES
     yaml-cpp::yaml-cpp
 )
 
+# Static builds need explicit system library dependencies
+# since .a files don't carry transitive dependency info
+if(BUILD_STATIC)
+    find_package(OpenSSL REQUIRED)
+    find_package(ZLIB REQUIRED)
+    list(APPEND LIB_DEPENDECIES
+        OpenSSL::SSL
+        OpenSSL::Crypto
+        ZLIB::ZLIB
+        pthread
+        dl
+        rt
+    )
+    message(STATUS "[StructBX] Added system libraries for static linking")
+endif()
+
 # Header
 set(HEADER
     ${PROJECT_BINARY_DIR}

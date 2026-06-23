@@ -46,7 +46,7 @@ file(MAKE_DIRECTORY "${UPLOADED_FILES_DIR}")
 
 # Configure properties.yaml file (development)
 if(NOT EXISTS "${CONFIG_OUTPUT_DIR}/properties.yaml")
-    message(STATUS "[StructBX] Generating initialconfig-files/properties.yaml file...")
+    message(STATUS "[StructBX] Generating config-files/properties.yaml file...")
     configure_file(
         "${PROJECT_SOURCE_DIR}/conf/properties-dev.yaml.template"
         "${CONFIG_OUTPUT_DIR}/properties.yaml"
@@ -72,3 +72,11 @@ configure_file("${PROJECT_SOURCE_DIR}/conf/cert.pem.template" "${CONFIG_OUTPUT_D
 configure_file("${PROJECT_SOURCE_DIR}/conf/cert.pem.template" "${DOCKER_VOLUME_DIR}/cert.pem" COPYONLY)
 configure_file("${PROJECT_SOURCE_DIR}/conf/key.pem.template" "${CONFIG_OUTPUT_DIR}/key.pem" COPYONLY)
 configure_file("${PROJECT_SOURCE_DIR}/conf/key.pem.template" "${DOCKER_VOLUME_DIR}/key.pem" COPYONLY)
+
+# Static linking option (default ON for portable builds)
+option(BUILD_STATIC "Build a fully statically-linked binary" ON)
+
+if(BUILD_STATIC)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    message(STATUS "[StructBX] Static linking enabled")
+endif()
