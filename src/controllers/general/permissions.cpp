@@ -21,13 +21,13 @@ Permissions::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDat
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/permissions/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_group_permissions");
+    ReadGroupPermissions(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Read::ReadGroupPermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT ng.*, e.title AS title "
@@ -54,13 +54,13 @@ Permissions::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) : Tool
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/permissions/current/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_current_user_permissions");
+    ReadCurrentUserPermissions(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::ReadCurrent::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::ReadCurrent::ReadCurrentUserPermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT NULL AS id, e.endpoint, e.action, NULL AS created_at, NULL AS id_group "
@@ -86,13 +86,13 @@ Permissions::ReadOutGroup::ReadOutGroup(Tools::FunctionData& function_data) : To
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/permissions/out/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_unassigned_endpoints");
+    ReadUnassignedEndpoints(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::ReadOutGroup::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::ReadOutGroup::ReadUnassignedEndpoints(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT e.* "
@@ -122,12 +122,12 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Verify if permission in group don't exists yet
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_permission_not_duplicate");
+    VerifyPermissionNotDuplicate(action1);
 
     // Add permission
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_permission");
+    InsertPermission(action2);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -154,7 +154,7 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
     get_functions()->push_back(function);
 }
 
-void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Add::VerifyPermissionNotDuplicate(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT id "
@@ -194,7 +194,7 @@ void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 }
-void Permissions::Add::A2(StructBX::Functions::Action::Ptr action)
+void Permissions::Add::InsertPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO permissions (endpoint, action, id_group) "
@@ -216,12 +216,12 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Verify if permission don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_permission_exists");
+    VerifyPermissionExists(action1);
 
     // Delete permission
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("remove_permission");
+    RemovePermission(action2);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -248,7 +248,7 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
     get_functions()->push_back(function);
 }
 
-void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Delete::VerifyPermissionExists(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT id "
@@ -289,7 +289,7 @@ void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Permissions::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Permissions::Delete::RemovePermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM permissions WHERE endpoint = ? AND id_group = ?");
     action->AddParameter_("endpoint", "", true);

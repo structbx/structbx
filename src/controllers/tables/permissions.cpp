@@ -23,13 +23,13 @@ Permissions::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDat
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_table_permissions");
+    ReadTablePermissions(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::Read::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Read::ReadTablePermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT fp.identifier, fp.`read`, fp.`add`, fp.`modify`, fp.`delete`, fp.just_owner, nu.username " \
@@ -57,13 +57,13 @@ Permissions::Current::Current(Tools::FunctionData& function_data) : Tools::Funct
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/current/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_user_accessible_tables");
+    ReadUserAccessibleTables(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::Current::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Current::ReadUserAccessibleTables(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier AS table_identifier " \
@@ -83,13 +83,13 @@ Permissions::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : To
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_specific_permission");
+    ReadSpecificPermission(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::ReadSpecific::ReadSpecificPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT fp.*, nu.username AS username, f.name AS table_name " \
@@ -128,13 +128,13 @@ Permissions::ReadUsersOut::ReadUsersOut(Tools::FunctionData& function_data) : To
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/users/out/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_unassigned_table_users");
+    ReadUnassignedTableUsers(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::ReadUsersOut::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::ReadUsersOut::ReadUnassignedTableUsers(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT nu.identifier, nu.username "
@@ -166,13 +166,13 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/add", HTTP::EnumMethods::kHTTP_POST);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("insert_table_permission");
+    InsertTablePermission(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::Add::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Add::InsertTablePermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, `just_owner`, id_user, id_table) "
@@ -258,7 +258,7 @@ Permissions::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functio
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/modify", HTTP::EnumMethods::kHTTP_PUT);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("modify_table_permission");
     action1->set_sql_code(
         "UPDATE tables_permissions "
         "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ?, `just_owner` = ? "
@@ -266,11 +266,11 @@ Permissions::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functio
             "identifier = ? "
             "AND id_table = ? "
     );
-    A1(action1);
+    ModifyTablePermission(action1);
     get_functions()->push_back(function);
 }
 
-void Permissions::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Modify::ModifyTablePermission(StructBX::Functions::Action::Ptr action)
 {
     action->AddParameter_("read", "", true)
     ->SetupCondition_("condition-read", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
@@ -345,17 +345,17 @@ Permissions::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functio
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/permissions/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("delete_table_permission");
     action1->set_sql_code(
         "DELETE FROM tables_permissions " \
         "WHERE identifier = ? AND id_table = ?"
     );
-    A1(action1);
+    DeleteTablePermission(action1);
 
     get_functions()->push_back(function);
 }
 
-void Permissions::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Permissions::Delete::DeleteTablePermission(StructBX::Functions::Action::Ptr action)
 {
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)

@@ -42,36 +42,36 @@ class StructBX::Controllers::General::Users : public Tools::FunctionData
         {
             ModifyCurrentUsername(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyUsernameNotTaken(StructBX::Functions::Action::Ptr action);
+            void UpdateCurrentUsername(StructBX::Functions::Action::Ptr action);
         };
         struct ModifyCurrentPassword : public Tools::FunctionData
         {
             ModifyCurrentPassword(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyCurrentPassword(StructBX::Functions::Action::Ptr action);
+            void SaveNewPassword(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyUsernameUniqueness(StructBX::Functions::Action::Ptr action);
+            void InsertUser(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyUserUsernameNotTaken(StructBX::Functions::Action::Ptr action);
+            void UpdateUserWithPassword(StructBX::Functions::Action::Ptr action);
+            void UpdateUserWithoutPassword(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void DeleteUser(StructBX::Functions::Action::Ptr action);
         };
 
     private:

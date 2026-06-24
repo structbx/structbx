@@ -35,43 +35,43 @@ class StructBX::Controllers::Databases::Databases : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadDatabases(StructBX::Functions::Action::Ptr action);
         };
         struct ReadSpecific : public Tools::FunctionData
         {
             ReadSpecific(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadDatabaseByIdentifier(StructBX::Functions::Action::Ptr action);
         };
         struct Change : public Tools::FunctionData
         {
             Change(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void GetDatabaseForSwitch(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyIdentifierUniqueness(StructBX::Functions::Action::Ptr action);
+            void InsertDatabase(StructBX::Functions::Action::Ptr action);
+            void InsertDatabaseUser(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyUserDatabaseMembership(StructBX::Functions::Action::Ptr action);
+            void VerifyDatabaseNewName(StructBX::Functions::Action::Ptr action);
+            void UpdateDatabaseMetadata(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyUserDatabaseOwnership(StructBX::Functions::Action::Ptr action);
+            void MarkDatabaseDeleted(StructBX::Functions::Action::Ptr action);
+            void DeleteDatabaseUsers(StructBX::Functions::Action::Ptr action);
         };
 
     private:

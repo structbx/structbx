@@ -27,7 +27,7 @@ Tables::Data::VerifyPermissionsRead::VerifyPermissionsRead(Tools::FunctionData& 
 
 }
 
-void Tables::Data::VerifyPermissionsRead::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsRead::CheckReadPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -66,7 +66,7 @@ Tables::Data::VerifyPermissionsReadFromLink::VerifyPermissionsReadFromLink(Tools
 
 }
 
-void Tables::Data::VerifyPermissionsReadFromLink::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsReadFromLink::CheckReadViaLinkPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -106,7 +106,7 @@ Tables::Data::VerifyPermissionsAdd::VerifyPermissionsAdd(Tools::FunctionData& fu
     
 }
 
-void Tables::Data::VerifyPermissionsAdd::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsAdd::CheckAddPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -145,7 +145,7 @@ Tables::Data::VerifyPermissionsModify::VerifyPermissionsModify(Tools::FunctionDa
     
 }
 
-void Tables::Data::VerifyPermissionsModify::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsModify::CheckModifyPermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -184,7 +184,7 @@ Tables::Data::VerifyPermissionsDelete::VerifyPermissionsDelete(Tools::FunctionDa
     
 }
 
-void Tables::Data::VerifyPermissionsDelete::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsDelete::CheckDeletePermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -223,7 +223,7 @@ Tables::Data::VerifyPermissionsJustOwner::VerifyPermissionsJustOwner(Tools::Func
     
 }
 
-void Tables::Data::VerifyPermissionsJustOwner::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::VerifyPermissionsJustOwner::CheckJustOwnerMode(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT fp.just_owner AS just_owner " \
@@ -451,13 +451,13 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsRead(function_data).A1(fpv);
+    VerifyPermissionsRead(function_data).CheckReadPermission(fpv);
 
     auto fpv2 = function->AddAction_("fpv2");
-    VerifyPermissionsReadFromLink(function_data).A1(fpv2);
+    VerifyPermissionsReadFromLink(function_data).CheckReadViaLinkPermission(fpv2);
 
     auto just_owner = function->AddAction_("just_owner");
-    VerifyPermissionsJustOwner(function_data).A1(just_owner);
+    VerifyPermissionsJustOwner(function_data).CheckJustOwnerMode(just_owner);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -902,7 +902,7 @@ Tables::Data::ReadChangeInt::ReadChangeInt(Tools::FunctionData& function_data) :
 
         while (true)
         {
-            StructBX::Functions::Action action("a1");
+            StructBX::Functions::Action action("poll_changes");
             action.set_suppress_debug(true);
             action.set_sql_code(
                 "SELECT id, id_row, operation, id_table "
@@ -949,13 +949,13 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Get table id
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_for_file_read");
+    VerifyTableForFileRead(action1);
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
     VerifyPermissionsRead struct_verify_permissions_read(function_data);
-    struct_verify_permissions_read.A1(fpv);
+    struct_verify_permissions_read.CheckReadPermission(fpv);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -1004,7 +1004,7 @@ Tables::Data::ReadFile::ReadFile(Tools::FunctionData& function_data) : Tools::Fu
     get_functions()->push_back(function);
 }
 
-void Tables::Data::ReadFile::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::ReadFile::VerifyTableForFileRead(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT f.identifier " \
@@ -1047,7 +1047,7 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsAdd(function_data).A1(fpv);
+    VerifyPermissionsAdd(function_data).CheckAddPermission(fpv);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -1189,16 +1189,16 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Verify table existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_exists_for_import");
+    VerifyTableExistsForImport(action1);
 
     // Action 2: Get table columns
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("get_columns_for_import");
+    GetColumnsForImport(action2);
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsAdd(function_data).A1(fpv);
+    VerifyPermissionsAdd(function_data).CheckAddPermission(fpv);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -1235,7 +1235,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
         for (std::size_t a = 0; a < self.get_data()->size(); a++)
         {
             // Action 3: Save new record
-            auto action3 = std::make_shared<Functions::Action>("a3");
+            auto action3 = std::make_shared<Functions::Action>("import_insert_row");
             
             // Configure parameters
             std::string columns = "";
@@ -1314,7 +1314,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
     get_functions()->push_back(function);
 }
 
-void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Import::VerifyTableExistsForImport(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
@@ -1344,7 +1344,7 @@ void Tables::Data::Import::A1(StructBX::Functions::Action::Ptr action)
 
 }
 
-void Tables::Data::Import::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Data::Import::GetColumnsForImport(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT fc.* " \
@@ -1384,10 +1384,10 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsModify(function_data).A1(fpv);
+    VerifyPermissionsModify(function_data).CheckModifyPermission(fpv);
 
     auto just_owner = function->AddAction_("just_owner");
-    VerifyPermissionsJustOwner(function_data).A1(just_owner);
+    VerifyPermissionsJustOwner(function_data).CheckJustOwnerMode(just_owner);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -1533,7 +1533,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
 
     // Table permissions verifications
     auto fpv = function->AddAction_("fpv");
-    VerifyPermissionsDelete(function_data).A1(fpv);
+    VerifyPermissionsDelete(function_data).CheckDeletePermission(fpv);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -1808,7 +1808,7 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
                 }
 
                 // Step 5: Verify old file saved
-                auto action2_1 = StructBX::Functions::Action::Ptr(new StructBX::Functions::Action("a2_1"));
+                auto action2_1 = StructBX::Functions::Action::Ptr(new StructBX::Functions::Action("get_old_file_path"));
                 action2_1->set_sql_code(
                     "SELECT " + identifier->ToString_() + " "
                     "FROM " + id_database + "." + table_id + " " \
@@ -1962,7 +1962,7 @@ bool Tables::Data::FileProcessing::Delete()
 void Tables::Data::ChangeInt::Change(std::string row_id, std::string operation, std::string table_identifier)
 {
     // Action 1: Get Change int
-    auto action1 = StructBX::Functions::Action("a1");
+    auto action1 = StructBX::Functions::Action("log_data_change");
     action1.set_sql_code(
         "INSERT INTO changes (id_row, operation, id_table) "
         "VALUES (?, ?, ?)"

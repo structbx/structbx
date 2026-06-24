@@ -21,13 +21,13 @@ Views::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(func
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_views_by_table");
+    ReadViewsByTable(action);
 
     get_functions()->push_back(function);
 }
 
-void Views::Read::A1(StructBX::Functions::Action::Ptr action)
+void Views::Read::ReadViewsByTable(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -56,13 +56,13 @@ Views::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::F
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_view_by_identifier");
+    ReadViewByIdentifier(action);
 
     get_functions()->push_back(function);
 }
 
-void Views::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Views::ReadSpecific::ReadViewByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -102,13 +102,13 @@ Views::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/add", HTTP::EnumMethods::kHTTP_POST);
     
     // Action 1: Save the view
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("insert_view");
+    InsertView(action1);
 
     get_functions()->push_back(function);
 }
 
-void Views::Add::A1(StructBX::Functions::Action::Ptr action)
+void Views::Add::InsertView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO views (identifier, name, id_table) "
@@ -145,12 +145,12 @@ Views::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/modify", HTTP::EnumMethods::kHTTP_PUT);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("rename_view");
+    RenameView(action1);
     get_functions()->push_back(function);
 }
 
-void Views::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Views::Modify::RenameView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views "
@@ -186,13 +186,13 @@ Views::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("delete_view");
+    DeleteView(action1);
 
     get_functions()->push_back(function);
 }
 
-void Views::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Views::Delete::DeleteView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE FROM views " \

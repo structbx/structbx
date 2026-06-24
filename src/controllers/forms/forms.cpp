@@ -27,7 +27,7 @@ Forms::VerifyPublicFormEnabled::VerifyPublicFormEnabled(Tools::FunctionData& fun
 
 }
 
-void Forms::VerifyPublicFormEnabled::A1(StructBX::Functions::Action::Ptr action)
+void Forms::VerifyPublicFormEnabled::CheckPublicFormEnabled(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -54,7 +54,7 @@ Forms::VerifyLinkTableIsInMain::VerifyLinkTableIsInMain(Tools::FunctionData& fun
 
 }
 
-void Forms::VerifyLinkTableIsInMain::A1(StructBX::Functions::Action::Ptr action)
+void Forms::VerifyLinkTableIsInMain::CheckLinkTableIsInMain(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -147,7 +147,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
-    struct_verify_public_form_enabled.A1(pfv);
+    struct_verify_public_form_enabled.CheckPublicFormEnabled(pfv);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -231,7 +231,7 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
-    struct_verify_public_form_enabled.A1(pfv);
+    struct_verify_public_form_enabled.CheckPublicFormEnabled(pfv);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -240,9 +240,11 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         // Public form verification
         if(!pfv->Work_())
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, ERR_FORM_NOT_FOUND);
+            self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, ERR_FORM_NOT_FOUND);
             return;
         }
+
+        // Get public_form result
         auto public_form = pfv->get_results()->First_();
         if(public_form->IsNull_() || public_form->ToString_() != "1")
         {
@@ -313,7 +315,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
-    struct_verify_public_form_enabled.A1(pfv);
+    struct_verify_public_form_enabled.CheckPublicFormEnabled(pfv);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -399,7 +401,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
-    struct_verify_public_form_enabled.A1(pfv);
+    struct_verify_public_form_enabled.CheckPublicFormEnabled(pfv);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -483,7 +485,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
     // Public form verification
     auto pfv = function->AddAction_("pfv");
     VerifyPublicFormEnabled struct_verify_public_form_enabled(function_data);
-    struct_verify_public_form_enabled.A1(pfv);
+    struct_verify_public_form_enabled.CheckPublicFormEnabled(pfv);
 
     // Setup custom process
     auto database_id = get_database_id();

@@ -28,7 +28,7 @@ General::ReadInstanceName::ReadInstanceName(Tools::FunctionData& function_data) 
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/instanceName/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_instance_name");
     action1->set_sql_code(
         "SELECT * \
         FROM settings \
@@ -45,7 +45,7 @@ General::ModifyInstanceName::ModifyInstanceName(Tools::FunctionData& function_da
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/instanceName/modify", HTTP::EnumMethods::kHTTP_PUT);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("modify_instance_name");
     action1->set_sql_code(
         "UPDATE settings \
         SET value = ? \
@@ -77,7 +77,7 @@ General::ApiKeyRead::ApiKeyRead(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function =
         std::make_shared<StructBX::Functions::Function>("/api/general/users/apikey/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_api_key");
     action1->set_sql_code(
         "SELECT api_key "
         "FROM users "
@@ -135,7 +135,7 @@ General::ApiKeyRevoke::ApiKeyRevoke(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function =
         std::make_shared<StructBX::Functions::Function>("/api/general/users/apikey/revoke", HTTP::EnumMethods::kHTTP_PUT);
 
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("revoke_api_key");
     action1->set_sql_code(
         "UPDATE users "
         "SET api_key = NULL "
@@ -159,7 +159,7 @@ General::ReadInstanceLogo::ReadInstanceLogo(Tools::FunctionData& function_data) 
         self.get_file_manager()->set_directory_base(Tools::SettingsManager::GetSetting_("directory_base", "/var/www/structbx-web-uploaded"));
         self.get_file_manager()->AddBasicSupportedFiles_();
 
-        auto action = self.AddAction_("a1");
+        auto action = self.AddAction_("read_instance_logo");
         action->set_sql_code(
             "SELECT value \
             FROM settings \
@@ -229,7 +229,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
     function->SetupCustomProcess_([](Functions::Function& self)
     {
         // Request logo path in DB
-        Functions::Action a1("a1");
+        Functions::Action a1("read_old_instance_logo");
         a1.set_sql_code(
             "SELECT value \
             FROM settings \
@@ -272,7 +272,7 @@ General::ModifyInstanceLogo::ModifyInstanceLogo(Tools::FunctionData& function_da
         self.get_file_manager()->UploadFile_();
 
         // Save new logo in DB
-        Functions::Action a2("a2");
+        Functions::Action a2("save_new_instance_logo");
         a2.set_sql_code(
             "UPDATE settings " \
             "SET value = ? " \

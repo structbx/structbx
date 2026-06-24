@@ -86,37 +86,37 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             VerifyPermissionsRead(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckReadPermission(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyPermissionsReadFromLink : public Tools::FunctionData
         {
             VerifyPermissionsReadFromLink(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckReadViaLinkPermission(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyPermissionsAdd : public Tools::FunctionData
         {
             VerifyPermissionsAdd(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckAddPermission(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyPermissionsModify : public Tools::FunctionData
         {
             VerifyPermissionsModify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckModifyPermission(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyPermissionsDelete : public Tools::FunctionData
         {
             VerifyPermissionsDelete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckDeletePermission(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyPermissionsJustOwner : public Tools::FunctionData
         {
             VerifyPermissionsJustOwner(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckJustOwnerMode(StructBX::Functions::Action::Ptr action);
         };
         struct Read : public Tools::FunctionData
         {
@@ -150,7 +150,7 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             ReadFile(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void VerifyTableForFileRead(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
@@ -163,8 +163,8 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         {
             Import(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyTableExistsForImport(StructBX::Functions::Action::Ptr action);
+            void GetColumnsForImport(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {

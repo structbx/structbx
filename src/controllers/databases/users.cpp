@@ -22,7 +22,7 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_database_users");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, sp.created_at " \
         "FROM users nu " \
@@ -50,7 +50,7 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/current/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_current_database_users");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, sp.created_at " \
         "FROM users nu " \
@@ -69,7 +69,7 @@ Users::ReadUserOutDatabase::ReadUserOutDatabase(Tools::FunctionData& function_da
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/out/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_users_out_database");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username "
         "FROM users nu "
@@ -97,13 +97,13 @@ Users::Add::Add(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/add", HTTP::EnumMethods::kHTTP_POST);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("add_user_to_database");
+    AddUserToDatabase(action1);
 
     get_functions()->push_back(function);
 }
 
-void Users::Add::A1(StructBX::Functions::Action::Ptr action)
+void Users::Add::AddUserToDatabase(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO databases_users (id_database, id_user) "
@@ -138,15 +138,15 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/users/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action1 = function->AddAction_("remove_user_from_database");
+    RemoveUserFromDatabase(action1);
+    auto action2 = function->AddAction_("cleanup_user_table_permissions");
+    CleanupUserTablePermissions(action2);
 
     get_functions()->push_back(function);
 }
 
-void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Users::Delete::RemoveUserFromDatabase(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE su FROM databases_users su "
@@ -176,7 +176,7 @@ void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Users::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Users::Delete::CleanupUserTablePermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE tp FROM tables_permissions tp "

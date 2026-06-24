@@ -53,49 +53,49 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadColumnsByTable(StructBX::Functions::Action::Ptr action);
         };
         struct ReadSpecific : public Tools::FunctionData
         {
             ReadSpecific(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadColumnByIdentifier(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyTableExistsForColumn(StructBX::Functions::Action::Ptr action);
+            void InsertColumnMetadata(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void GetColumnCurrentInfo(StructBX::Functions::Action::Ptr action);
+            void UpdateColumnMetadata(StructBX::Functions::Action::Ptr action);
         };
         struct ModifyPosition : public Tools::FunctionData
         {
             ModifyPosition(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void CalculateNewColumnPosition(StructBX::Functions::Action::Ptr action);
+            void UpdateColumnPosition(StructBX::Functions::Action::Ptr action);
             void InsertColumnOverride(StructBX::Functions::Action::Ptr action);
         };
         struct ModifyVisible : public Tools::FunctionData
         {
             ModifyVisible(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ToggleColumnVisibility(StructBX::Functions::Action::Ptr action);
             void InsertColumnOverride(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyColumnExists(StructBX::Functions::Action::Ptr action);
+            void DeleteColumnMetadata(StructBX::Functions::Action::Ptr action);
         };
 
     private:

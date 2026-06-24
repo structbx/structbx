@@ -37,21 +37,21 @@ class StructBX::Controllers::Tables::Tables : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadTablesByDatabase(StructBX::Functions::Action::Ptr action);
         };
         struct ReadSpecific : public Tools::FunctionData
         {
             ReadSpecific(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadTableByIdentifier(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyTableNameNotTaken(StructBX::Functions::Action::Ptr action);
+            void InsertTableMetadata(StructBX::Functions::Action::Ptr action);
+            void GrantCreatorFullPermissions(StructBX::Functions::Action::Ptr action);
             void AddView(StructBX::Functions::Action::Ptr action);
             void AddDefaultColumn(StructBX::Functions::Action::Ptr action);
         };
@@ -59,16 +59,16 @@ class StructBX::Controllers::Tables::Tables : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyTableExists(StructBX::Functions::Action::Ptr action);
+            void VerifyTableNewName(StructBX::Functions::Action::Ptr action);
+            void UpdateTableMetadata(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyTableExistsForDelete(StructBX::Functions::Action::Ptr action);
+            void DeleteTableMetadata(StructBX::Functions::Action::Ptr action);
         };
 
     private:

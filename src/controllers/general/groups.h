@@ -29,35 +29,34 @@ class StructBX::Controllers::General::Groups : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadAllGroups(StructBX::Functions::Action::Ptr action);
         };
         struct ReadSpecific : public Tools::FunctionData
         {
             ReadSpecific(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadGroupByIdentifier(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyGroupNameNotTaken(StructBX::Functions::Action::Ptr action);
+            void InsertGroup(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {
             Modify(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
-            void A3(StructBX::Functions::Action::Ptr action);
+            void VerifyGroupExists(StructBX::Functions::Action::Ptr action);
+            void VerifyGroupNewName(StructBX::Functions::Action::Ptr action);
+            void UpdateGroupName(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void DeleteGroup(StructBX::Functions::Action::Ptr action);
         };
 
     private:

@@ -26,13 +26,13 @@ Columns::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fu
         std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read", HTTP::EnumMethods::kHTTP_GET);
 
     // Action 1: Get table id
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_columns_by_table");
+    ReadColumnsByTable(action1);
 
     get_functions()->push_back(function);
 }
 
-void Columns::Read::A1(StructBX::Functions::Action::Ptr action)
+void Columns::Read::ReadColumnsByTable(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -67,13 +67,13 @@ Columns::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools:
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/columns/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_column_by_identifier");
+    ReadColumnByIdentifier(action);
 
     get_functions()->push_back(function);
 }
 
-void Columns::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Columns::ReadSpecific::ReadColumnByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -116,15 +116,15 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Verify that the table exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_exists_for_column");
+    VerifyTableExistsForColumn(action1);
 
     // Action 3: Save the column
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_column_metadata");
+    InsertColumnMetadata(action2);
 
     // Action 4: Add the column in the table
-    auto action4 = function->AddAction_("a4");
+    auto action4 = function->AddAction_("add_mysql_column");
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -194,7 +194,7 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
     get_functions()->push_back(function);
 }
 
-void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
+void Columns::Add::VerifyTableExistsForColumn(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ?");
@@ -222,7 +222,7 @@ void Columns::Add::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Columns::Add::A2(StructBX::Functions::Action::Ptr action)
+void Columns::Add::InsertColumnMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_columns (identifier, name, position "
@@ -311,12 +311,12 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Get column info
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("get_column_current_info");
+    GetColumnCurrentInfo(action1);
 
     // Action 2: Update the column
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_column_metadata");
+    UpdateColumnMetadata(action2);
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -390,7 +390,7 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
     get_functions()->push_back(function);
 }
 
-void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Columns::Modify::GetColumnCurrentInfo(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT * FROM tables_columns WHERE identifier = ?");
@@ -418,7 +418,7 @@ void Columns::Modify::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Columns::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Columns::Modify::UpdateColumnMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables_columns SET " \
@@ -512,12 +512,12 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Get new position
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("calculate_new_column_position");
+    CalculateNewColumnPosition(action1);
 
     // Action 2: Modify position
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_column_position");
+    UpdateColumnPosition(action2);
 
     // Action: Insert column override
     auto insert_column_override = function->AddAction_("insert_column_override");
@@ -604,7 +604,7 @@ Columns::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     get_functions()->push_back(function);
 }
 
-void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
+void Columns::ModifyPosition::CalculateNewColumnPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT AVG(COALESCE(vc2.position, vc.position)) "
@@ -618,7 +618,7 @@ void Columns::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("columnNext", "", true);
 }
 
-void Columns::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
+void Columns::ModifyPosition::UpdateColumnPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_columns "
@@ -675,8 +675,8 @@ Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Set visible
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("toggle_column_visibility");
+    ToggleColumnVisibility(action1);
 
     // Action: Insert column override
     auto insert_column_override = function->AddAction_("insert_column_override");
@@ -713,7 +713,7 @@ Columns::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
     get_functions()->push_back(function);
 }
 
-void Columns::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
+void Columns::ModifyVisible::ToggleColumnVisibility(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_columns "
@@ -788,12 +788,12 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Verify column existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_column_exists");
+    VerifyColumnExists(action1);
 
     // Action 2: Delete column metadata
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("delete_column_metadata");
+    DeleteColumnMetadata(action2);
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -823,7 +823,7 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
         }
 
         // Delete column from table
-        auto delete_from_table = self.AddAction_("a2");
+        auto delete_from_table = self.AddAction_("drop_mysql_column");
 
         delete_from_table->set_sql_code(
             "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
@@ -846,7 +846,7 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
     get_functions()->push_back(function);
 }
 
-void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Columns::Delete::VerifyColumnExists(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier AS column_identifier " \
@@ -889,7 +889,7 @@ void Columns::Delete::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Columns::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Columns::Delete::DeleteColumnMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM tables_columns WHERE identifier = ?");
 

@@ -34,8 +34,8 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action1: Read all tables en database
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_tables_by_database");
+    ReadTablesByDatabase(action1);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -57,7 +57,7 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
                 continue;
 
             // Action 2: COUNT
-            auto action2 = Functions::Action("a2");
+            auto action2 = Functions::Action("count_table_records");
             action2.set_sql_code(
                 "SELECT COUNT(1) AS total " \
                 "FROM " + database_id + "." + identifier.get()->ToString_());
@@ -85,7 +85,7 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
     get_functions()->push_back(function);
 }
 
-void Tables::Read::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Read::ReadTablesByDatabase(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier, name, state, public_form, description, id_column_display " \
@@ -103,13 +103,13 @@ Tables::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::
         std::make_shared<StructBX::Functions::Function>("/api/tables/read/identifier", HTTP::EnumMethods::kHTTP_GET);
 
     // Action1: Read specific table by identifier
-    auto action1 = function1->AddAction_("a1");
-    A1(action1);
+    auto action1 = function1->AddAction_("read_table_by_identifier");
+    ReadTableByIdentifier(action1);
 
     get_functions()->push_back(function1);
 }
 
-void Tables::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Tables::ReadSpecific::ReadTableByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -150,12 +150,12 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     };
 
     // Action 1: Verify that the table name don't exists in current database
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_name_not_taken");
+    VerifyTableNameNotTaken(action1);
 
     // Action 2: Add the new table
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_table_metadata");
+    InsertTableMetadata(action2);
     
     // Action: Add default view
     auto add_view = function->AddAction_("add_view");
@@ -166,11 +166,11 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     AddDefaultColumn(add_default_column);
 
     // Action 3_1: Add table permissions to current user
-    auto action3_1 = function->AddAction_("a3_1");
-    A3(action3_1);
+    auto action3_1 = function->AddAction_("grant_creator_full_permissions");
+    GrantCreatorFullPermissions(action3_1);
 
     // Action 4: Create the table
-    auto action4 = function->AddAction_("a4");
+    auto action4 = function->AddAction_("create_mysql_table");
     
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -292,7 +292,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     get_functions()->push_back(function);
 }
 
-void Tables::Add::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Add::VerifyTableNameNotTaken(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM tables WHERE name = ? AND id_database = (SELECT id FROM `databases` WHERE identifier = ?)");
@@ -322,7 +322,7 @@ void Tables::Add::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Tables::Add::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Add::InsertTableMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("INSERT INTO tables (identifier, name, state, public_form, description, id_database) VALUES (?, ?, ?, ?, ?, ?)");
 
@@ -353,7 +353,7 @@ void Tables::Add::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_database", get_database_id(), false);
 }
 
-void Tables::Add::A3(StructBX::Functions::Action::Ptr action)
+void Tables::Add::GrantCreatorFullPermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, id_user, id_table) " \
@@ -398,21 +398,21 @@ Tables::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData
         std::make_shared<StructBX::Functions::Function>("/api/tables/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Verify tables existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_exists");
+    VerifyTableExists(action1);
 
     // Action 2: Verify that the table identifier don't exists
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("verify_table_new_name");
+    VerifyTableNewName(action2);
 
     // Action 3: Modify table
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("update_table_metadata");
+    UpdateTableMetadata(action3);
 
     get_functions()->push_back(function);
 }
 
-void Tables::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::VerifyTableExists(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT id FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
@@ -441,7 +441,7 @@ void Tables::Modify::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
-void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::VerifyTableNewName(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM tables WHERE name = ? AND identifier != ? AND id_database = ?");
@@ -481,7 +481,7 @@ void Tables::Modify::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_id", get_database_id(), false);
 }
 
-void Tables::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Tables::Modify::UpdateTableMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE tables " \
@@ -536,12 +536,12 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Verify table existence
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_table_exists_for_delete");
+    VerifyTableExistsForDelete(action1);
 
     // Action 2: Delete table record
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("delete_table_metadata");
+    DeleteTableMetadata(action2);
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -562,7 +562,7 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         }
 
         // Action 3: Drop table
-        auto action3 = self.AddAction_("a3");
+        auto action3 = self.AddAction_("drop_mysql_table");
         action3->set_sql_code("DROP TABLE IF EXISTS " + database_id + "." + identifier->get()->ToString_());
         if(!action3->Work_())
         {
@@ -613,7 +613,7 @@ Tables::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
     get_functions()->push_back(function);
 }
 
-void Tables::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Tables::Delete::VerifyTableExistsForDelete(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT identifier FROM tables WHERE identifier = ? AND id_database = ?");
     action->set_final(false);
@@ -642,7 +642,7 @@ void Tables::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("database_identifier", get_database_id(), false);
 }
 
-void Tables::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Tables::Delete::DeleteTableMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM tables WHERE identifier = ? AND id_database = ?");
     action->AddParameter_("identifier", "", true);

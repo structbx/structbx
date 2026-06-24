@@ -30,33 +30,33 @@ class StructBX::Controllers::General::Permissions : public Tools::FunctionData
         {
             Read(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadGroupPermissions(StructBX::Functions::Action::Ptr action);
         };
         struct ReadCurrent : public Tools::FunctionData
         {
             ReadCurrent(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadCurrentUserPermissions(StructBX::Functions::Action::Ptr action);
         };
         struct ReadOutGroup : public Tools::FunctionData
         {
             ReadOutGroup(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void ReadUnassignedEndpoints(StructBX::Functions::Action::Ptr action);
         };
         struct Add : public Tools::FunctionData
         {
             Add(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyPermissionNotDuplicate(StructBX::Functions::Action::Ptr action);
+            void InsertPermission(StructBX::Functions::Action::Ptr action);
         };
         struct Delete : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
-            void A2(StructBX::Functions::Action::Ptr action);
+            void VerifyPermissionExists(StructBX::Functions::Action::Ptr action);
+            void RemovePermission(StructBX::Functions::Action::Ptr action);
         };
 
     private:

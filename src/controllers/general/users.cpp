@@ -26,7 +26,7 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_all_users");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
@@ -44,7 +44,7 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/current/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_current_user");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
@@ -62,7 +62,7 @@ Users::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     // Function GET /api/general/users/read/identifier
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/read/identifier", HTTP::EnumMethods::kHTTP_GET);
-    auto action1 = function->AddAction_("a1");
+    auto action1 = function->AddAction_("read_user_by_identifier");
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
@@ -91,17 +91,17 @@ Users::ModifyCurrentUsername::ModifyCurrentUsername(Tools::FunctionData& functio
         std::make_shared<StructBX::Functions::Function>("/api/general/users/current/username/modify", HTTP::EnumMethods::kHTTP_PUT);
     
     // Action1: Verify if username don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_username_not_taken");
+    VerifyUsernameNotTaken(action1);
 
     // Action2: Modify username
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_current_username");
+    UpdateCurrentUsername(action2);
 
     get_functions()->push_back(function);
 }
 
-void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
+void Users::ModifyCurrentUsername::VerifyUsernameNotTaken(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT identifier FROM users WHERE username = ? AND identifier != ?");
@@ -130,7 +130,7 @@ void Users::ModifyCurrentUsername::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", get_id_user(), false);
 }
 
-void Users::ModifyCurrentUsername::A2(StructBX::Functions::Action::Ptr action)
+void Users::ModifyCurrentUsername::UpdateCurrentUsername(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE users "
@@ -177,12 +177,12 @@ Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& functio
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action1: Verify current password
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_current_password");
+    VerifyCurrentPassword(action1);
 
     // Action2: Save new password
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("save_new_password");
+    SaveNewPassword(action2);
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -221,7 +221,7 @@ Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& functio
     get_functions()->push_back(function);
 }
 
-void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
+void Users::ModifyCurrentPassword::VerifyCurrentPassword(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT identifier FROM users WHERE password = ? AND identifier = ?");
@@ -255,7 +255,7 @@ void Users::ModifyCurrentPassword::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", get_id_user(), false);
 }
 
-void Users::ModifyCurrentPassword::A2(StructBX::Functions::Action::Ptr action)
+void Users::ModifyCurrentPassword::SaveNewPassword(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE users "
@@ -295,12 +295,12 @@ Users::Add::Add(Tools::FunctionData& function_data) :
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action1: Verify if username don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_username_uniqueness");
+    VerifyUsernameUniqueness(action1);
 
     // Action2: Add username
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_user");
+    InsertUser(action2);
 
     // Setup custom process
     function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
@@ -331,7 +331,7 @@ Users::Add::Add(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Users::Add::A1(StructBX::Functions::Action::Ptr action)
+void Users::Add::VerifyUsernameUniqueness(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT identifier FROM users WHERE username = ?");
     action->SetupCondition_("verify-username-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
@@ -358,7 +358,7 @@ void Users::Add::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Users::Add::A2(StructBX::Functions::Action::Ptr action)
+void Users::Add::InsertUser(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO users (identifier, username, password, status, id_group) "
@@ -436,16 +436,16 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action1: Verify if username don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_user_username_not_taken");
+    VerifyUserUsernameNotTaken(action1);
 
     // Action2: Modify user (with password)
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_user_with_password");
+    UpdateUserWithPassword(action2);
 
     // Action2: Modify user (without password)
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("update_user_without_password");
+    UpdateUserWithoutPassword(action3);
 
     // Setup custom process
     function->SetupCustomProcess_([action1, action2, action3](StructBX::Functions::Function& self)
@@ -490,7 +490,7 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Users::Modify::VerifyUserUsernameNotTaken(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT identifier FROM users WHERE username = ? AND identifier != ?");
     action->SetupCondition_("verify-username-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
@@ -527,7 +527,7 @@ void Users::Modify::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Users::Modify::UpdateUserWithPassword(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE users n "
@@ -612,7 +612,7 @@ void Users::Modify::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Users::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Users::Modify::UpdateUserWithoutPassword(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE users n "
@@ -685,13 +685,13 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("delete_user");
+    DeleteUser(action1);
 
     get_functions()->push_back(function);
 }
 
-void Users::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Users::Delete::DeleteUser(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE FROM users "

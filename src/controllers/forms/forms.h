@@ -34,13 +34,13 @@ class StructBX::Controllers::Forms::Forms : public Tools::FunctionData
         {
             VerifyPublicFormEnabled(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckPublicFormEnabled(StructBX::Functions::Action::Ptr action);
         };
         struct VerifyLinkTableIsInMain : public Tools::FunctionData
         {
             VerifyLinkTableIsInMain(Tools::FunctionData& function_data);
 
-            void A1(StructBX::Functions::Action::Ptr action);
+            void CheckLinkTableIsInMain(StructBX::Functions::Action::Ptr action);
         };
         struct CreateSystemUser 
         {

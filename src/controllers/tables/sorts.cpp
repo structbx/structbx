@@ -22,13 +22,13 @@ Sorts::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(func
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/sorts/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_sorts_by_view");
+    ReadSortsByView(action);
 
     get_functions()->push_back(function);
 }
 
-void Sorts::Read::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::Read::ReadSortsByView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -70,12 +70,12 @@ Sorts::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 2: Get sort position (last + 10)
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("get_next_sort_position");
+    GetNextSortPosition(action2);
 
     // Action 1: Save the sort
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("insert_sort");
+    InsertSort(action1);
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -114,7 +114,7 @@ Sorts::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(functi
     get_functions()->push_back(function);
 }
 
-void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::Add::InsertSort(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO views_sorts (identifier, id_view, id_column, sort, position, is_active) "
@@ -198,7 +198,7 @@ void Sorts::Add::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Sorts::Add::A2(StructBX::Functions::Action::Ptr action)
+void Sorts::Add::GetNextSortPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT MAX(vc.position) AS position " \
@@ -236,13 +236,13 @@ Sorts::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData(
         std::make_shared<StructBX::Functions::Function>("/api/tables/sorts/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Update the sort
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("update_sort");
+    UpdateSort(action1);
 
     get_functions()->push_back(function);
 }
 
-void Sorts::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::Modify::UpdateSort(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_sorts " \
@@ -320,12 +320,12 @@ Sorts::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tool
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Get new position
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("calculate_new_sort_position");
+    CalculateNewSortPosition(action1);
 
     // Action 2: Modify position
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_sort_position");
+    UpdateSortPosition(action2);
 
     // Setup Custom Process
     function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
@@ -390,7 +390,7 @@ Sorts::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : Tool
     get_functions()->push_back(function);
 }
 
-void Sorts::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::ModifyPosition::CalculateNewSortPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT AVG(vc.position) "
@@ -412,7 +412,7 @@ void Sorts::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Sorts::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
+void Sorts::ModifyPosition::UpdateSortPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_sorts "
@@ -432,13 +432,13 @@ Sorts::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tools:
         std::make_shared<StructBX::Functions::Function>("/api/tables/sorts/visible/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Set visible
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("toggle_sort_active");
+    ToggleSortActive(action1);
 
     get_functions()->push_back(function);
 }
 
-void Sorts::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::ModifyVisible::ToggleSortActive(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_sorts "
@@ -485,13 +485,13 @@ Sorts::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(
         std::make_shared<StructBX::Functions::Function>("/api/tables/sorts/delete", HTTP::EnumMethods::kHTTP_DEL);
 
     // Action 1: Delete sort
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("delete_sort");
+    DeleteSort(action1);
 
     get_functions()->push_back(function);
 }
 
-void Sorts::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Sorts::Delete::DeleteSort(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE FROM views_sorts WHERE identifier = ? AND id_view = ? "

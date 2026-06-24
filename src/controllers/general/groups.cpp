@@ -21,13 +21,13 @@ Groups::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/read", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_all_groups");
+    ReadAllGroups(action1);
 
     get_functions()->push_back(function);
 }
 
-void Groups::Read::A1(StructBX::Functions::Action::Ptr action)
+void Groups::Read::ReadAllGroups(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier, `group`, created_at "
@@ -41,13 +41,13 @@ Groups::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tools::
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("read_group_by_identifier");
+    ReadGroupByIdentifier(action1);
 
     get_functions()->push_back(function);
 }
 
-void Groups::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Groups::ReadSpecific::ReadGroupByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier, `group`, created_at "
@@ -76,15 +76,15 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Verify if group new name don't exists yet
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_group_name_not_taken");
+    VerifyGroupNameNotTaken(action1);
 
     // Add group
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_group");
+    InsertGroup(action2);
 
     // Add all permissions to the group
-    auto action3 = function->AddAction_("a3");
+    auto action3 = function->AddAction_("grant_all_endpoints");
 
     // Setup Custom Process
     auto id_database = get_database_id();
@@ -122,7 +122,7 @@ Groups::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     get_functions()->push_back(function);
 }
 
-void Groups::Add::A1(StructBX::Functions::Action::Ptr action)
+void Groups::Add::VerifyGroupNameNotTaken(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier "
@@ -152,7 +152,7 @@ void Groups::Add::A1(StructBX::Functions::Action::Ptr action)
         return true;
     });
 }
-void Groups::Add::A2(StructBX::Functions::Action::Ptr action)
+void Groups::Add::InsertGroup(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("INSERT INTO groups (`identifier`, `group`) VALUES (?, ?)");
     action->AddParameter_("identifier", "", false);
@@ -166,21 +166,21 @@ Groups::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionData
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/modify", HTTP::EnumMethods::kHTTP_PUT);
     
     // Verify if group don't exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_group_exists");
+    VerifyGroupExists(action1);
 
     // Verify if group new name don't exists yet
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("verify_group_new_name");
+    VerifyGroupNewName(action2);
 
     // Modify group
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("update_group_name");
+    UpdateGroupName(action3);
 
     get_functions()->push_back(function);
 }
 
-void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Groups::Modify::VerifyGroupExists(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier "
@@ -211,7 +211,7 @@ void Groups::Modify::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Groups::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Groups::Modify::VerifyGroupNewName(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT identifier "
@@ -242,7 +242,7 @@ void Groups::Modify::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Groups::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Groups::Modify::UpdateGroupName(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("UPDATE groups SET `group` = ? WHERE identifier = ?");
     action->AddParameter_("group", "", true);
@@ -257,13 +257,13 @@ Groups::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/delete", HTTP::EnumMethods::kHTTP_DEL);
     
     // Delete group
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("delete_group");
+    DeleteGroup(action2);
 
     get_functions()->push_back(function);
 }
 
-void Groups::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Groups::Delete::DeleteGroup(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM groups WHERE identifier = ?");
     action->AddParameter_("identifier", "", true);

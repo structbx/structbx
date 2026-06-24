@@ -26,8 +26,8 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
     
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_databases");
+    ReadDatabases(action);
 
     // Setup custom process
     auto database_id = get_database_id();
@@ -49,7 +49,7 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
                 continue;
 
             // Action 2: Size
-            auto action2 = StructBX::Functions::Action("a2");
+            auto action2 = StructBX::Functions::Action("get_databases_size");
             action2.set_sql_code(
                 "SELECT ROUND(SUM((DATA_LENGTH + INDEX_LENGTH)) / 1024 / 1024, 2) AS 'size' " \
                 "FROM information_schema.TABLES " \
@@ -128,7 +128,7 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Databases::Read::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Read::ReadDatabases(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -147,8 +147,8 @@ Databases::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/read/identifier", HTTP::EnumMethods::kHTTP_GET);
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_database_by_identifier");
+    ReadDatabaseByIdentifier(action);
 
     auto database_id = get_database_id();
     function->SetupCustomProcess_([database_id, action](StructBX::Functions::Function& self)
@@ -165,7 +165,7 @@ Databases::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Databases::ReadSpecific::A1(StructBX::Functions::Action::Ptr action)
+void Databases::ReadSpecific::ReadDatabaseByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -197,19 +197,19 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
     };
 
     // Action1: Verify database if exists
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_identifier_uniqueness");
+    VerifyIdentifierUniqueness(action1);
 
     // Action2: Add database
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("insert_database");
+    InsertDatabase(action2);
 
     // Action3: Add current user to the new database
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("insert_database_user");
+    InsertDatabaseUser(action3);
 
     // Action4: Create database
-    auto action4 = function->AddAction_("a4");
+    auto action4 = function->AddAction_("create_mysql_database");
 
     // Setup Custom Process
     function->SetupCustomProcess_([delete_database, action1, action2, action3, action4](StructBX::Functions::Function& self)
@@ -289,7 +289,7 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Databases::Add::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Add::VerifyIdentifierUniqueness(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("SELECT s.identifier FROM `databases` s WHERE s.identifier = ?");
     action->SetupCondition_("verify-table-existence", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
@@ -307,7 +307,7 @@ void Databases::Add::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", "", false);
 }
 
-void Databases::Add::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Add::InsertDatabase(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT IGNORE INTO `databases` (identifier, name, description) VALUES (?, ?, ?)"
@@ -331,7 +331,7 @@ void Databases::Add::A2(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("description", "", true);
 }
 
-void Databases::Add::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Add::InsertDatabaseUser(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO databases_users (id_user, id_database) " \
@@ -351,8 +351,8 @@ Databases::Change::Change(Tools::FunctionData& function_data) :
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action1: Database info
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("get_database_for_switch");
+    GetDatabaseForSwitch(action);
 
     function->SetupCustomProcess_([action](StructBX::Functions::Function& self)
     {   
@@ -388,7 +388,7 @@ Databases::Change::Change(Tools::FunctionData& function_data) :
     get_functions()->push_back(function);
 }
 
-void Databases::Change::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Change::GetDatabaseForSwitch(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier, s.name, s.state, s.logo, s.description, s.created_at " \
@@ -417,21 +417,21 @@ Databases::Modify::Modify(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Verify that current user is in the database
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_user_database_membership");
+    VerifyUserDatabaseMembership(action1);
 
     // Action 2: Verify database identifier
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("verify_database_new_name");
+    VerifyDatabaseNewName(action2);
 
     // Action 3: Modify database
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("update_database_metadata");
+    UpdateDatabaseMetadata(action3);
 
     get_functions()->push_back(function);
 }
 
-void Databases::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::VerifyUserDatabaseMembership(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier " \
@@ -454,7 +454,7 @@ void Databases::Modify::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::VerifyDatabaseNewName(StructBX::Functions::Action::Ptr action)
 {
     action->set_final(false);
     action->set_sql_code("SELECT id FROM `databases` WHERE name = ? AND identifier != ?");
@@ -493,7 +493,7 @@ void Databases::Modify::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Databases::Modify::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Modify::UpdateDatabaseMetadata(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
@@ -544,21 +544,21 @@ Databases::Delete::Delete(Tools::FunctionData& function_data) :
         std::make_shared<StructBX::Functions::Function>("/api/databases/delete", HTTP::EnumMethods::kHTTP_DEL);
 
     // Action 1: Verify that current user is in the database
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("verify_user_database_ownership");
+    VerifyUserDatabaseOwnership(action1);
 
     // Action 2: Mark database like "deleted"
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("mark_database_deleted");
+    MarkDatabaseDeleted(action2);
 
     // Action 3: Delete users from database
-    auto action3 = function->AddAction_("a3");
-    A3(action3);
+    auto action3 = function->AddAction_("delete_database_users");
+    DeleteDatabaseUsers(action3);
 
     get_functions()->push_back(function);
 }
 
-void Databases::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::VerifyUserDatabaseOwnership(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT s.identifier " \
@@ -581,7 +581,7 @@ void Databases::Delete::A1(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-void Databases::Delete::A2(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::MarkDatabaseDeleted(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE `databases` s " \
@@ -603,7 +603,7 @@ void Databases::Delete::A2(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Databases::Delete::A3(StructBX::Functions::Action::Ptr action)
+void Databases::Delete::DeleteDatabaseUsers(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code("DELETE FROM databases_users WHERE id_database = ?");
 

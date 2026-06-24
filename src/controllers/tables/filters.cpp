@@ -23,13 +23,13 @@ Filters::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fu
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/read", HTTP::EnumMethods::kHTTP_GET);
 
-    auto action = function->AddAction_("a1");
-    A1(action);
+    auto action = function->AddAction_("read_filters_by_view");
+    ReadFiltersByView(action);
 
     get_functions()->push_back(function);
 }
 
-void Filters::Read::A1(StructBX::Functions::Action::Ptr action)
+void Filters::Read::ReadFiltersByView(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT " \
@@ -71,12 +71,12 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 2: Get filter position (last + 10)
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("get_next_filter_position");
+    GetNextFilterPosition(action2);
 
     // Action 1: Save the filter
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("insert_filter");
+    InsertFilter(action1);
 
     // Setup Custom Process
     auto database_id = get_database_id();
@@ -115,7 +115,7 @@ Filters::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
     get_functions()->push_back(function);
 }
 
-void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
+void Filters::Add::InsertFilter(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "INSERT INTO views_filters (identifier, id_view, id_column, op, value, position, is_active) "
@@ -206,7 +206,7 @@ void Filters::Add::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Filters::Add::A2(StructBX::Functions::Action::Ptr action)
+void Filters::Add::GetNextFilterPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT MAX(vc.position) AS position " \
@@ -244,13 +244,13 @@ Filters::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Update the filter
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("update_filter");
+    UpdateFilter(action1);
 
     get_functions()->push_back(function);
 }
 
-void Filters::Modify::A1(StructBX::Functions::Action::Ptr action)
+void Filters::Modify::UpdateFilter(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_filters " \
@@ -334,12 +334,12 @@ Filters::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
     // Action 1: Get new position
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("calculate_new_filter_position");
+    CalculateNewFilterPosition(action1);
 
     // Action 2: Modify position
-    auto action2 = function->AddAction_("a2");
-    A2(action2);
+    auto action2 = function->AddAction_("update_filter_position");
+    UpdateFilterPosition(action2);
 
     // Setup Custom Process
     function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
@@ -404,7 +404,7 @@ Filters::ModifyPosition::ModifyPosition(Tools::FunctionData& function_data) : To
     get_functions()->push_back(function);
 }
 
-void Filters::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
+void Filters::ModifyPosition::CalculateNewFilterPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "SELECT AVG(vc.position) "
@@ -426,7 +426,7 @@ void Filters::ModifyPosition::A1(StructBX::Functions::Action::Ptr action)
     });
 }
 
-void Filters::ModifyPosition::A2(StructBX::Functions::Action::Ptr action)
+void Filters::ModifyPosition::UpdateFilterPosition(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_filters "
@@ -446,13 +446,13 @@ Filters::ModifyVisible::ModifyVisible(Tools::FunctionData& function_data) : Tool
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/visible/modify", HTTP::EnumMethods::kHTTP_PUT);
 
     // Action 1: Set visible
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("toggle_filter_active");
+    ToggleFilterActive(action1);
 
     get_functions()->push_back(function);
 }
 
-void Filters::ModifyVisible::A1(StructBX::Functions::Action::Ptr action)
+void Filters::ModifyVisible::ToggleFilterActive(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "UPDATE views_filters "
@@ -499,13 +499,13 @@ Filters::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
         std::make_shared<StructBX::Functions::Function>("/api/tables/filters/delete", HTTP::EnumMethods::kHTTP_DEL);
 
     // Action 1: Delete filter
-    auto action1 = function->AddAction_("a1");
-    A1(action1);
+    auto action1 = function->AddAction_("delete_filter");
+    DeleteFilter(action1);
 
     get_functions()->push_back(function);
 }
 
-void Filters::Delete::A1(StructBX::Functions::Action::Ptr action)
+void Filters::Delete::DeleteFilter(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
         "DELETE FROM views_filters WHERE identifier = ? AND id_view = ? "
