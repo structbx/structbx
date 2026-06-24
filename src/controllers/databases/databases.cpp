@@ -68,7 +68,18 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
 
             // Verify if directory exists
             Poco::File file(directory);
-            if(file.exists() && file.isDirectory())
+            if(!file.exists())
+            {
+                try
+                {
+                    file.createDirectory();
+                }
+                catch(Poco::FileException& e)
+                {
+                    StructBX::Tools::OutputLogger::Error_("Could not create directory " + directory + ": " + e.displayText());
+                }
+            }
+            if(file.isDirectory())
             {
                 DirectoryIterator it(directory);
                 DirectoryIterator end;
@@ -90,10 +101,6 @@ Databases::Read::Read(Tools::FunctionData& function_data) :
                     ++it;
                 }
                 directory_size = directory_size / 1024.f / 1024.f;
-            }
-            else
-            {
-                StructBX::Tools::OutputLogger::Error_("Directory " + directory + " does not exist for database " + identifier->ToString_());
             }
 
             // Get results
