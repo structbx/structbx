@@ -1,6 +1,7 @@
 
 #include <chrono>
 #include <thread>
+#include <unordered_map>
 
 #include "controllers/tables/data.h"
 #include "controllers/tables/column_types.h"
@@ -1229,6 +1230,57 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
             return;
         }
 
+        // Pre-compute selection value maps: column_identifier -> {display_value -> identifier}
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> selection_maps;
+        for(auto it : *action2->get_results())
+        {
+            auto col_id = it->ExtractField_("identifier");
+            auto col_type = it->ExtractField_("column_type");
+            auto link_to = it->ExtractField_("link_to");
+
+            if(col_id->IsNull_() || col_type->IsNull_() || link_to->IsNull_())
+                continue;
+            if(col_type->ToString_() != ColumnType::Selection)
+                continue;
+
+            // Find display column for linked table
+            auto link_action = Functions::Action("resolve_link_display_for_import");
+            link_action.set_suppress_debug(true);
+            link_action.set_sql_code(
+                "SELECT COALESCE(tc.identifier, "
+                "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
+                "FROM tables t "
+                "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                "WHERE t.identifier = ?"
+            );
+            link_action.AddParameter_("link_to", link_to->ToString_(), false);
+            if(!link_action.Work_() || link_action.get_results()->size() < 1)
+                continue;
+            auto disp_col = (*link_action.get_results()->begin())->ExtractField_("identifier");
+            if(disp_col->IsNull_())
+                continue;
+
+            // Load all records from linked table
+            auto load_action = Functions::Action("load_selection_options_for_import");
+            load_action.set_suppress_debug(true);
+            load_action.set_sql_code(
+                "SELECT identifier, " + disp_col->ToString_() + " AS display_value "
+                "FROM " + id_database + "." + link_to->ToString_()
+            );
+            if(!load_action.Work_())
+                continue;
+
+            std::unordered_map<std::string, std::string> value_map;
+            for(auto& row : *load_action.get_results())
+            {
+                auto rec_id = row->ExtractField_("identifier");
+                auto disp_val = row->ExtractField_("display_value");
+                if(!rec_id->IsNull_() && !disp_val->IsNull_())
+                    value_map[disp_val->ToString_()] = rec_id->ToString_();
+            }
+            selection_maps[col_id->ToString_()] = std::move(value_map);
+        }
+
         // Identify JSON Parameters
         int saved = 0;
         auto error_lines = JSON::Array::Ptr(new JSON::Array());
@@ -1236,7 +1288,7 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
         {
             // Action 3: Save new record
             auto action3 = std::make_shared<Functions::Action>("import_insert_row");
-            
+
             // Configure parameters
             std::string columns = "";
             std::string values = "";
@@ -1245,12 +1297,22 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
             // Setup parameters
             pc.Setup(self, action2->get_results(), table_identifier->get()->ToString_(), action3);
 
-            // Verify that columns is not empty
+            // Add system columns
+            auto row_identifier = Tools::RandomGenerator().GenerateAlphanumericID_(20);
             if(columns == "")
             {
-                error_lines->set(error_lines->size(), a + 2);
-                continue;
+                columns = "identifier, _structbx_column_user_owner";
+                values = "?, ?";
             }
+            else
+            {
+                columns += ", identifier, _structbx_column_user_owner";
+                values += ", ?, ?";
+            }
+
+            // Add system parameters to action3
+            action3->AddParameter_("identifier", row_identifier, false);
+            action3->AddParameter_("_structbx_column_user_owner", self.get_current_user().get_id(), false);
 
             // Set SQL Code to action 3
             action3->set_sql_code(
@@ -1282,10 +1344,25 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
                     continue;
                 }
                 auto value = parameter_object->get(name);
+
+                // Resolve selection display value to identifier
+                auto sel_it = selection_maps.find(name);
+                if(sel_it != selection_maps.end())
+                {
+                    auto map_it = sel_it->second.find(value.toString());
+                    if(map_it != sel_it->second.end())
+                        value = map_it->second;
+                }
+
                 // Add parameter
                 auto new_parameter = std::make_shared<Query::Parameter>(name, Tools::DValue::Ptr(new Tools::DValue(value)), true);
                 row_parameters.push_back(new_parameter);
             }
+            // Add system parameters
+            row_parameters.push_back(std::make_shared<Query::Parameter>("identifier",
+                Tools::DValue::Ptr(new Tools::DValue(row_identifier)), false));
+            row_parameters.push_back(std::make_shared<Query::Parameter>("_structbx_column_user_owner",
+                Tools::DValue::Ptr(new Tools::DValue(self.get_current_user().get_id())), false));
             // Execute action 3
             self.IdentifyParameters_(action3, row_parameters);
             if(!action3->Work_())

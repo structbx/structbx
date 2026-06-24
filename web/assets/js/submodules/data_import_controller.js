@@ -87,11 +87,11 @@ export class DataImportController extends BaseController{
         this.map_columns.sources = [];
         this.map_columns.map = {};
 
-        $('#component_data_import .map .column').each((e) => {
-            if($(e.target).val() == '') return;
-            const source = $(e.target).attr('name');
+        $('#component_data_import .map .column').each((i, element) => {
+            if($(element).val() == '') return;
+            const source = $(element).attr('name');
             this.map_columns.sources.push(source);
-            this.map_columns.map[source] = $(e.target).val();
+            this.map_columns.map[source] = $(element).val();
         });
 
         let cont = 0;
