@@ -430,6 +430,9 @@ ENGINE = InnoDB;)"
         auto user_id = rng.GenerateAlphanumericID_(20);
         auto password_hash = StructBX::Tools::HMACTool().Encode_("admin");
 
+        session << "CREATE DATABASE IF NOT EXISTS `" + db_id + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", Poco::Data::Keywords::now;
+        std::cout << "[SchemaInitializer] Seed: Physical database created (id=" << db_id << ")." << std::endl;
+
         session << "INSERT INTO `databases` (`identifier`, `name`, `state`) VALUES ('" + db_id + "', 'Default', 'active')", Poco::Data::Keywords::now;
         std::cout << "[SchemaInitializer] Seed: Default database created (id=" << db_id << ")." << std::endl;
 
