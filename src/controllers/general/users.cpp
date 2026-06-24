@@ -30,7 +30,7 @@ Users::Read::Read(Tools::FunctionData& function_data) :
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.identifier = nu.id_group " \
+        "LEFT JOIN groups ng ON ng.identifier = nu.id_group " \
         "WHERE nu.type = 'default'"
     );
 
@@ -48,7 +48,7 @@ Users::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) :
     action1->set_sql_code(
         "SELECT nu.identifier, nu.username, nu.status, nu.id_group, nu.created_at, ng.group AS 'group' "
         "FROM users nu "
-        "JOIN groups ng ON ng.identifier = nu.id_group "
+        "LEFT JOIN groups ng ON ng.identifier = nu.id_group "
         "WHERE nu.identifier = ?"
     );
     action1->AddParameter_("id_user", get_id_user(), false);

@@ -237,7 +237,7 @@ export class SettingsController extends BaseController{
 
             // Handle zero results
             if(response_data.body.data.length < 1){
-                new wtools.Notification('WARNING', '#component_instance_name_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('base.instance_name_failed') : 'Could not access instance name.');
+                new wtools.Notification('WARNING', 0, '#component_instance_name_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('base.instance_name_failed') : 'Could not access instance name.');
                 return;
             }
 
@@ -319,7 +319,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_users_read .notifications', 'Usuarios: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_users_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.users_read_failed') : 'Could not access users.');
+                new wtools.Notification('SUCCESS', 0, '#component_users_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('response.no_results') : 'No results.');
                 return;
             }
             $('#component_users_read .notifications').html('');
@@ -346,7 +346,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_my_account_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_read_failed') : 'Could not access current user.');
+                new wtools.Notification('WARNING', 0, '#component_my_account_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_read_failed') : 'Could not access current user.');
                 return;
             }
             $('#component_my_account_general input[name="username"]').val(response.body.data[0].username);
@@ -507,7 +507,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_groups_read .notifications', 'Grupos: Leer');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
-                new wtools.Notification('WARNING', '#component_groups_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.groups_read_failed') : 'Could not access groups.');
+                new wtools.Notification('SUCCESS', 0, '#component_groups_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('response.no_results') : 'No results.');
                 return;
             }
             $('#component_groups_read .notifications').html('');

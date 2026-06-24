@@ -73,6 +73,7 @@ set(
     ${PROJECT_SOURCE_DIR}/src/http/request.cpp
     ${PROJECT_SOURCE_DIR}/src/query/condition.cpp
     ${PROJECT_SOURCE_DIR}/src/query/database_manager.cpp
+    ${PROJECT_SOURCE_DIR}/src/query/schema_initializer.cpp
     ${PROJECT_SOURCE_DIR}/src/query/field.cpp
     ${PROJECT_SOURCE_DIR}/src/query/parameter.cpp
     ${PROJECT_SOURCE_DIR}/src/query/results.cpp

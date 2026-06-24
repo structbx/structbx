@@ -7,6 +7,7 @@
 
 #include "core/core.h"
 #include "functions/action.h"
+#include "query/schema_initializer.h"
 #include "tools/route.h"
 #include "query/parameter.h"
 #include "tools/dvalue.h"
@@ -20,6 +21,7 @@ using namespace StructBX;
 struct Parameters
 {
     std::string properties_file = "";
+    bool db_init = false;
 };
 
 Parameters SetupParameters(std::vector<std::string>& parameters)
@@ -29,6 +31,10 @@ Parameters SetupParameters(std::vector<std::string>& parameters)
     // Properties file
     auto config = std::find(parameters.begin(), parameters.end(), "--config");
     params.properties_file = config != parameters.end() ? *(config + 1) : "properties.yaml";
+
+    // Database initialization flag
+    auto db_init = std::find(parameters.begin(), parameters.end(), "--db-init");
+    params.db_init = db_init != parameters.end();
 
     // Remove all parameters except the first one
     std::string first_param = parameters.front();
@@ -55,6 +61,15 @@ int main(int argc, char** argv)
 
     // Setup
         StructBX::Query::DatabaseManager::StartMySQL_();
+
+    // Database initialization (--db-init flag)
+        if(params.db_init)
+        {
+            StructBX::Query::SchemaInitializer::Initialize_();
+            StructBX::Query::DatabaseManager::StopMySQL_();
+            return 0;
+        }
+
         StructBX::Security::PermissionsManager::LoadPermissions_();
         StructBX::Sessions::SessionsManager::ReadSessions_();
 

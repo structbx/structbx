@@ -55,6 +55,10 @@ export const uiTexts = {
         en: "Server response",
         es: "Respuesta del servidor"
     },
+    "response.no_results": {
+        en: "No results.",
+        es: "Sin resultados."
+    },
 
     // Login
     "login.database_access_failed": {

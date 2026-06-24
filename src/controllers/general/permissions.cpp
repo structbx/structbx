@@ -63,11 +63,20 @@ Permissions::ReadCurrent::ReadCurrent(Tools::FunctionData& function_data) : Tool
 void Permissions::ReadCurrent::A1(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT ng.* "
+        "SELECT NULL AS id, e.endpoint, e.action, NULL AS created_at, NULL AS id_group "
+        "FROM endpoints e "
+        "CROSS JOIN users u "
+        "WHERE u.identifier = ? AND u.type = 'admin' "
+
+        "UNION ALL "
+
+        "SELECT ng.id, ng.endpoint, ng.action, ng.created_at, ng.id_group "
         "FROM permissions ng "
         "JOIN users u ON u.id_group = ng.id_group "
         "WHERE u.identifier = ? "
+        "  AND u.type != 'admin'"
     );
+    action->AddParameter_("id_user", get_id_user(), false);
     action->AddParameter_("id_user", get_id_user(), false);
 }
 

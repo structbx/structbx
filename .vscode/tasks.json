@@ -8,6 +8,12 @@
             ,"args": ["--config", "${workspaceFolder}/build/Debug/config-files/properties.yaml"]
         }
         ,{
+            "label": "Start StructBX --db-init"
+            ,"type": "shell"
+            ,"command": "${workspaceFolder}/build/Debug/structbx-server"
+            ,"args": ["--config", "${workspaceFolder}/build/Debug/config-files/properties.yaml", "--db-init"]
+        }
+        ,{
             "label": "Init"
             ,"type": "shell"
             ,"command": "${workspaceFolder}/init_envDev.sh"
