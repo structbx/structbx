@@ -286,7 +286,7 @@ export class ColumnsController extends BaseController{
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
 
         // Get ID
-        let identifier = $(e.target).attr('column-identifier');
+        let identifier = $(e.currentTarget).attr('column-identifier');
         if(identifier == undefined){
             wait.Off_();
             new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_identifier_not_found') : 'Column identifier not found.');
