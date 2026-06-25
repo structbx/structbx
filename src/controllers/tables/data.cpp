@@ -1115,6 +1115,11 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
 
         // Execute action 3
         self.IdentifyParameters_(save_record);
+
+        // Resolve selection column display values to identifiers
+        SelectionResolver resolver(table_columns->get_results(), id_database);
+        resolver.ResolveActionParams(save_record);
+
         if(!save_record->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to save the record. " + save_record->get_custom_error(), ERR_ACTION_FAILED);
@@ -1230,56 +1235,8 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
             return;
         }
 
-        // Pre-compute selection value maps: column_identifier -> {display_value -> identifier}
-        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> selection_maps;
-        for(auto it : *action2->get_results())
-        {
-            auto col_id = it->ExtractField_("identifier");
-            auto col_type = it->ExtractField_("column_type");
-            auto link_to = it->ExtractField_("link_to");
-
-            if(col_id->IsNull_() || col_type->IsNull_() || link_to->IsNull_())
-                continue;
-            if(col_type->ToString_() != ColumnType::Selection)
-                continue;
-
-            // Find display column for linked table
-            auto link_action = Functions::Action("resolve_link_display_for_import");
-            link_action.set_suppress_debug(true);
-            link_action.set_sql_code(
-                "SELECT COALESCE(tc.identifier, "
-                "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
-                "FROM tables t "
-                "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
-                "WHERE t.identifier = ?"
-            );
-            link_action.AddParameter_("link_to", link_to->ToString_(), false);
-            if(!link_action.Work_() || link_action.get_results()->size() < 1)
-                continue;
-            auto disp_col = (*link_action.get_results()->begin())->ExtractField_("identifier");
-            if(disp_col->IsNull_())
-                continue;
-
-            // Load all records from linked table
-            auto load_action = Functions::Action("load_selection_options_for_import");
-            load_action.set_suppress_debug(true);
-            load_action.set_sql_code(
-                "SELECT identifier, " + disp_col->ToString_() + " AS display_value "
-                "FROM " + id_database + "." + link_to->ToString_()
-            );
-            if(!load_action.Work_())
-                continue;
-
-            std::unordered_map<std::string, std::string> value_map;
-            for(auto& row : *load_action.get_results())
-            {
-                auto rec_id = row->ExtractField_("identifier");
-                auto disp_val = row->ExtractField_("display_value");
-                if(!rec_id->IsNull_() && !disp_val->IsNull_())
-                    value_map[disp_val->ToString_()] = rec_id->ToString_();
-            }
-            selection_maps[col_id->ToString_()] = std::move(value_map);
-        }
+        // Pre-compute selection value maps
+        SelectionResolver selection_resolver(action2->get_results(), id_database);
 
         // Identify JSON Parameters
         int saved = 0;
@@ -1346,13 +1303,9 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
                 auto value = parameter_object->get(name);
 
                 // Resolve selection display value to identifier
-                auto sel_it = selection_maps.find(name);
-                if(sel_it != selection_maps.end())
-                {
-                    auto map_it = sel_it->second.find(value.toString());
-                    if(map_it != sel_it->second.end())
-                        value = map_it->second;
-                }
+                auto resolved = selection_resolver.ResolveValue(name, value.toString());
+                if(resolved != value.toString())
+                    value = resolved;
 
                 // Add parameter
                 auto new_parameter = std::make_shared<Query::Parameter>(name, Tools::DValue::Ptr(new Tools::DValue(value)), true);
@@ -1554,6 +1507,11 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
 
         // Execute action 3
         self.IdentifyParameters_(modify_record);
+
+        // Resolve selection column display values to identifiers
+        SelectionResolver resolver(table_columns->get_results(), id_database);
+        resolver.ResolveActionParams(modify_record);
+
         if(!modify_record->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to save the record.", ERR_ACTION_FAILED);
@@ -2060,4 +2018,82 @@ void Tables::Data::ChangeInt::Change(std::string row_id, std::string operation, 
 
     // Execute action
     action1.Work_();
+}
+
+Tables::Data::SelectionResolver::SelectionResolver(Query::Results::Ptr columns_results, std::string id_database)
+{
+    for(auto it : *columns_results)
+    {
+        auto col_id = it->ExtractField_("identifier");
+        auto col_type = it->ExtractField_("column_type");
+        auto link_to = it->ExtractField_("link_to");
+
+        if(col_id->IsNull_() || col_type->IsNull_() || link_to->IsNull_())
+            continue;
+        if(col_type->ToString_() != ColumnType::Selection)
+            continue;
+
+        // Find display column for linked table
+        auto link_action = Functions::Action("resolve_link_display");
+        link_action.set_suppress_debug(true);
+        link_action.set_sql_code(
+            "SELECT COALESCE(tc.identifier, "
+            "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
+            "FROM tables t "
+            "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+            "WHERE t.identifier = ?"
+        );
+        link_action.AddParameter_("link_to", link_to->ToString_(), false);
+        if(!link_action.Work_() || link_action.get_results()->size() < 1)
+            continue;
+        auto disp_col = (*link_action.get_results()->begin())->ExtractField_("identifier");
+        if(disp_col->IsNull_())
+            continue;
+
+        // Load all records from linked table
+        auto load_action = Functions::Action("load_selection_options");
+        load_action.set_suppress_debug(true);
+        load_action.set_sql_code(
+            "SELECT identifier, " + disp_col->ToString_() + " AS display_value "
+            "FROM " + id_database + "." + link_to->ToString_()
+        );
+        if(!load_action.Work_())
+            continue;
+
+        std::unordered_map<std::string, std::string> value_map;
+        for(auto& row : *load_action.get_results())
+        {
+            auto rec_id = row->ExtractField_("identifier");
+            auto disp_val = row->ExtractField_("display_value");
+            if(!rec_id->IsNull_() && !disp_val->IsNull_())
+                value_map[disp_val->ToString_()] = rec_id->ToString_();
+        }
+        selection_maps[col_id->ToString_()] = std::move(value_map);
+    }
+}
+
+std::string Tables::Data::SelectionResolver::ResolveValue(std::string column_identifier, std::string value)
+{
+    auto sel_it = selection_maps.find(column_identifier);
+    if(sel_it != selection_maps.end())
+    {
+        auto map_it = sel_it->second.find(value);
+        if(map_it != sel_it->second.end())
+            return map_it->second;
+    }
+    return value;
+}
+
+void Tables::Data::SelectionResolver::ResolveActionParams(Functions::Action::Ptr action)
+{
+    for(auto& param : action->get_parameters())
+    {
+        if(!param->get_editable() || param->get_value()->TypeIsIqual_(Tools::DValue::Type::kEmpty))
+            continue;
+        auto resolved = ResolveValue(param->get_name(), param->get_value()->ToString_());
+        if(resolved != param->get_value()->ToString_())
+        {
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue(resolved)));
+        }
+    }
 }

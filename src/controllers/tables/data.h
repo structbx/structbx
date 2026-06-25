@@ -3,6 +3,7 @@
 #define STRUCTBX_CONTROLLERS_TABLES_DATA_H
 
 #include <fstream>
+#include <unordered_map>
 
 #include "tools/base_action.h"
 #include "tools/function_data.h"
@@ -80,6 +81,15 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         struct ChangeInt
         {
             void Change(std::string row_id, std::string operation, std::string table_identifier);
+        };
+        struct SelectionResolver
+        {
+            SelectionResolver(Query::Results::Ptr columns_results, std::string id_database);
+
+            std::string ResolveValue(std::string column_identifier, std::string value);
+            void ResolveActionParams(Functions::Action::Ptr action);
+
+            std::unordered_map<std::string, std::unordered_map<std::string, std::string>> selection_maps;
         };
 
         struct VerifyPermissionsRead : public Tools::FunctionData
