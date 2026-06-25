@@ -1827,6 +1827,15 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
         if(identifier->IsNull_())
             continue;
 
+        // Remap function parameters that use column name instead of identifier
+        for (auto& param : self.get_parameters())
+        {
+            if (!name->IsNull_() && param->get_name() == name->ToString_())
+            {
+                param->set_name(identifier->ToString_());
+            }
+        }
+
         // Skip auto-managed columns (handled by DB defaults/triggers)
         if(column_type->ToString_() == ColumnType::CreatedDate || column_type->ToString_() == ColumnType::UpdatedDate)
             continue;
