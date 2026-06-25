@@ -123,7 +123,7 @@ export class TableController extends BaseController {
 
     readCurrentTableInfo(){
         // Wait animation
-        let wait = new wtools.ElementState('#table_name', false, 'button', new wtools.WaitAnimation().for_button);
+        let wait = new wtools.ElementState('.table_title', false, 'button', new wtools.WaitAnimation().for_button);
 
         // Get Form identifier
         const table_identifier = super.getTableIdentifier();
@@ -132,7 +132,7 @@ export class TableController extends BaseController {
         this.table.read(table_identifier).then((response_data) => {
             // Clean
             wait.Off_();
-            $('#table_name').html('');
+            $('.table_title').html('');
 
             // Manage response
             const result = new ResponseManager(response_data, '#wait_animation_page', 'Data: A&ntilde;adir');
@@ -144,12 +144,13 @@ export class TableController extends BaseController {
             
             // Setup table name
             const table_name = response_data.body.data[0].name;
+            const identifier = response_data.body.data[0].identifier;
             if(table_name == undefined){
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
                 window.location.href = "/";
             }else{
-                $('#table_name').html(table_name);
                 $('.table_title').html(table_name);
+                $('.table_identifier').html("(" + identifier + ")");
             }
         });
     }
