@@ -186,6 +186,9 @@ export class ColumnsController extends BaseController{
 
             new wtools.UIElementsCreator(`#component_columns_read .contents`, response_data.body.data).Build_((row) =>{
                 let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
+                let description_title = row.description ? row.description : row.column_type;
+                let required_mark = row.required == 1 ? ' <span class="text-danger fw-bold">*</span>' : '';
+                let default_text = row.default_value ? ' <small class="text-muted">(' + window.structbxI18n.t('table.default_label') + ': ' + row.default_value + ')</small>' : '';
 
                 // Add column
                 this.columns.push({identifier: row.identifier, name: row.name, icon: table_icon});
@@ -193,8 +196,9 @@ export class ColumnsController extends BaseController{
                 // DOM element
                 return `
                     <div column-identifier="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a column-identifier="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2">
-                            <i class="fas fa-sort me-2"></i>${table_icon}${row.name}
+                        <a column-identifier="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" title="${description_title}">
+                            <i class="fas fa-sort me-2"></i>${table_icon}${row.name}${required_mark}
+                            <small class="text-muted ms-1">(${row.column_type})</small>${default_text}
                         </a>
                         <div class="form-check form-switch pe-4">
                             <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-identifier="${row.identifier}" column-name="${row.name}">

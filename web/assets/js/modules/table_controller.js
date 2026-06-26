@@ -133,6 +133,7 @@ export class TableController extends BaseController {
             // Clean
             wait.Off_();
             $('.table_title').html('');
+            $('.table_meta_info').remove();
 
             // Manage response
             const result = new ResponseManager(response_data, '#wait_animation_page', 'Data: A&ntilde;adir');
@@ -143,13 +144,18 @@ export class TableController extends BaseController {
             }
             
             // Setup table name
-            const table_name = response_data.body.data[0].name;
-            const identifier = response_data.body.data[0].identifier;
+            const row = response_data.body.data[0];
+            const table_name = row.name;
+            const identifier = row.identifier;
             if(table_name == undefined){
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
                 window.location.href = "/";
             }else{
-                $('.table_title').html(table_name);
+                const state_badge_class = row.state == 'active' ? 'bg-success' : 'bg-secondary';
+                const state_text = row.state == 'active'
+                    ? window.structbxI18n.t('table.state_active')
+                    : window.structbxI18n.t('table.state_inactive');
+                $('.table_title').html(table_name + ' <span class="badge ' + state_badge_class + ' ms-1">' + state_text + '</span>');
                 $('.table_identifier').html("(" + identifier + ")");
             }
         });

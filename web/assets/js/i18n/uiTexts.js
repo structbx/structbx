@@ -169,6 +169,50 @@ export const uiTexts = {
         en: "Table created successfully.",
         es: "Tabla creada exitosamente."
     },
+    "start.table_state": {
+        en: "Status",
+        es: "Estado"
+    },
+    "start.table_records": {
+        en: "Records",
+        es: "Registros"
+    },
+    "start.created_at": {
+        en: "Created at",
+        es: "Creada el"
+    },
+    "start.database_info": {
+        en: "Database Information",
+        es: "Información de la base de datos"
+    },
+    "start.db_state": {
+        en: "State",
+        es: "Estado"
+    },
+    "start.db_size": {
+        en: "DB Size",
+        es: "Tamaño BD"
+    },
+    "start.files_size": {
+        en: "Files Storage",
+        es: "Almacenamiento archivos"
+    },
+    "start.db_description": {
+        en: "Description",
+        es: "Descripción"
+    },
+    "start.state_active": {
+        en: "Active",
+        es: "Activo"
+    },
+    "start.state_inactive": {
+        en: "Inactive",
+        es: "Inactivo"
+    },
+    "start.public_form_enabled": {
+        en: "Public form enabled",
+        es: "Formulario público habilitado"
+    },
 
     // Table Controller
     "table.no_results": {
@@ -182,6 +226,38 @@ export const uiTexts = {
     "table.no_search_match": {
         en: "No tables match.",
         es: "Ninguna tabla coincide."
+    },
+    "table.table_state": {
+        en: "Status",
+        es: "Estado"
+    },
+    "table.table_created": {
+        en: "Created",
+        es: "Creada"
+    },
+    "table.type_label": {
+        en: "Type",
+        es: "Tipo"
+    },
+    "table.required_label": {
+        en: "Required",
+        es: "Obligatorio"
+    },
+    "table.default_label": {
+        en: "Default",
+        es: "Por defecto"
+    },
+    "table.created_label": {
+        en: "Created at",
+        es: "Creada el"
+    },
+    "table.state_active": {
+        en: "Active",
+        es: "Activo"
+    },
+    "table.state_inactive": {
+        en: "Inactive",
+        es: "Inactivo"
     },
 
     // Forms Controller
@@ -563,6 +639,26 @@ export const uiTexts = {
     "table_settings.table_updated": {
         en: "Table updated successfully.",
         es: "Tabla actualizada correctamente."
+    },
+    "table_settings.identifier": {
+        en: "Identifier",
+        es: "Identificador"
+    },
+    "table_settings.state": {
+        en: "Status",
+        es: "Estado"
+    },
+    "table_settings.created_at": {
+        en: "Created at",
+        es: "Creada el"
+    },
+    "table_settings.state_active": {
+        en: "Active",
+        es: "Activo"
+    },
+    "table_settings.state_inactive": {
+        en: "Inactive",
+        es: "Inactivo"
     },
     "table_settings.table_deleted": {
         en: "Table deleted successfully.",

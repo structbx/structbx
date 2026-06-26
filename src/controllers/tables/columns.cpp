@@ -945,7 +945,7 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     // Required setup
     if(required->get()->ToString_() == "1")
     {
-        variables.required = "NOT NULL";
+        variables.required = "NULL";
         variables.cascade_key_condition = "ON DELETE CASCADE ON UPDATE CASCADE";
     }
     else

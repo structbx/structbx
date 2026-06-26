@@ -231,6 +231,17 @@ export class BaseController {
             const result = new ResponseManager(response_data, '');
             if(!result.Verify_())
                 return;
+
+            // Store current database full data for child controllers
+            const current_db_name = $('.database_name').html();
+            for(const row of response_data.body.data){
+                if(row.name == current_db_name){
+                    this.currentDatabaseFullData = row;
+                    break;
+                }
+            }
+            if(typeof this.onDatabaseInfoLoaded === 'function')
+                this.onDatabaseInfoLoaded();
             
             // Results elements creator (Sidebar)
             new wtools.UIElementsCreator('#component_sidebar_databases .contents', response_data.body.data)

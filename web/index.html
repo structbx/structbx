@@ -41,6 +41,59 @@
                 <!-- Main content -->
                 <main id="contents_main" class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-5 bg-light">
 
+                    <!-- Database info card -->
+                    <div id="database_info_card" class="card mb-4 border-0 shadow-sm d-none">
+                        <div class="card-header primary-background border-0 d-flex align-items-center py-3">
+                            <i class="fas fa-database me-2"></i>
+                            <span class="fw-bold" data-i18n="start.database_info">Database Information</span>
+                        </div>
+                        <div class="card-body bg-white">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="d-flex align-items-center gap-2 p-3 bg-light rounded">
+                                        <i class="fas fa-circle fs-4 database_state_dot" style="color: #28a745;"></i>
+                                        <div>
+                                            <small class="text-muted d-block" data-i18n="start.db_state">State</small>
+                                            <span class="fw-bold database_state_text">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="d-flex align-items-center gap-2 p-3 bg-light rounded">
+                                        <i class="far fa-calendar-alt fs-4 text-secondary"></i>
+                                        <div>
+                                            <small class="text-muted d-block" data-i18n="start.created_at">Created at</small>
+                                            <span class="fw-bold database_created_at">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="d-flex align-items-center gap-2 p-3 bg-light rounded">
+                                        <i class="fas fa-server fs-4 text-secondary"></i>
+                                        <div>
+                                            <small class="text-muted d-block" data-i18n="start.db_size">DB Size</small>
+                                            <span class="fw-bold database_size">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="d-flex align-items-center gap-2 p-3 bg-light rounded">
+                                        <i class="fas fa-folder-open fs-4 text-secondary"></i>
+                                        <div>
+                                            <small class="text-muted d-block" data-i18n="start.files_size">Files Storage</small>
+                                            <span class="fw-bold database_directory_size">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 bg-light rounded d-none database_description_row">
+                                <small class="text-muted" data-i18n="start.db_description">Description</small>
+                                <p class="mb-0 database_description"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /Database info card -->
+
                     <!-- Tables section -->
                     <section class="section_tables">
                         <div class="pb-2 mb-3 border-bottom d-flex">

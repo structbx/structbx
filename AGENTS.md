@@ -53,6 +53,31 @@ GitHub Actions (`.github/workflows/docker.yml`) — **only on GitHub release**:
 1. Builds and pushes Docker image to `ghcr.io/structbx/structbx` (dynamic linking)
 2. Builds **static binary** + web tarball and uploads them as release assets (used by `install.sh`)
 
+## Internationalization (i18n) & error messages
+
+The project supports **English** and **Spanish** (and more languages may be added later).  
+Every user-facing text MUST go through the i18n system — never hardcode strings.
+
+### Frontend (JavaScript / HTML)
+
+- **Translation file**: `web/assets/js/i18n/uiTexts.js`
+- **Usage from JS**: `window.structbxI18n.t('section.key')` or `i18n.t('section.key')`
+- **Usage from HTML**: `data-i18n="section.key"` (textContent), `data-i18n-html="section.key"` (innerHTML), `data-i18n-placeholder="section.key"`, `data-i18n-title="section.key"`
+- **Adding a new translation**: Add an entry under the relevant section in `uiTexts.js` with `en` and `es` keys.
+- **Variable interpolation**: Use `${param}` in the string and pass `{param: value}` as second arg to `i18n.t()`.
+
+### Backend (C++)
+
+- **Error code file**: `src/core/error_codes.h`
+- **Error code format**: `ERR_AREA_DESCRIPTION` → produces `"file:func:task:error_id"`
+- **Usage**: `action->set_custom_error_code(ERR_MY_ERROR);` or `self.JSONResponse_(..., ERR_MY_ERROR);`
+- **Sync requirement**: Every constant in `error_codes.h` MUST have a matching entry in `web/assets/js/i18n/errorCodes.js` with en/es translations.
+
+### Rule of thumb
+
+If a string is visible to the user (text, error, tooltip, placeholder, title, aria-label) it MUST
+use the i18n system. Hardcoded display strings in any language are forbidden.
+
 ## Git conventions
 
 - Branch: `iss[number]` (features/fixes), merge into `dev` via PR.

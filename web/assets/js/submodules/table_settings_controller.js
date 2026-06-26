@@ -94,11 +94,22 @@ export class TableSettingsController extends BaseController{
                 new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
-            $('#component_settings_general input[name="name"]').val(response.body.data[0].name);
-            $('#component_settings_general select[name="public_form"]').val(response.body.data[0].public_form);
-            $('#component_settings_general textarea[name="description"]').val(response.body.data[0].description);
+            const row = response.body.data[0];
+            $('#component_settings_general input[name="name"]').val(row.name);
+            $('#component_settings_general select[name="public_form"]').val(row.public_form);
+            $('#component_settings_general textarea[name="description"]').val(row.description);
+
+            const state_badge = $('#component_settings_general .table_state_badge');
+            if(row.state == 'active'){
+                state_badge.removeClass('bg-secondary').addClass('bg-success').text(window.structbxI18n ? window.structbxI18n.t('table_settings.state_active') : 'Active');
+            } else {
+                state_badge.removeClass('bg-success').addClass('bg-secondary').text(window.structbxI18n ? window.structbxI18n.t('table_settings.state_inactive') : 'Inactive');
+            }
+            $('#component_settings_general .table_identifier_display').text(row.identifier);
+            $('#component_settings_general .table_created_at_display').text(row.created_at || '-');
+
             $('#component_settings_general span.link_form').html(`
-                <a href="/form?identifier=${response.body.data[0].identifier}" target="_blank" class="mt-2 d-block form-link">
+                <a href="/form?identifier=${row.identifier}" target="_blank" class="mt-2 d-block form-link">
                     ${window.structbxI18n ? window.structbxI18n.t('table_settings.go_to_public_form') : 'Go to public form'}
                 </a>
             `);

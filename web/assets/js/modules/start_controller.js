@@ -14,6 +14,10 @@ export class StartController extends BaseController {
         this.table = new Table;
     }
 
+    onDatabaseInfoLoaded(){
+        this.readDatabaseInfo();
+    }
+
     build(){
         // Wait animation
         let wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
@@ -38,6 +42,32 @@ export class StartController extends BaseController {
         this.readTables();
 
         wait.Off_();
+    }
+
+    readDatabaseInfo(){
+        if(!this.currentDatabaseFullData) return;
+
+        const data = this.currentDatabaseFullData;
+        const $card = $('#database_info_card');
+        const state_dot = $card.find('.database_state_dot');
+        const state_text = $card.find('.database_state_text');
+        if(data.state == 'active'){
+            state_dot.css('color', '#28a745');
+            state_text.text(window.structbxI18n.t('start.state_active'));
+        } else {
+            state_dot.css('color', '#6c757d');
+            state_text.text(window.structbxI18n.t('start.state_inactive'));
+        }
+        $card.find('.database_created_at').text(data.created_at || '-');
+        $card.find('.database_size').text(data.size != null ? data.size + ' MB' : '-');
+        $card.find('.database_directory_size').text(data.directory_size != null ? data.directory_size + ' MB' : '-');
+        if(data.description){
+            $card.find('.database_description_row').removeClass('d-none');
+            $card.find('.database_description').text(data.description);
+        } else {
+            $card.find('.database_description_row').addClass('d-none');
+        }
+        $card.removeClass('d-none');
     }
 
     bindEvents() {
@@ -145,6 +175,17 @@ export class StartController extends BaseController {
             let elements = []; let cont = 0;
             for(let row of response_data.body.data)
             {
+                const state_badge_class = row.state == 'active' ? 'bg-success' : 'bg-secondary';
+                const state_text = row.state == 'active'
+                    ? window.structbxI18n.t('start.state_active')
+                    : window.structbxI18n.t('start.state_inactive');
+                const public_icon = row.public_form == 1
+                    ? '<span class="badge bg-info ms-1" title="' + window.structbxI18n.t('start.public_form_enabled') + '"><i class="fas fa-globe"></i></span>'
+                    : '';
+                const created_html = row.created_at
+                    ? '<small class="text-muted d-block mt-1"><i class="far fa-calendar-alt"></i> ' + window.structbxI18n.t('start.created_at') + ': ' + row.created_at + '</small>'
+                    : '';
+
                 if(cont < 2)
                 {
                     elements.push(`
@@ -152,14 +193,19 @@ export class StartController extends BaseController {
                             <div class="card card-table-item h-100 shadow-sm d-flex flex-column">
                                 
                                 <a href="/table?t=${row.identifier}" class="p-3 flex-grow-1 text-decoration-none text-dark">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge ${state_badge_class}">${state_text}</span>
+                                        ${public_icon}
+                                    </div>
                                     <div class="border-start border-3 border-primary ps-2">
                                         <h5 class="mb-1">${row.name}</h5>
                                         <p class="text-muted small mb-3">${row.description}</p>
                                     </div>
                                     
-                                    <div class="mt-2">
+                                    <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
                                         <span class="badge rounded-pill bg-dark me-2"><i class="fas fa-pen fa-fw"></i> ${row.total}</span>
                                     </div>
+                                    ${created_html}
                                 </a>
                             </div>
                         </div>

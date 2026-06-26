@@ -88,7 +88,7 @@ Tables::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionData(fun
 void Tables::Read::ReadTablesByDatabase(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT identifier, name, state, public_form, description, id_column_display " \
+        "SELECT identifier, name, state, public_form, description, id_column_display, created_at " \
         "FROM tables " \
         "WHERE " \
             "id_database = ?"
@@ -113,7 +113,7 @@ void Tables::ReadSpecific::ReadTableByIdentifier(StructBX::Functions::Action::Pt
 {
     action->set_sql_code(
         "SELECT " \
-            "identifier, name, state, public_form, description, id_column_display " \
+            "identifier, name, state, public_form, description, id_column_display, created_at " \
         "FROM tables " \
         "WHERE " \
             "identifier = ? "
