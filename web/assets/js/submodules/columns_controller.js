@@ -169,7 +169,7 @@ export class ColumnsController extends BaseController{
             $(`#component_columns_read .contents`).html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'Columnas: Leer');
+            const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'target.columns_read');
             if(!result.Verify_())
                 return;
 
@@ -244,7 +244,7 @@ export class ColumnsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_add .notifications', 'Columnas: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_columns_add .notifications', 'target.columns_add');
             if(!result.Verify_())
                 return;
 
@@ -263,7 +263,7 @@ export class ColumnsController extends BaseController{
         // Request
         this.tableColumn.modifyVisible(column_identifier, this.getViewIdentifier(), visible ? 1 : 0).then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#notifications', 'Columnas: Visible: Modificar');
+            const result = new ResponseManager(response_data, '#notifications', 'target.columns_visibility_modify');
             if(!result.Verify_())
                 return;
             this.onChanged();
@@ -278,7 +278,7 @@ export class ColumnsController extends BaseController{
         // Request
         this.tableColumn.modifyPosition(column_identifier, this.getViewIdentifier(), columnPrev, columnNext).then((response_data) =>{
             // Manage response
-            const result = new ResponseManager(response_data, '#notifications', 'Columnas: Posici&oacute;n: Modificar');
+            const result = new ResponseManager(response_data, '#notifications', 'target.columns_position_modify');
             if(!result.Verify_())
                 return;
             this.onChanged();
@@ -301,7 +301,7 @@ export class ColumnsController extends BaseController{
         $('#component_data_modify table tbody').html('');
         this.tableColumn.readByIdentifier(identifier, this.getTableIdentifier()).then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '', 'Columnas: Modificar');
+            const result = new ResponseManager(response_data, '', 'target.columns_modify');
             if(!result.Verify_())
                 return;
 
@@ -365,7 +365,7 @@ export class ColumnsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_modify .notifications', 'Columnas: Modificar');
+            const result = new ResponseManager(response_data, '#component_columns_modify .notifications', 'target.columns_modify');
             if(!result.Verify_())
                 return;
 
@@ -406,7 +406,7 @@ export class ColumnsController extends BaseController{
             wait.Off_();
             
             // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_delete .notifications', 'Columnas: Eliminar');
+            const result = new ResponseManager(response_data, '#component_columns_delete .notifications', 'target.columns_delete');
             if(!result.Verify_())
                 return;
 

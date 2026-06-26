@@ -115,7 +115,7 @@ export class ViewsController extends BaseController{
             $('#component_views_read .contents').html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'target.views_read');
             if(!result.Verify_())
                 return;
 
@@ -166,7 +166,7 @@ export class ViewsController extends BaseController{
         this.view.readByIdentifier(view_identifier, this.getTableIdentifier())
         .then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'Vistas: Leer');
+            const result = new ResponseManager(response_data, '#component_views_read .notifications', 'target.views_read');
             if(!result.Verify_())
                 return;
 
@@ -224,7 +224,7 @@ export class ViewsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views_add .notifications', 'Vistas: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_views_add .notifications', 'target.views_add');
             if(!result.Verify_())
                 return;
 
@@ -260,7 +260,7 @@ export class ViewsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views_modify .notifications', 'Vistas: Modificar');
+            const result = new ResponseManager(response_data, '#component_views_modify .notifications', 'target.views_modify');
             if(!result.Verify_())
                 return;
 
@@ -292,7 +292,7 @@ export class ViewsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_views_delete .notifications', 'Vistas: Modificar');
+            const result = new ResponseManager(response_data, '#component_views_delete .notifications', 'target.views_modify');
             if(!result.Verify_())
                 return;
 

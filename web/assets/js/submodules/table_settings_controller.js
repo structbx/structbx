@@ -88,7 +88,7 @@ export class TableSettingsController extends BaseController{
             wait.Off_();
             $('#component_settings_general .notifications').html('');
             wtools.CleanForm($('#component_settings_general form'));
-            const result = new ResponseManager(response, '#component_settings_general .notifications', 'Configuraciones: General');
+            const result = new ResponseManager(response, '#component_settings_general .notifications', 'target.settings_general');
             if(!result.Verify_()) return;
             if(response.body.data.length < 1){
                 new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
@@ -142,7 +142,7 @@ export class TableSettingsController extends BaseController{
 
         this.table.modify(table_identifier, name, public_form, description).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_settings_general .notifications', 'Tablas: Editar');
+            const result = new ResponseManager(response, '#component_settings_general .notifications', 'target.table_edit');
             if(!result.Verify_()) return;
             $('#component_settings_general .notifications').html('');
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.table_updated') : 'Table updated successfully.');
@@ -172,7 +172,7 @@ export class TableSettingsController extends BaseController{
 
         this.table.delete(table_identifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_settings_delete .notifications', 'Tablas: Eliminar');
+            const result = new ResponseManager(response, '#component_settings_delete .notifications', 'target.table_delete');
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.table_deleted') : 'Table deleted successfully.');
             window.location.href = `/`;
@@ -193,7 +193,7 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_permissions .notifications').html('');
             $('#component_settings_permissions table tbody').html('');
 
-            const result = new ResponseManager(response, '#component_settings_permissions .notifications', 'Configuraciones: Permisos');
+            const result = new ResponseManager(response, '#component_settings_permissions .notifications', 'target.settings_permissions');
             if(!result.Verify_()) return;
 
             if(response.body.data.length < 1){
@@ -267,7 +267,7 @@ export class TableSettingsController extends BaseController{
 
         this.tablePermission.add(data).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_settings_permissions_add .notifications', 'Permisos de tabla: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_settings_permissions_add .notifications', 'target.table_permissions_add');
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_created') : 'Table permission created successfully.');
             this.readPermissions();
@@ -293,7 +293,7 @@ export class TableSettingsController extends BaseController{
         }
 
         this.tablePermission.readByIdentifier(identifier, table_identifier).then(response => {
-            const result = new ResponseManager(response, '', 'Permisos de tabla: Modificar');
+            const result = new ResponseManager(response, '', 'target.table_permissions_modify');
             if(!result.Verify_()){
                 wait.Off_();
                 return;
@@ -337,7 +337,7 @@ export class TableSettingsController extends BaseController{
 
         this.tablePermission.modify(data).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_settings_permissions_modify .notifications', 'Permiso de tabla: Modificar');
+            const result = new ResponseManager(response, '#component_settings_permissions_modify .notifications', 'target.table_permission_modify');
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_updated') : 'Table permission updated successfully.');
             $('#component_settings_permissions_modify').modal('hide');
@@ -368,7 +368,7 @@ export class TableSettingsController extends BaseController{
 
         this.tablePermission.delete(identifier, table_identifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_settings_permissions_delete .notifications', 'Permiso de tabla: Eliminar');
+            const result = new ResponseManager(response, '#component_settings_permissions_delete .notifications', 'target.table_permission_delete');
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_deleted') : 'Table permission deleted.');
             $('#component_settings_permissions_delete').modal('hide');

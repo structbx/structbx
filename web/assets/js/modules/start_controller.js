@@ -152,7 +152,7 @@ export class StartController extends BaseController {
             $('#component_tables_read .contents').html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_tables_read .notifications', 'Tablas: Leer');
+            const result = new ResponseManager(response_data, '#component_tables_read .notifications', 'target.tables_read');
             if(!result.Verify_())
                 return;
 
@@ -253,7 +253,7 @@ export class StartController extends BaseController {
             wait.Off_();
 
             // Manage error
-            const result = new ResponseManager(response_data, '#component_tables_add .notifications', 'Tablas: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_tables_add .notifications', 'target.tables_add');
             if(!result.Verify_())
                 return;
             

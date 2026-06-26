@@ -163,7 +163,7 @@ export class SortsController extends BaseController{
             $(`#component_sorts_read .contents`).html('');
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Filtros: Leer');
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'target.sorts_read');
             if(!result.Verify_())
                 return;
 
@@ -221,7 +221,7 @@ export class SortsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'target.sorts_add');
             if(!result.Verify_())
                 return;
             
@@ -268,7 +268,7 @@ export class SortsController extends BaseController{
         this.viewSort.modify(sort_identifier, this.getTableIdentifier(), this.getViewIdentifier(), column_identifier, sort, is_active)
         .then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Modificar');
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'target.sorts_modify');
             if(!result.Verify_())
                 return;
 
@@ -286,7 +286,7 @@ export class SortsController extends BaseController{
         // Request
         this.viewSort.modifyPosition(sort_identifier, this.getViewIdentifier(), sortPrev, sortNext).then((response_data) =>{
             // Manage response
-            const result = new ResponseManager(response_data, '#notifications', 'Ordenamientos: Posici&oacute;n: Modificar');
+            const result = new ResponseManager(response_data, '#notifications', 'target.sorts_position_modify');
             if(!result.Verify_()){
                 this.read();
                 return;
@@ -313,7 +313,7 @@ export class SortsController extends BaseController{
         this.viewSort.modifyVisible(sort_identifier, this.getViewIdentifier(), is_active)
         .then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Visibilidad: Modificar');
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'target.sorts_visibility_modify');
             if(!result.Verify_())
                 return;
             this.updateSortCount();
@@ -336,7 +336,7 @@ export class SortsController extends BaseController{
         // Request
         this.viewSort.delete(sort_identifier, this.getViewIdentifier()).then((response_data) => {
             // Manage response
-            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'Ordenamientos: Eliminar');
+            const result = new ResponseManager(response_data, '#component_sorts_read .notifications', 'target.sorts_delete');
             if(!result.Verify_())
                 return;
 

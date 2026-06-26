@@ -58,7 +58,7 @@ export class FormsController extends BaseController
                 wait.Off_();
                 $('.form-title').html('');
 
-                const result = new ResponseManager(response_data, '#wait_animation_page', 'Data: A&ntilde;adir');
+                const result = new ResponseManager(response_data, '#wait_animation_page', 'target.data_add');
                 if(!result.Verify_())
                     throw new Error('No se pudo verificar la respuesta del servidor.');
 
@@ -102,7 +102,7 @@ export class FormsController extends BaseController
 
             this.form.readColumns(table_identifier).then((response_data) =>
             {
-                const result = new ResponseManager(response_data, '', 'Formulario: Columnas: Leer');
+                const result = new ResponseManager(response_data, '', 'target.form_columns_read');
                 if(!result.Verify_())
                     throw new Error('No se pudo verificar la respuesta del servidor.');
 
@@ -190,7 +190,7 @@ export class FormsController extends BaseController
         {
             wait.Off_();
 
-            const result = new ResponseManager(response_data, '#component_form_addData .notifications', 'Data: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_form_addData .notifications', 'target.data_add');
             if(!result.Verify_())
                 return;
 

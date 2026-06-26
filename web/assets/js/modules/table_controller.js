@@ -136,7 +136,7 @@ export class TableController extends BaseController {
             $('.table_meta_info').remove();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#wait_animation_page', 'Data: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#wait_animation_page', 'target.data_add');
             if(!result.Verify_()){
                 new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
                 window.location.href = "/";

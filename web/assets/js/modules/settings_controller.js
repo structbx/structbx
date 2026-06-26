@@ -231,7 +231,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'Nombre de instancia: Leer');
+            const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'target.instance_name_read');
             if(!result.Verify_())
                 return;
 
@@ -267,7 +267,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'Nombre de instancia: Modificar');
+            const result = new ResponseManager(response_data, '#component_instance_name_read .notifications', 'target.instance_name_modify');
             if(!result.Verify_())
                 return;
 
@@ -299,7 +299,7 @@ export class SettingsController extends BaseController{
             wait.Off_();
 
             // Manage response
-            const result = new ResponseManager(response_data, '#component_instance_logo_read .notifications', 'Logo de instancia: Modificar');
+            const result = new ResponseManager(response_data, '#component_instance_logo_read .notifications', 'target.instance_logo_modify');
             if(!result.Verify_())
                 return;
 
@@ -316,7 +316,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_users_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.user.readAll().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_users_read .notifications', 'Usuarios: Leer');
+            const result = new ResponseManager(response, '#component_users_read .notifications', 'target.users_read');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
                 new wtools.Notification('SUCCESS', 0, '#component_users_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('response.no_results') : 'No results.');
@@ -343,7 +343,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_my_account_general .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.user.current().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Leer');
+            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'target.current_user_read');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
                 new wtools.Notification('WARNING', 0, '#component_my_account_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_read_failed') : 'Could not access current user.');
@@ -366,7 +366,7 @@ export class SettingsController extends BaseController{
         const data = new FormData($('#component_my_account_general form')[0]);
         this.user.modifyCurrentUsername(data.get('username')).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'Usuario actual: Modificar');
+            const result = new ResponseManager(response, '#component_my_account_general .notifications', 'target.current_user_modify');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.current_user_updated') : 'Current user updated successfully.');
         });
@@ -385,7 +385,7 @@ export class SettingsController extends BaseController{
         const data = new FormData($('#component_my_account_change_password form')[0]);
         this.user.changePassword(data.get('current_password'), data.get('new_password'), data.get('new_password2')).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'Contrase&ntilde;a: Modificar');
+            const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'target.password_modify');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.password_updated') : 'Password updated successfully.');
             wtools.CleanForm($('#component_my_account_change_password form'));
@@ -406,7 +406,7 @@ export class SettingsController extends BaseController{
         const data = new FormData($('#component_users_add form')[0]);
         this.user.add(data.get('username'), data.get('password'), data.get('id_group')).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_users_add .notifications', 'Usuarios: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_users_add .notifications', 'target.users_add');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_created') : 'User created successfully.');
             this.readUsers();
@@ -424,7 +424,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
         this.initGroupSelect('#component_users_modify form select[name=id_group]', () => {
             this.user.readByIdentifier(identifier).then(response => {
-                const result = new ResponseManager(response, '', 'Usuarios: Modificar');
+                const result = new ResponseManager(response, '', 'target.users_modify');
                 if (!result.Verify_()) return;
                 if (response.body.data.length < 1) {
                     new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
@@ -455,7 +455,7 @@ export class SettingsController extends BaseController{
         const data = new FormData($('#component_users_modify form')[0]);
         this.user.modify(data.get('identifier'), data.get('username'), data.get('status'), data.get('id_group'), data.get('password')).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_users_modify .notifications', 'Usuarios: Modificar');
+            const result = new ResponseManager(response, '#component_users_modify .notifications', 'target.users_modify');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_updated') : 'User updated successfully.');
             this.readUsers();
@@ -470,7 +470,7 @@ export class SettingsController extends BaseController{
         const identifier = $('#component_users_delete input[name=identifier]').val();
         this.user.delete(identifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_users_delete .notifications', 'Usuarios: Eliminar');
+            const result = new ResponseManager(response, '#component_users_delete .notifications', 'target.users_delete');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_deleted') : 'User deleted.');
             $('#component_users_delete').modal('hide');
@@ -504,7 +504,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_groups_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.group.readAll().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_groups_read .notifications', 'Grupos: Leer');
+            const result = new ResponseManager(response, '#component_groups_read .notifications', 'target.groups_read');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
                 new wtools.Notification('SUCCESS', 0, '#component_groups_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('response.no_results') : 'No results.');
@@ -534,7 +534,7 @@ export class SettingsController extends BaseController{
         const group = $('#component_groups_add form input[name=group]').val();
         this.group.add(group).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_groups_add .notifications', 'Grupos: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_groups_add .notifications', 'target.groups_add');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_added') : 'Group added successfully.');
             this.readGroups();
@@ -550,7 +550,7 @@ export class SettingsController extends BaseController{
         }
         const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
         this.group.readByIdentifier(identifier).then(response => {
-            const result = new ResponseManager(response, '', 'Grupos: Modificar');
+            const result = new ResponseManager(response, '', 'target.groups_modify');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
                 new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
@@ -577,7 +577,7 @@ export class SettingsController extends BaseController{
         const group = $('#component_groups_modify form input[name=group]').val();
         this.group.modify(identifier, group).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_groups_modify .notifications', 'Grupos: Modificar');
+            const result = new ResponseManager(response, '#component_groups_modify .notifications', 'target.groups_modify');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_updated') : 'Group updated successfully.');
             this.readGroups();
@@ -599,7 +599,7 @@ export class SettingsController extends BaseController{
         const identifier = $('#component_groups_delete input[name=identifier]').val();
         this.group.delete(identifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_groups_delete .notifications', 'Grupos: Eliminar');
+            const result = new ResponseManager(response, '#component_groups_delete .notifications', 'target.groups_delete');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_deleted') : 'Group deleted.');
             $('#component_groups_modify').modal('hide');
@@ -619,7 +619,7 @@ export class SettingsController extends BaseController{
             $('#component_databases_read .notifications').html('');
             $('#component_databases_read table tbody').html('');
 
-            const result = new ResponseManager(response, '#component_databases_read .notifications', 'Bases de datos: Leer');
+            const result = new ResponseManager(response, '#component_databases_read .notifications', 'target.databases_read');
             if(!result.Verify_())
                 return;
 
@@ -659,7 +659,7 @@ export class SettingsController extends BaseController{
         this.database.add(data.get('name'), data.get('description')).then(response => {
             wait.Off_();
 
-            const result = new ResponseManager(response, '#component_databases_add .notifications', 'Bases de datos: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_databases_add .notifications', 'target.databases_add');
             if(!result.Verify_())
                 return;
 
@@ -689,7 +689,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_databases_users_read .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.databaseUser.read(this.currentDatabaseIdentifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_databases_users_read .notifications', 'Usuarios de BD: Leer');
+            const result = new ResponseManager(response, '#component_databases_users_read .notifications', 'target.db_users_read');
             if (!result.Verify_()) return;
             if (response.body.data.length < 1) {
                 $('#component_databases_users_read table tbody').html('');
@@ -747,7 +747,7 @@ export class SettingsController extends BaseController{
         const id_user = $('#component_databases_users_add select[name=id_user]').val();
         this.databaseUser.add(id_user, this.currentDatabaseIdentifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_databases_users_add .notifications', 'Usuarios de BD: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_databases_users_add .notifications', 'target.db_users_add');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_added') : 'User added successfully.');
             this.readDatabaseUsers();
@@ -774,7 +774,7 @@ export class SettingsController extends BaseController{
         const identifier = $('#component_databases_users_delete input[name=id]').val();
         this.databaseUser.delete(identifier, this.currentDatabaseIdentifier).then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_databases_users_delete .notifications', 'Usuarios de BD: Eliminar');
+            const result = new ResponseManager(response, '#component_databases_users_delete .notifications', 'target.db_users_delete');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_deleted') : 'User deleted.');
             $('#component_databases_users_delete').modal('hide');
@@ -814,7 +814,7 @@ export class SettingsController extends BaseController{
         this.permission.readByGroup(id_group).then(response => {
             wait.Off_();
 
-            const result = new ResponseManager(response, '#component_permissions_read .notifications', 'Permisos: Leer');
+            const result = new ResponseManager(response, '#component_permissions_read .notifications', 'target.permissions_read');
             if(!result.Verify_())
                 return;
 
@@ -885,7 +885,7 @@ export class SettingsController extends BaseController{
         this.permission.add(data.get('id_group'), data.get('endpoint')).then(response => {
             wait.Off_();
 
-            const result = new ResponseManager(response, '#component_permissions_add .notifications', 'Permisos: A&ntilde;adir');
+            const result = new ResponseManager(response, '#component_permissions_add .notifications', 'target.permissions_add');
             if(!result.Verify_())
                 return;
 
@@ -920,7 +920,7 @@ export class SettingsController extends BaseController{
         this.permission.delete(endpoint, id_group).then(response => {
             wait.Off_();
 
-            const result = new ResponseManager(response, '#component_permissions_delete .notifications', 'Permisos: Eliminar');
+            const result = new ResponseManager(response, '#component_permissions_delete .notifications', 'target.permissions_delete');
             if(!result.Verify_())
                 return;
 
@@ -937,7 +937,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_my_account_apikey .notifications', false, 'block', new wtools.WaitAnimation().for_block);
         this.user.apiKeyRead().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Leer');
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'target.api_key_read');
             if (!result.Verify_()) return;
 
             const input = $('#component_my_account_apikey input[name="api_key"]');
@@ -955,7 +955,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_my_account_apikey .generate', true, 'button', new wtools.WaitAnimation().for_button);
         this.user.apiKeyGenerate().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Generar');
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'target.api_key_generate');
             if (!result.Verify_()) return;
 
             const key = response.body.api_key;
@@ -969,7 +969,7 @@ export class SettingsController extends BaseController{
         const wait = new wtools.ElementState('#component_my_account_apikey .revoke', true, 'button', new wtools.WaitAnimation().for_button);
         this.user.apiKeyRevoke().then(response => {
             wait.Off_();
-            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'API Key: Revocar');
+            const result = new ResponseManager(response, '#component_my_account_apikey .notifications', 'target.api_key_revoke');
             if (!result.Verify_()) return;
 
             const input = $('#component_my_account_apikey input[name="api_key"]');

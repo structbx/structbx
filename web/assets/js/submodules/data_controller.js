@@ -414,7 +414,7 @@ export class DataController extends BaseController{
                     this.clear();
 
                 // Manage response
-                const result = new ResponseManager(response_data, '#component_data_read .notifications', 'Data: Leer');
+                const result = new ResponseManager(response_data, '#component_data_read .notifications', 'target.data_read');
                 if(!result.Verify_()){
                     this.freeMutex();
                     return;
@@ -477,7 +477,7 @@ export class DataController extends BaseController{
             this.tableData.readByIdentifier(row_identifier, this.getTableIdentifier(), this.getViewIdentifier())
             .then((response_data) => {
                 // Manage response
-                const result = new ResponseManager(response_data, '', 'Data: Leer (1)');
+                const result = new ResponseManager(response_data, '', 'target.data_read_secondary');
                 if(!result.Verify_())
                     return;
     
@@ -609,7 +609,7 @@ export class DataController extends BaseController{
             this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier())
             .then((response_data) => {
                 // Manage response
-                const result = new ResponseManager(response_data, '', 'Data: Columnas: Leer');
+                const result = new ResponseManager(response_data, '', 'target.data_columns_read');
                 if(!result.Verify_())
                     return;    
 
@@ -670,7 +670,7 @@ export class DataController extends BaseController{
             wait.Off_();
             
             // Manage response
-            const result = new ResponseManager(response_data, '#component_data_add .notifications', 'Data: A&ntilde;adir');
+            const result = new ResponseManager(response_data, '#component_data_add .notifications', 'target.data_add');
             if(!result.Verify_())
                 return;
 
@@ -703,7 +703,7 @@ export class DataController extends BaseController{
             this.tableData.readByIdentifier(identifier, this.getTableIdentifier(), this.getViewIdentifier())
             .then((response_data) => {
                 // Manage response
-                const result = new ResponseManager(response_data, '', 'Data: Modificar');
+                const result = new ResponseManager(response_data, '', 'target.data_modify');
                 if(!result.Verify_()){
                     wait.Off_();
                     return;
@@ -773,7 +773,7 @@ export class DataController extends BaseController{
             wait.Off_();
             
             // Manage response
-            const result = new ResponseManager(response_data, '#component_data_modify .notifications', 'Data: Modificar');
+            const result = new ResponseManager(response_data, '#component_data_modify .notifications', 'target.data_modify');
             if(!result.Verify_())
                 return;
 
@@ -811,7 +811,7 @@ export class DataController extends BaseController{
             wait.Off_();
             
             // Manage response
-            const result = new ResponseManager(response_data, '#component_data_delete .notifications', 'Data: Eliminar');
+            const result = new ResponseManager(response_data, '#component_data_delete .notifications', 'target.data_delete');
             if(!result.Verify_())
                 return;
 

@@ -59,6 +59,288 @@ export const uiTexts = {
         en: "No results.",
         es: "Sin resultados."
     },
+    "response.http_status": {
+        en: "HTTP Status",
+        es: "Estado HTTP"
+    },
+    "response.error_code": {
+        en: "Error code",
+        es: "Código de error"
+    },
+    "response.file": {
+        en: "File",
+        es: "Archivo"
+    },
+    "response.function_": {
+        en: "Function",
+        es: "Función"
+    },
+    "response.task": {
+        en: "Task",
+        es: "Tarea"
+    },
+    "response.error_id": {
+        en: "Error ID",
+        es: "ID de error"
+    },
+    "response.category": {
+        en: "Category",
+        es: "Categoría"
+    },
+    "response.error": {
+        en: "Error",
+        es: "Error"
+    },
+
+    // Response Manager - Targets
+    "target.data_read": {
+        en: "Data: Read",
+        es: "Data: Leer"
+    },
+    "target.data_read_secondary": {
+        en: "Data: Read",
+        es: "Data: Leer (1)"
+    },
+    "target.data_add": {
+        en: "Data: Add",
+        es: "Data: Añadir"
+    },
+    "target.data_modify": {
+        en: "Data: Modify",
+        es: "Data: Modificar"
+    },
+    "target.data_delete": {
+        en: "Data: Delete",
+        es: "Data: Eliminar"
+    },
+    "target.data_import": {
+        en: "Data: Import",
+        es: "Data: Importar"
+    },
+    "target.data_columns_read": {
+        en: "Data: Columns: Read",
+        es: "Data: Columnas: Leer"
+    },
+    "target.tables_read": {
+        en: "Tables: Read",
+        es: "Tablas: Leer"
+    },
+    "target.tables_add": {
+        en: "Tables: Add",
+        es: "Tablas: Añadir"
+    },
+    "target.table_edit": {
+        en: "Table: Edit",
+        es: "Tablas: Editar"
+    },
+    "target.table_delete": {
+        en: "Table: Delete",
+        es: "Tablas: Eliminar"
+    },
+    "target.columns_read": {
+        en: "Columns: Read",
+        es: "Columnas: Leer"
+    },
+    "target.columns_add": {
+        en: "Columns: Add",
+        es: "Columnas: Añadir"
+    },
+    "target.columns_modify": {
+        en: "Columns: Modify",
+        es: "Columnas: Modificar"
+    },
+    "target.columns_delete": {
+        en: "Columns: Delete",
+        es: "Columnas: Eliminar"
+    },
+    "target.columns_visibility_modify": {
+        en: "Columns: Visibility: Modify",
+        es: "Columnas: Visible: Modificar"
+    },
+    "target.columns_position_modify": {
+        en: "Columns: Position: Modify",
+        es: "Columnas: Posición: Modificar"
+    },
+    "target.views_read": {
+        en: "Views: Read",
+        es: "Vistas: Leer"
+    },
+    "target.views_add": {
+        en: "Views: Add",
+        es: "Vistas: Añadir"
+    },
+    "target.views_modify": {
+        en: "Views: Modify",
+        es: "Vistas: Modificar"
+    },
+    "target.sorts_read": {
+        en: "Sorts: Read",
+        es: "Ordenamientos: Leer"
+    },
+    "target.sorts_add": {
+        en: "Sorts: Add",
+        es: "Ordenamientos: Añadir"
+    },
+    "target.sorts_modify": {
+        en: "Sorts: Modify",
+        es: "Ordenamientos: Modificar"
+    },
+    "target.sorts_delete": {
+        en: "Sorts: Delete",
+        es: "Ordenamientos: Eliminar"
+    },
+    "target.sorts_position_modify": {
+        en: "Sorts: Position: Modify",
+        es: "Ordenamientos: Posición: Modificar"
+    },
+    "target.sorts_visibility_modify": {
+        en: "Sorts: Visibility: Modify",
+        es: "Ordenamientos: Visibilidad: Modificar"
+    },
+    "target.filters_read": {
+        en: "Filters: Read",
+        es: "Filtros: Leer"
+    },
+    "target.filters_add": {
+        en: "Filters: Add",
+        es: "Filtros: Añadir"
+    },
+    "target.filters_modify": {
+        en: "Filters: Modify",
+        es: "Filtros: Modificar"
+    },
+    "target.filters_position_modify": {
+        en: "Filters: Position: Modify",
+        es: "Filtros: Posición: Modificar"
+    },
+    "target.instance_name_read": {
+        en: "Instance name: Read",
+        es: "Nombre de instancia: Leer"
+    },
+    "target.instance_name_modify": {
+        en: "Instance name: Modify",
+        es: "Nombre de instancia: Modificar"
+    },
+    "target.instance_logo_modify": {
+        en: "Instance logo: Modify",
+        es: "Logo de instancia: Modificar"
+    },
+    "target.current_user_read": {
+        en: "Current user: Read",
+        es: "Usuario actual: Leer"
+    },
+    "target.current_user_modify": {
+        en: "Current user: Modify",
+        es: "Usuario actual: Modificar"
+    },
+    "target.password_modify": {
+        en: "Password: Modify",
+        es: "Contraseña: Modificar"
+    },
+    "target.users_read": {
+        en: "Users: Read",
+        es: "Usuarios: Leer"
+    },
+    "target.users_add": {
+        en: "Users: Add",
+        es: "Usuarios: Añadir"
+    },
+    "target.users_modify": {
+        en: "Users: Modify",
+        es: "Usuarios: Modificar"
+    },
+    "target.users_delete": {
+        en: "Users: Delete",
+        es: "Usuarios: Eliminar"
+    },
+    "target.groups_read": {
+        en: "Groups: Read",
+        es: "Grupos: Leer"
+    },
+    "target.groups_add": {
+        en: "Groups: Add",
+        es: "Grupos: Añadir"
+    },
+    "target.groups_modify": {
+        en: "Groups: Modify",
+        es: "Grupos: Modificar"
+    },
+    "target.groups_delete": {
+        en: "Groups: Delete",
+        es: "Grupos: Eliminar"
+    },
+    "target.databases_read": {
+        en: "Databases: Read",
+        es: "Bases de datos: Leer"
+    },
+    "target.databases_add": {
+        en: "Databases: Add",
+        es: "Bases de datos: Añadir"
+    },
+    "target.db_users_read": {
+        en: "DB Users: Read",
+        es: "Usuarios de BD: Leer"
+    },
+    "target.db_users_add": {
+        en: "DB Users: Add",
+        es: "Usuarios de BD: Añadir"
+    },
+    "target.db_users_delete": {
+        en: "DB Users: Delete",
+        es: "Usuarios de BD: Eliminar"
+    },
+    "target.permissions_read": {
+        en: "Permissions: Read",
+        es: "Permisos: Leer"
+    },
+    "target.permissions_add": {
+        en: "Permissions: Add",
+        es: "Permisos: Añadir"
+    },
+    "target.permissions_delete": {
+        en: "Permissions: Delete",
+        es: "Permisos: Eliminar"
+    },
+    "target.api_key_read": {
+        en: "API Key: Read",
+        es: "API Key: Leer"
+    },
+    "target.api_key_generate": {
+        en: "API Key: Generate",
+        es: "API Key: Generar"
+    },
+    "target.api_key_revoke": {
+        en: "API Key: Revoke",
+        es: "API Key: Revocar"
+    },
+    "target.settings_general": {
+        en: "Settings: General",
+        es: "Configuraciones: General"
+    },
+    "target.settings_permissions": {
+        en: "Settings: Permissions",
+        es: "Configuraciones: Permisos"
+    },
+    "target.table_permissions_add": {
+        en: "Table permissions: Add",
+        es: "Permisos de tabla: Añadir"
+    },
+    "target.table_permissions_modify": {
+        en: "Table permissions: Modify",
+        es: "Permisos de tabla: Modificar"
+    },
+    "target.table_permission_modify": {
+        en: "Table permission: Modify",
+        es: "Permiso de tabla: Modificar"
+    },
+    "target.table_permission_delete": {
+        en: "Table permission: Delete",
+        es: "Permiso de tabla: Eliminar"
+    },
+    "target.form_columns_read": {
+        en: "Form: Columns: Read",
+        es: "Formulario: Columnas: Leer"
+    },
 
     // Login
     "login.database_access_failed": {

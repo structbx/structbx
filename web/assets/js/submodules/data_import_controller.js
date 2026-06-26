@@ -152,7 +152,7 @@ export class DataImportController extends BaseController{
         this.tableData.importData(data).then(response => {
             wait.Off_();
 
-            const result = new ResponseManager(response, '#component_data_import .notifications', 'Data: Importar');
+            const result = new ResponseManager(response, '#component_data_import .notifications', 'target.data_import');
             if(!result.Verify_()) return;
 
             $('#component_data_reload').click();
