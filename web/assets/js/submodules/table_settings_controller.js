@@ -3,6 +3,7 @@ import { ResponseManager } from '../classes/response_manager.js';
 import { I18n } from '../i18n/i18n.js';
 
 import { Table } from '../models/Table.js';
+import { TableColumn } from '../models/TableColumn.js';
 import { TablePermission } from '../models/TablePermission.js';
 
 export class TableSettingsController extends BaseController{
@@ -10,6 +11,7 @@ export class TableSettingsController extends BaseController{
         super();
 
         this.table = new Table;
+        this.tableColumn = new TableColumn;
         this.tablePermission = new TablePermission;
 
         this.notification.read = new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications');
@@ -113,6 +115,22 @@ export class TableSettingsController extends BaseController{
                     ${window.structbxI18n ? window.structbxI18n.t('table_settings.go_to_public_form') : 'Go to public form'}
                 </a>
             `);
+
+            this.populateColumnDisplaySelect(table_identifier, row.id_column_display);
+        });
+    }
+
+    populateColumnDisplaySelect(table_identifier, current_value){
+        const select = $('#component_settings_general select[name="id_column_display"]');
+        const none_text = window.structbxI18n ? window.structbxI18n.t('table.settings_column_display_none') : 'None';
+        select.html(`<option value="">${none_text}</option>`);
+
+        this.tableColumn.read(table_identifier, '').then(response => {
+            if(response.body.data == undefined || response.body.data.length < 1) return;
+            for(const col of response.body.data){
+                select.append(`<option value="${col.identifier}">${col.name}</option>`);
+            }
+            select.val(current_value || '');
         });
     }
 
@@ -139,8 +157,9 @@ export class TableSettingsController extends BaseController{
         const name = $('#component_settings_general input[name="name"]').val();
         const public_form = $('#component_settings_general select[name="public_form"]').val();
         const description = $('#component_settings_general textarea[name="description"]').val();
+        const id_column_display = $('#component_settings_general select[name="id_column_display"]').val();
 
-        this.table.modify(table_identifier, name, public_form, description).then(response => {
+        this.table.modify(table_identifier, name, public_form, description, id_column_display).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_general .notifications', 'target.table_edit');
             if(!result.Verify_()) return;

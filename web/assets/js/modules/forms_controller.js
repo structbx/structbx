@@ -69,8 +69,10 @@ export class FormsController extends BaseController
                 if(form == undefined)
                     throw new Error('El formulario no tiene un nombre definido.');
 
+                const id_column_display = response_data.body.data[0].id_column_display || '';
+
                 $('.form-title').html(form);
-                this.readDataColumns();
+                this.readDataColumns(id_column_display);
             });
         }
         catch(error)
@@ -86,7 +88,7 @@ export class FormsController extends BaseController
         }
     }
 
-    readDataColumns()
+    readDataColumns(id_column_display = '')
     {
         try
         {
@@ -109,7 +111,18 @@ export class FormsController extends BaseController
                 if(response_data.body.data == undefined || response_data.body.data.length < 1)
                     throw new Error('El formulario no tiene columnas definidas.');
 
-                new wtools.UIElementsCreator('#component_form_addData table tbody', response_data.body.data).Build_((row) =>
+                let data = response_data.body.data;
+
+                // Reorder: put display column first
+                if(id_column_display){
+                    let displayIndex = data.findIndex(col => col.identifier === id_column_display);
+                    if(displayIndex > 0){
+                        let displayCol = data.splice(displayIndex, 1)[0];
+                        data.unshift(displayCol);
+                    }
+                }
+
+                new wtools.UIElementsCreator('#component_form_addData table tbody', data).Build_((row) =>
                 {
                     if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
                         return undefined;

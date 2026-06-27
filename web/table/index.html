@@ -884,20 +884,16 @@
                                                     <table class="table">
                                                         <tbody>
                                                             <tr>
+                                                                <th scope="row" data-i18n="table_settings.identifier">Identifier</th>
+                                                                <td><span class="text-muted table_identifier_display"></span></td>
+                                                            </tr>
+                                                            <tr>
                                                                 <th scope="row" data-i18n="table.settings_name">Name</th>
                                                                 <td><input type="text" class="form-control" name="name"/></td>
                                                             </tr>
                                                             <tr>
                                                                 <th scope="row" data-i18n="table_settings.state">Status</th>
                                                                 <td><span class="table_state_badge badge"></span></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th scope="row" data-i18n="table_settings.identifier">Identifier</th>
-                                                                <td><span class="text-muted table_identifier_display"></span></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th scope="row" data-i18n="table_settings.created_at">Created at</th>
-                                                                <td><span class="text-muted table_created_at_display"></span></td>
                                                             </tr>
                                                             <tr>
                                                                 <th scope="row" data-i18n="table.settings_public_form">Public form</th>
@@ -907,8 +903,21 @@
                                                                 </td>
                                                             </tr>
                                                             <tr>
+                                                                <th scope="row" data-i18n="table.settings_column_display">Column display</th>
+                                                                <td>
+                                                                    <select class="form-select" name="id_column_display">
+                                                                        <option value="" data-i18n="table.settings_column_display_none">None</option>
+                                                                    </select>
+                                                                    <small class="text-muted" data-i18n="table.settings_column_display_hint">Column shown in selection type fields</small>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
                                                                 <th scope="row">Description</th>
                                                                 <td><textarea class="form-control" name="description"></textarea></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row" data-i18n="table_settings.created_at">Created at</th>
+                                                                <td><span class="text-muted table_created_at_display"></span></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

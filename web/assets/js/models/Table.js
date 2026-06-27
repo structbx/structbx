@@ -13,12 +13,13 @@ export class Table{
 
         return await new wtools.Request("/api/tables/add", "POST", data, false).Exec_();
     }
-    async modify(identifier, name, public_form, description){
+    async modify(identifier, name, public_form, description, id_column_display){
         const data = new FormData();
         data.append('identifier', identifier);
         data.append('name', name);
         data.append('public_form', public_form);
         data.append('description', description);
+        data.append('id_column_display', id_column_display);
 
         return await new wtools.Request("/api/tables/modify", "PUT", data, false).Exec_();
     }

@@ -161,51 +161,64 @@ export class ColumnsController extends BaseController{
         let wait = new wtools.ElementState('#component_columns_read .notifications'
             ,false, 'block', new wtools.WaitAnimation().for_block);
 
-        // Request
-        this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) => {
-            // Clean
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $(`#component_columns_read .contents`).html('');
-
-            // Manage response
-            const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'target.columns_read');
-            if(!result.Verify_())
-                return;
-
-            // Handle zero results
-            if(response_data.body.data.length < 1){
-                new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
-                return;
+        // Fetch table info to get id_column_display
+        this.table.read(this.getTableIdentifier()).then((table_response) => {
+            let id_column_display = '';
+            if(table_response.body && table_response.body.data && table_response.body.data.length > 0){
+                id_column_display = table_response.body.data[0].id_column_display || '';
             }
 
-            // Results elements creator
-            wait.Off_();
-            $('#component_columns_read .notifications').html('');
-            $(`#component_columns_read .contents`).html('');
+            // Request columns
+            this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) => {
+                // Clean
+                wait.Off_();
+                $('#component_columns_read .notifications').html('');
+                $(`#component_columns_read .contents`).html('');
 
-            new wtools.UIElementsCreator(`#component_columns_read .contents`, response_data.body.data).Build_((row) =>{
-                let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
-                let description_title = row.description ? row.description : row.column_type;
-                let required_mark = row.required == 1 ? ' <span class="text-danger fw-bold">*</span>' : '';
-                let default_text = row.default_value ? ' <small class="text-muted">(' + window.structbxI18n.t('table.default_label') + ': ' + row.default_value + ')</small>' : '';
+                // Manage response
+                const result = new ResponseManager(response_data, '#component_columns_read .notifications', 'target.columns_read');
+                if(!result.Verify_())
+                    return;
 
-                // Add column
-                this.columns.push({identifier: row.identifier, name: row.name, icon: table_icon});
+                // Handle zero results
+                if(response_data.body.data.length < 1){
+                    new wtools.Notification('SUCCESS', 0, '#component_columns_read .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
+                    return;
+                }
 
-                // DOM element
-                return `
-                    <div column-identifier="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
-                        <a column-identifier="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" title="${description_title}">
-                            <i class="fas fa-sort me-2"></i>${table_icon}${row.name}${required_mark}
-                            <small class="text-muted ms-1">(${row.column_type})</small>${default_text}
-                        </a>
-                        <div class="form-check form-switch pe-4">
-                            <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-identifier="${row.identifier}" column-name="${row.name}">
-                            <label class="form-check-label"><i class="fas fa-eye"></i></label>
+                // Results elements creator
+                $('#component_columns_read .notifications').html('');
+                $(`#component_columns_read .contents`).html('');
+
+                new wtools.UIElementsCreator(`#component_columns_read .contents`, response_data.body.data).Build_((row) =>{
+                    let table_icon = new TableElements(row.column_type, undefined, '').GetIcon_();
+                    let description_title = row.description ? row.description : row.column_type;
+                    let required_mark = row.required == 1 ? ' <span class="text-danger fw-bold">*</span>' : '';
+                    let default_text = row.default_value ? ' <small class="text-muted">(' + window.structbxI18n.t('table.default_label') + ': ' + row.default_value + ')</small>' : '';
+
+                    let display_mark = '';
+                    if(id_column_display && row.identifier === id_column_display){
+                        let tooltip = window.structbxI18n ? window.structbxI18n.t('table.column_display_indicator') : 'Display column';
+                        display_mark = ` <i class="fas fa-star ms-1" style="color:#f59e0b;font-size:0.7rem;" title="${tooltip}"></i>`;
+                    }
+
+                    // Add column
+                    this.columns.push({identifier: row.identifier, name: row.name, icon: table_icon});
+
+                    // DOM element
+                    return `
+                        <div column-identifier="${row.identifier}" class="ui-state-default p-0 dropdown-item d-flex align-items-center" style="cursor:pointer;">
+                            <a column-identifier="${row.identifier}" href="#" class="py-2 ps-4 text-dark text-decoration-none flex-fill me-2" title="${description_title}">
+                                <i class="fas fa-sort me-2"></i>${table_icon}${row.name}${required_mark}${display_mark}
+                                <small class="text-muted ms-1">(${row.column_type})</small>${default_text}
+                            </a>
+                            <div class="form-check form-switch pe-4">
+                                <input class="form-check-input" type="checkbox" ${row.visible == 1? 'checked' : ""} column-identifier="${row.identifier}" column-name="${row.name}">
+                                <label class="form-check-label"><i class="fas fa-eye"></i></label>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
             });
         });
     }

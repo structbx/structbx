@@ -536,12 +536,30 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         std::string columns = "";
         std::string joins = "";
         bool has_users_join = false;
-        int count = 0; // Simple counter to know if it's the first column or not for the query
+
+        // Resolve display column for from_link requests
+        std::string display_column_id = "";
+        if(from_link) {
+            auto display_action = self.AddAction_("resolve_display_col");
+            display_action->set_suppress_debug(true);
+            display_action->set_sql_code(
+                "SELECT COALESCE(tc.identifier, "
+                "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
+                "FROM tables t "
+                "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                "WHERE t.identifier = ?"
+            );
+            display_action->AddParameter_("table-identifier", table_identifier->get()->ToString_(), false);
+            if(display_action->Work_() && display_action->get_results()->size() > 0) {
+                auto disp_field = display_action->get_results()->begin()->get()->ExtractField_("identifier");
+                if(!disp_field->IsNull_())
+                    display_column_id = disp_field->ToString_();
+            }
+        }
+
+        int count = 0;
         for(auto it : *table_columns->get_results())
         {
-            // If the request is from link, only get the first and second columns
-            if(from_link && count > 0)
-                break;
 
             Query::Field::Ptr identifier = it.get()->ExtractField_("identifier");
             Query::Field::Ptr name = it.get()->ExtractField_("name");
@@ -553,6 +571,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
             // Hide column just if the request is not from link (link_to column)
             if(visible->Int_() == 0 && !from_link)
+                continue;
+
+            // When from_link, skip columns until we find the display column
+            if(from_link && !display_column_id.empty() && identifier->ToString_() != display_column_id)
                 continue;
 
             std::string column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
@@ -613,6 +635,10 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 columns += ", " + column;
 
             count++;
+
+            // When from_link, break after including the display column
+            if(from_link && count > 0)
+                break;
         }
 
         // Verify if columns is empty

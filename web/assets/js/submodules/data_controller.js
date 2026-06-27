@@ -7,6 +7,7 @@ import { I18n } from '../i18n/i18n.js';
 
 import { TableData } from '../models/TableData.js';
 import { TableColumn } from '../models/TableColumn.js';
+import { Table } from '../models/Table.js';
 
 import { ColumnType } from '../constants/column_types.js';
 
@@ -17,6 +18,7 @@ export class DataController extends BaseController{
 
         this.tableData = new TableData;
         this.tableColumn = new TableColumn;
+        this.table = new Table;
 
         this.notification.read = new wtools.Notification('WARNING', 5000, '#component_data_read .notifications');
         this.notification.add = new wtools.Notification('WARNING', 5000, '#component_data_add .notifications');
@@ -930,41 +932,59 @@ export class DataController extends BaseController{
             // Setup data columns
             $('#component_data_add .form_input_header').html('');
             $('#component_data_add table tbody').html('');
-            
-            // Read and setup columns
-            this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier())
-            .then((response_data) => {
-                // Manage response
-                const result = new ResponseManager(response_data, '', 'target.data_columns_read');
-                if(!result.Verify_())
-                    return;    
 
-                // Handle zero results
-                if(response_data.body.data.length < 1){
-                    wait.Off_();
-                    new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.create_columns_first') : 'You must create columns to add records.');
-                    return;
+            // Fetch table info to get id_column_display
+            this.table.read(this.getTableIdentifier()).then((table_response) => {
+                let id_column_display = '';
+                if(table_response.body && table_response.body.data && table_response.body.data.length > 0){
+                    id_column_display = table_response.body.data[0].id_column_display || '';
                 }
-                
-                // Results elements creator
-                let first = true;
-                new wtools.UIElementsCreator('#component_data_add table tbody', response_data.body.data)
-                .Build_((row) => {
-                    if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
-                        return undefined;
 
-                    let elements = [];
-                    if(!this.setupColumn(row, elements, first, '#component_data_add')){
-                        first = false;
+                // Read and setup columns
+                this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier())
+                .then((response_data) => {
+                    // Manage response
+                    const result = new ResponseManager(response_data, '', 'target.data_columns_read');
+                    if(!result.Verify_())
+                        return;    
+
+                    // Handle zero results
+                    if(response_data.body.data.length < 1){
+                        wait.Off_();
+                        new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('data.create_columns_first') : 'You must create columns to add records.');
                         return;
                     }
-                    
-                    return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
-                });
 
-                wait.Off_();
-                $('#component_data_add form').removeClass('was-validated');
-                $('#component_data_add').modal('show');
+                    // Reorder: put display column first
+                    let data = response_data.body.data;
+                    if(id_column_display){
+                        let displayIndex = data.findIndex(col => col.identifier === id_column_display);
+                        if(displayIndex > 0){
+                            let displayCol = data.splice(displayIndex, 1)[0];
+                            data.unshift(displayCol);
+                        }
+                    }
+                    
+                    // Results elements creator
+                    let first = true;
+                    new wtools.UIElementsCreator('#component_data_add table tbody', data)
+                    .Build_((row) => {
+                        if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
+                            return undefined;
+
+                        let elements = [];
+                        if(!this.setupColumn(row, elements, first, '#component_data_add')){
+                            first = false;
+                            return;
+                        }
+                        
+                        return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
+                    });
+
+                    wait.Off_();
+                    $('#component_data_add form').removeClass('was-validated');
+                    $('#component_data_add').modal('show');
+                });
             });
 
         } catch(error) {
@@ -1024,51 +1044,68 @@ export class DataController extends BaseController{
             $('#component_data_modify .form_input_header').html('');
             $('#component_data_modify table tbody').html('');
             $('#component_data_modify .notifications').html('');
-            
-            // Read form to modify
-            this.tableData.readByIdentifier(identifier, this.getTableIdentifier(), this.getViewIdentifier())
-            .then((response_data) => {
-                // Manage response
-                const result = new ResponseManager(response_data, '', 'target.data_modify');
-                if(!result.Verify_()){
-                    wait.Off_();
-                    return;
-                }
-    
-                // Handle no results or zero results
-                if(response_data.body.data.length < 1){
-                    wait.Off_();
-                    new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
-                    return;
+
+            // Fetch table info to get id_column_display
+            this.table.read(this.getTableIdentifier()).then((table_response) => {
+                let id_column_display = '';
+                if(table_response.body && table_response.body.data && table_response.body.data.length > 0){
+                    id_column_display = table_response.body.data[0].id_column_display || '';
                 }
 
-                // Add values to columns_data
-                let data = response_data.body.columns_meta.data;
-                for(let it of data)
-                    it.value = response_data.body.data[0][it.name];
-
-                // Setup color header
-                this.colorSelectModify.setValue(response_data.body.data[0]._structbx_column_colorHeader);
-
-                // Results elements creator
-                let first = true;
-                new wtools.UIElementsCreator('#component_data_modify table tbody', data)
-                .Build_((row) => {
-                    if(row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
-                        return;
-
-                    let elements = [];
-                    if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value)){
-                        first = false;
+                // Read form to modify
+                this.tableData.readByIdentifier(identifier, this.getTableIdentifier(), this.getViewIdentifier())
+                .then((response_data) => {
+                    // Manage response
+                    const result = new ResponseManager(response_data, '', 'target.data_modify');
+                    if(!result.Verify_()){
+                        wait.Off_();
                         return;
                     }
-                    
-                    return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
-                });
+        
+                    // Handle no results or zero results
+                    if(response_data.body.data.length < 1){
+                        wait.Off_();
+                        new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
+                        return;
+                    }
 
-                wait.Off_();
-                $('#component_data_modify form').removeClass('was-validated');
-                $('#component_data_modify').modal('show');
+                    // Add values to columns_data
+                    let data = response_data.body.columns_meta.data;
+                    for(let it of data)
+                        it.value = response_data.body.data[0][it.name];
+
+                    // Reorder: put display column first
+                    if(id_column_display){
+                        let displayIndex = data.findIndex(col => col.identifier === id_column_display);
+                        if(displayIndex > 0){
+                            let displayCol = data.splice(displayIndex, 1)[0];
+                            data.unshift(displayCol);
+                        }
+                    }
+
+                    // Setup color header
+                    this.colorSelectModify.setValue(response_data.body.data[0]._structbx_column_colorHeader);
+
+                    // Results elements creator
+                    let first = true;
+                    new wtools.UIElementsCreator('#component_data_modify table tbody', data)
+                    .Build_((row) => {
+                        if(row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
+                            return;
+
+                        let elements = [];
+                        if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value)){
+                            first = false;
+                            return;
+                        }
+                        
+                        return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
+                    });
+
+                    wait.Off_();
+                    $('#component_data_modify form').removeClass('was-validated');
+                    $('#component_data_modify').modal('show');
+                });
             });
 
         } catch(error) {

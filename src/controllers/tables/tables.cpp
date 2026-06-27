@@ -485,7 +485,7 @@ void Tables::Modify::UpdateTableMetadata(StructBX::Functions::Action::Ptr action
 {
     action->set_sql_code(
         "UPDATE tables " \
-        "SET name = ?, state = ?, public_form = ?, description = ? " \
+        "SET name = ?, state = ?, public_form = ?, description = ?, id_column_display = ? " \
         "WHERE identifier = ? AND id_database = ?"
     );
 
@@ -513,6 +513,7 @@ void Tables::Modify::UpdateTableMetadata(StructBX::Functions::Action::Ptr action
     action->AddParameter_("state", "", true);
     action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
+    action->AddParameter_("id_column_display", "", true);
 
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
