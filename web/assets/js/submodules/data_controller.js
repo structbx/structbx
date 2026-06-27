@@ -351,7 +351,7 @@ export class DataController extends BaseController{
         }
     }
 
-    createColumn(response_data){
+    createColumn(response_data, id_column_display = ''){
         // Variables
         let keys = response_data.body.columns_meta.data;
 
@@ -375,7 +375,14 @@ export class DataController extends BaseController{
             let table_element_object = new TableElements(wtools.IFUndefined(column.column_type, ColumnType.Text), column, this.getTableIdentifier());
             let table_icon = table_element_object.GetIcon_(false);
 
-            return [this.column_cell(column.identifier, table_icon + column.name)];
+            // Display column star indicator
+            let display_mark = '';
+            if(id_column_display && column.identifier === id_column_display){
+                let tooltip = window.structbxI18n ? window.structbxI18n.t('table.column_display_indicator') : 'Display column';
+                display_mark = ` <i class="fas fa-star ms-1" style="color:#f59e0b;font-size:0.7rem;" title="${tooltip}"></i>`;
+            }
+
+            return [this.column_cell(column.identifier, table_icon + column.name + display_mark)];
         });
     }
 
@@ -484,7 +491,13 @@ export class DataController extends BaseController{
 
                 // Results elements creator (Columns)
                 if($('#component_data_read #headerRow').html() == "" && response_data.body.columns_meta != undefined){
-                    this.createColumn(response_data);
+                    this.table.read(this.getTableIdentifier()).then((table_response) => {
+                        let id_column_display = '';
+                        if(table_response.body && table_response.body.data && table_response.body.data.length > 0){
+                            id_column_display = table_response.body.data[0].id_column_display || '';
+                        }
+                        this.createColumn(response_data, id_column_display);
+                    });
                 }
 
                 // No end of results
@@ -883,7 +896,7 @@ export class DataController extends BaseController{
         processNext(0);
     }
 
-    setupColumn(row, elements, first, target, value = undefined){
+    setupColumn(row, elements, first, target, value = undefined, id_column_display = ''){
         // If column type is a NORMAL type
         let table_element_object = new TableElements(wtools.IFUndefined(row.column_type, ColumnType.Text), row, this.getTableIdentifier());
         let table_element = $(table_element_object.Get_());
@@ -909,12 +922,19 @@ export class DataController extends BaseController{
             this.linkUsersInDatabaseOptions(customSelect, `${target} .notifications`, value);
         }
 
+        // Display column star indicator
+        let display_mark = '';
+        if(id_column_display && row.identifier === id_column_display){
+            let tooltip = window.structbxI18n ? window.structbxI18n.t('table.column_display_indicator') : 'Display column';
+            display_mark = ` <i class="fas fa-star ms-1" style="color:#f59e0b;font-size:0.7rem;" title="${tooltip}"></i>`;
+        }
+
         // Final elements
-        elements.push(`<th scope="row">${table_icon}${row.name}</th>`);
+        elements.push(`<th scope="row">${table_icon}${row.name}${display_mark}</th>`);
         elements.push(table_element);
 
         if(first){
-            $(`${target} .form_input_header`).append(`<h5 class="mb-2">${table_icon}${row.name}</h5>`);
+            $(`${target} .form_input_header`).append(`<h5 class="mb-2">${table_icon}${row.name}${display_mark}</h5>`);
             $(`${target} .form_input_header`).append($(table_element).children().first());
             return false;
         }
@@ -973,11 +993,11 @@ export class DataController extends BaseController{
                             return undefined;
 
                         let elements = [];
-                        if(!this.setupColumn(row, elements, first, '#component_data_add')){
+                        if(!this.setupColumn(row, elements, first, '#component_data_add', undefined, id_column_display)){
                             first = false;
                             return;
                         }
-                        
+
                         return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
                     });
 
@@ -1094,7 +1114,7 @@ export class DataController extends BaseController{
                             return;
 
                         let elements = [];
-                        if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value)){
+                        if(!this.setupColumn(row, elements, first, '#component_data_modify', row.value, id_column_display)){
                             first = false;
                             return;
                         }
