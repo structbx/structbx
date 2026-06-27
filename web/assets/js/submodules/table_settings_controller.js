@@ -35,6 +35,12 @@ export class TableSettingsController extends BaseController{
             new wtools.OptionValue("1", window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
         ]);
         this.options_public_form.Build_('#component_settings_general select[name="public_form"]');
+
+        this.options_state = new wtools.SelectOptions([
+            new wtools.OptionValue("active", window.structbxI18n ? window.structbxI18n.t('table_settings.state_active') : 'Active', true),
+            new wtools.OptionValue("inactive", window.structbxI18n ? window.structbxI18n.t('table_settings.state_inactive') : 'Inactive')
+        ]);
+        this.options_state.Build_('#component_settings_general select[name="state"]');
     }
 
     build(){
@@ -101,12 +107,7 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_general select[name="public_form"]').val(row.public_form);
             $('#component_settings_general textarea[name="description"]').val(row.description);
 
-            const state_badge = $('#component_settings_general .table_state_badge');
-            if(row.state == 'active'){
-                state_badge.removeClass('bg-secondary').addClass('bg-success').text(window.structbxI18n ? window.structbxI18n.t('table_settings.state_active') : 'Active');
-            } else {
-                state_badge.removeClass('bg-success').addClass('bg-secondary').text(window.structbxI18n ? window.structbxI18n.t('table_settings.state_inactive') : 'Inactive');
-            }
+            $('#component_settings_general select[name="state"]').val(row.state || 'active');
             $('#component_settings_general .table_identifier_display').text(row.identifier);
             $('#component_settings_general .table_created_at_display').text(row.created_at || '-');
 
@@ -158,8 +159,9 @@ export class TableSettingsController extends BaseController{
         const public_form = $('#component_settings_general select[name="public_form"]').val();
         const description = $('#component_settings_general textarea[name="description"]').val();
         const id_column_display = $('#component_settings_general select[name="id_column_display"]').val();
+        const state = $('#component_settings_general select[name="state"]').val();
 
-        this.table.modify(table_identifier, name, public_form, description, id_column_display).then(response => {
+        this.table.modify(table_identifier, name, public_form, description, id_column_display, state).then(response => {
             wait.Off_();
             const result = new ResponseManager(response, '#component_settings_general .notifications', 'target.table_edit');
             if(!result.Verify_()) return;
