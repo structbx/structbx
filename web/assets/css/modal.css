@@ -27,8 +27,8 @@
 }
 
 .modal.right-side-modal .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--modal-header-bg);
+    color: var(--modal-header-color);
     border-bottom: none;
     padding: 1.5rem;
 }
@@ -39,7 +39,7 @@
 }
 
 .modal.right-side-modal .modal-footer {
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid var(--border-color);
     padding: 1.5rem;
 }
 
@@ -49,12 +49,12 @@
 }
 
 .table-form tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
+    background-color: var(--bg-hover);
 }
 
 .table-form .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 0.2rem rgba(77, 163, 255, 0.25);
 }
 
 /* Responsive */
@@ -71,6 +71,7 @@
         max-width: 100%;
     }
 }
+
 .modal-header{
     border-radius: 0 !important;
 }

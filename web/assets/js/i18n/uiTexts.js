@@ -1035,6 +1035,20 @@ export const uiTexts = {
         es: "Español"
     },
 
+    // Theme
+    "theme.toggle": {
+        en: "Toggle theme",
+        es: "Cambiar tema"
+    },
+    "theme.dark": {
+        en: "Dark mode",
+        es: "Modo oscuro"
+    },
+    "theme.light": {
+        en: "Light mode",
+        es: "Modo claro"
+    },
+
     // ──────────────────────────────
     // HTML static text (data-i18n)
     // ──────────────────────────────

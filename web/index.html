@@ -22,10 +22,18 @@
         <link rel="stylesheet" href="/assets/css/main.css">
         <link rel="stylesheet" href="/assets/css/styles.css">
         <link rel="stylesheet" href="/assets/css/modal.css">
+        <link rel="stylesheet" href="/assets/css/themes.css">
         <!-- /CSS files -->
 
+        <script>
+            (function() {
+                const theme = localStorage.getItem('structbx_theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+
     </head>
-    <body data-page="Start" id="structbx" class="bg-light">
+    <body data-page="Start" id="structbx">
 
         <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
         </header>

@@ -4,6 +4,9 @@ import { TableController } from './modules/table_controller.js';
 import { SettingsController } from './modules/settings_controller.js';
 import { I18n } from './i18n/i18n.js';
 
+const savedTheme = localStorage.getItem('structbx_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
 const Pages = {
     'Login': LoginController
     ,'Start': StartController

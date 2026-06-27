@@ -287,6 +287,7 @@ export class Headers
     header()
     {
         const currentLang = localStorage.getItem('structbx_lang') || 'en';
+        const currentTheme = localStorage.getItem('structbx_theme') || 'dark';
         $("#header_main").append
         (`
             <div class="container-xxl d-flex justify-content-between">
@@ -315,7 +316,7 @@ export class Headers
                                     <i class="fas fa-building me-2"></i>
                                     <span class="database_name"></span>
                                 </a>
-                                <ul id="component_databases_selector" class="dropdown-menu bg-dark" aria-labelledby="component_databases_selector_btn">
+                                <ul id="component_databases_selector" class="dropdown-menu" aria-labelledby="component_databases_selector_btn">
                                 </ul>
                             </div>
                         </li>
@@ -326,11 +327,17 @@ export class Headers
                                     <i class="fas fa-globe me-1"></i>
                                     <span id="language_selector_text">${currentLang === 'es' ? 'ES' : 'EN'}</span>
                                 </a>
-                                <ul class="dropdown-menu bg-dark" aria-labelledby="language_selector_btn">
-                                    <li><a class="dropdown-item text-light language-option ${currentLang === 'en' ? 'active' : ''}" href="#" data-lang="en">EN - English</a></li>
-                                    <li><a class="dropdown-item text-light language-option ${currentLang === 'es' ? 'active' : ''}" href="#" data-lang="es">ES - Español</a></li>
+                                <ul class="dropdown-menu" aria-labelledby="language_selector_btn">
+                                    <li><a class="dropdown-item language-option ${currentLang === 'en' ? 'active' : ''}" href="#" data-lang="en">EN - English</a></li>
+                                    <li><a class="dropdown-item language-option ${currentLang === 'es' ? 'active' : ''}" href="#" data-lang="es">ES - Español</a></li>
                                 </ul>
                             </div>
+                        </li>
+                        <div class="vr mx-4 d-none d-md-inline-block"></div>
+                        <li class="nav-item me-2">
+                            <button class="btn btn-ligth" id="theme_toggle" type="button" data-i18n-title="theme.toggle" title="Toggle theme">
+                                <i class="fas ${currentTheme === 'dark' ? 'fa-moon' : 'fa-sun'}"></i>
+                            </button>
                         </li>
                         <div class="vr mx-4 d-none d-md-inline-block"></div>
                         <li class="nav-item me-2">
@@ -363,6 +370,15 @@ export class Headers
             const lang = $(this).data('lang');
             localStorage.setItem('structbx_lang', lang);
             location.reload();
+        });
+
+        $(document).on('click', '#theme_toggle', function()
+        {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('structbx_theme', newTheme);
+            $(this).find('i').toggleClass('fa-moon fa-sun');
         });
     }
 }

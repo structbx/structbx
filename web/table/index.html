@@ -24,10 +24,18 @@
         <link rel="stylesheet" href="/assets/css/modal.css">
         <link rel="stylesheet" href="/assets/css/custom-select.css">
         <link rel="stylesheet" href="/assets/css/tableData.css">
+        <link rel="stylesheet" href="/assets/css/themes.css">
         <!-- /CSS files -->
 
+        <script>
+            (function() {
+                const theme = localStorage.getItem('structbx_theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+
     </head>
-    <body data-page="Table" id="structbx" class="bg-light">
+    <body data-page="Table" id="structbx">
 
         <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
         </header>
@@ -864,7 +872,7 @@
                                                 <div class="notifications"></div>
                                                 <div class="table-responsive">
                                                     <table class="table table-hover table-bordered">
-                                                        <thead class="table-light text-center align-middle text-nowrap">
+                                                        <thead class="text-center align-middle text-nowrap">
                                                             <tr>
                                                                 <th scope="col" data-i18n="table.settings_permissions_user">User</th>
                                                                 <th scope="col" data-i18n="table.settings_permissions_read">Read</th>

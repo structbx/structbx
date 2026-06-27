@@ -3,16 +3,6 @@
 @import '/node_modules/@fontsource/inter/400.css';
 @import '/node_modules/@fontsource/inter/700.css';
 
-:root {
-    --primary: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
-    --primary-dark: linear-gradient(135deg, #49475f 0%, #302f2e 100%) !important;
-    --dark: #212529;
-    --light: #f3f3f3;
-    --gradient: linear-gradient(135deg, #302f2e 0%, #49475f 100%);
-    --text-color: #333333;
-    --border-color: #b4b4b4;
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -21,15 +11,18 @@
 
 body{
     --bs-body-font-size: .8rem !important;
+    background-color: var(--bg-body) !important;
+    color: var(--text-color);
 }
 
 #header_main{
     z-index: 1050;
-    background: linear-gradient(135deg, #302f2e 0%, #49475f 100%) !important;
+    background: var(--bg-header) !important;
 }
 
 #menu_main{
     z-index: 1049;
+    background: var(--bg-sidebar) !important;
 }
 
 #notifications{
@@ -64,13 +57,14 @@ body{
 
 /* Cards */
 .card-table-item {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--card-border);
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    background: var(--card-bg);
 }
 
 .card-table-item:hover {
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
-    border-color: #0d6efd; /* Color primario de Bootstrap al pasar el mouse */
+    box-shadow: var(--shadow) !important;
+    border-color: var(--link-color);
 }
 
 .card-table-item a {
@@ -81,21 +75,21 @@ body{
 
 .card-table-item h5 {
     font-weight: 600;
-    color: #333;
+    color: var(--text-color);
 }
 
 .card-table-item .text-muted.small {
     font-size: 0.85em;
-    color: #6c757d !important;
+    color: var(--text-muted) !important;
 }
 
 .card-table-item .border-primary {
-    border-color: #0d6efd !important;
+    border-color: var(--link-color) !important;
 }
 
 .card-footer {
-    background-color: #f8f9fa !important;
-    border-top: 1px solid #eeeeee !important;
+    background-color: var(--card-footer-bg) !important;
+    border-top: 1px solid var(--border-color) !important;
     padding: 10px 15px;
 }
 
@@ -119,19 +113,19 @@ body{
 }
 
 #table_search:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 0.2rem rgba(77, 163, 255, 0.15);
 }
 
 #table_search_clear {
-    color: #6c757d !important;
-    background: #fff;
+    color: var(--text-muted) !important;
+    background: var(--bg-input);
     border-left: none;
 }
 
 #table_search_clear:hover {
     color: #dc3545 !important;
-    background: #fff;
+    background: var(--bg-input);
 }
 
 /* Sidebar search */
@@ -143,8 +137,8 @@ body{
 }
 
 #sidebar_table_search:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 0.2rem rgba(77, 163, 255, 0.15);
 }
 
 #sidebar_table_search::placeholder {
@@ -153,7 +147,7 @@ body{
 
 /* No results message */
 .table-search-no-results {
-    color: #6c757d;
+    color: var(--text-muted);
     padding: 2rem 1rem;
 }
 

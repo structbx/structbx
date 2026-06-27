@@ -22,10 +22,18 @@
         <link rel="stylesheet" href="/assets/css/main.css">
         <link rel="stylesheet" href="/assets/css/styles.css">
         <link rel="stylesheet" href="/assets/css/modal.css">
+        <link rel="stylesheet" href="/assets/css/themes.css">
         <!-- /CSS files -->
 
+        <script>
+            (function() {
+                const theme = localStorage.getItem('structbx_theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+
     </head>
-    <body data-page="Settings" id="structbx" class="bg-light">
+    <body data-page="Settings" id="structbx">
 
         <header id="header_main" class="sticky-top navbar navbar-dark navbar-expand-md navbar-light text-white">
         </header>
@@ -109,7 +117,7 @@
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
-                                                    <thead class="table-light text-center align-middle text-nowrap">
+                                                    <thead class="text-center align-middle text-nowrap">
                                                         <tr>
                                                             <th scope="col" data-i18n="settings.database_name">Database</th>
                                                             <th scope="col" data-i18n="settings.db_storage_db">DB Storage</th>
@@ -185,7 +193,7 @@
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
-                                                    <thead class="table-light text-center align-middle text-nowrap">
+                                                    <thead class="text-center align-middle text-nowrap">
                                                         <tr>
                                                             <th scope="col" data-i18n="settings.user">User</th>
                                                             <th scope="col" data-i18n="settings.created">Created</th>
@@ -507,7 +515,7 @@
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
-                                                    <thead class="table-light text-center align-middle text-nowrap">
+                                                    <thead class="text-center align-middle text-nowrap">
                                                         <tr>
                                                             <th scope="col" data-i18n="settings.user">User</th>
                                                             <th scope="col" data-i18n="settings.status">Status</th>
@@ -836,7 +844,7 @@
                                             <div class="notifications"></div>
                                             <div class="table-responsive">
                                                 <table class="table table-hover table-bordered">
-                                                    <thead class="table-light text-center align-middle text-nowrap">
+                                                    <thead class="text-center align-middle text-nowrap">
                                                         <tr>
                                                             <th scope="col" data-i18n="settings.permission_col">Permission</th>
                                                             <th scope="col" data-i18n="settings.action_col">Action</th>

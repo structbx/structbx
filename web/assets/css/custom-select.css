@@ -7,31 +7,33 @@
 /* Display style (the button that is clicked) */
 .custom-select-display {
     cursor: pointer;
-    background-color: #fff;
+    background-color: var(--select-bg);
     border-radius: .25rem;
     padding: 0.375rem 0.75rem;
     transition: all 0.2s ease;
+    border-color: var(--select-border);
+    color: var(--text-color);
 }
 
 /* Active/focus state of the display */
 .custom-select-display:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(77, 163, 255, 0.25);
+    border-color: var(--link-color);
 }
 
 /* Dropdown style (the expandable menu) */
 .custom-select-dropdown {
     position: absolute;
-    top: 100%; /* Just below the display */
+    top: 100%;
     left: 0;
     right: 0;
-    z-index: 1050; /* Above other elements */
-    background-color: #fff;
-    border: 1px solid #ced4da;
+    z-index: 1050;
+    background-color: var(--select-dropdown-bg);
+    border: 1px solid var(--select-border);
     border-radius: .25rem;
     margin-top: 2px;
-    max-height: 250px; /* Limits the height */
-    overflow-y: auto; /* Scroll if there are many options */
+    max-height: 250px;
+    overflow-y: auto;
 }
 
 /* Option list style */
@@ -45,16 +47,17 @@
     cursor: pointer;
     font-size: 0.95rem;
     transition: background-color 0.1s;
+    color: var(--text-color);
 }
 
 /* Hover on options */
 .custom-select-item:hover {
-    background-color: #e8ebee; /* Light gray background on mouse hover */
+    background-color: var(--select-item-hover);
 }
 
 /* Selected item */
 .custom-select-item.selected {
-    background-color: #d9dee2; /* Slightly darker background for the selected item */
+    background-color: var(--select-item-selected);
     font-weight: bold;
 }
 
