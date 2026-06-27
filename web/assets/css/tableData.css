@@ -133,6 +133,80 @@
     border-left: 1px solid var(--td-row-border);
 }
 
+/* Checkbox cell */
+#component_data_read .checkbox-cell {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: default;
+    border-right: 1px solid var(--td-header-border);
+}
+
+#component_data_read .header-row .checkbox-cell,
+#component_data_read .data-row .checkbox-cell {
+    border-right: 1px solid var(--td-header-border);
+}
+
+#component_data_read .checkbox-cell input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+/* Selected row highlight */
+#component_data_read .data-row.selected {
+    background: var(--td-selected-row-bg);
+    outline: 1px solid var(--td-selected-row-border);
+    outline-offset: -1px;
+}
+
+/* Batch actions bar */
+#component_data_read .batch-actions-bar {
+    position: sticky;
+    top: 30px;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: var(--batch-bar-bg);
+    border-bottom: 1px solid var(--batch-bar-border);
+    font-size: 0.875rem;
+    transition: opacity 0.2s;
+}
+
+#component_data_read .batch-actions-bar .batch-count {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--td-header-color);
+}
+
+#component_data_read .batch-actions-bar .btn-link {
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+
+/* Batch edit modal: checkbox + field row */
+#component_data_batch_edit .batch-col-check {
+    width: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#component_data_batch_edit .batch-col-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+#component_data_batch_edit .batch-col-field {
+    vertical-align: middle;
+}
+
 /* Hover effect on cell to indicate editing capability */
 #component_data_read .data-cell:hover {
     background-color: var(--td-row-hover);

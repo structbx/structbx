@@ -1192,6 +1192,21 @@ export const uiTexts = {
     "table.modal_confirm_delete_table": { en: "Are you sure you want to delete the table <strong class=\"name\"></strong>, this will delete all records in it", es: "Seguro desea eliminar la tabla <strong class=\"name\"></strong>, esto eliminará todos los registros en él" },
     "table.delete": { en: "Delete", es: "Eliminar" },
 
+    // Batch selection
+    "table.x_selected": { en: "<span class=\"batch-count-num\">${count}</span> selected", es: "<span class=\"batch-count-num\">${count}</span> seleccionados" },
+    "table.selected": { en: "selected", es: "seleccionados" },
+    "table.edit_selected": { en: "Edit Selected", es: "Editar seleccionados" },
+    "table.delete_selected": { en: "Delete Selected", es: "Eliminar seleccionados" },
+    "table.clear_selection": { en: "Clear", es: "Limpiar" },
+    "table.modal_batch_edit_title": { en: "Edit <span class=\"batch-count-target\"></span> records", es: "Editar <span class=\"batch-count-target\"></span> registros" },
+    "table.modal_batch_edit_desc": { en: "Select the columns you want to modify and set their new values.", es: "Selecciona las columnas que deseas modificar y establece sus nuevos valores." },
+    "table.modal_batch_edit_btn": { en: "Update all selected", es: "Actualizar todos los seleccionados" },
+    "table.modal_batch_delete_confirm": { en: "Are you sure you want to delete <strong class=\"batch-count-target\"></strong> records?", es: "¿Seguro que deseas eliminar <strong class=\"batch-count-target\"></strong> registros?" },
+    "table.batch_edit_success": { en: "${success} records updated.", es: "${success} registros actualizados." },
+    "table.batch_delete_success": { en: "${success} records deleted.", es: "${success} registros eliminados." },
+    "table.batch_edit_error": { en: "Error updating record ${identifier}: ${error}", es: "Error al actualizar el registro ${identifier}: ${error}" },
+    "table.batch_delete_error": { en: "Error deleting record ${identifier}: ${error}", es: "Error al eliminar el registro ${identifier}: ${error}" },
+
     // Settings page
     "settings.page_title": { en: "Settings - StructBX", es: "Configuraciones - StructBX" },
     "settings.breadcrumb": { en: "Settings", es: "Configuraciones" },

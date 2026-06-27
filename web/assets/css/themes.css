@@ -119,6 +119,12 @@
     --td-resize-handle: #3b82f6;
     --td-scrollbar-track: #222222;
     --td-scrollbar-thumb: #555555;
+
+    /* Selection & batch */
+    --td-selected-row-bg: rgba(59, 130, 246, 0.15);
+    --td-selected-row-border: #3b82f6;
+    --batch-bar-bg: #1a1a1a;
+    --batch-bar-border: #333333;
 }
 
 /* ── Light theme ─────────────────────────────────────────────────────── */
@@ -235,4 +241,10 @@
     --td-resize-handle: #3b82f6;
     --td-scrollbar-track: #e2e8f0;
     --td-scrollbar-thumb: #94a3b8;
+
+    /* Selection & batch */
+    --td-selected-row-bg: rgba(59, 130, 246, 0.08);
+    --td-selected-row-border: #3b82f6;
+    --batch-bar-bg: #f4f4f5;
+    --batch-bar-border: #e2e8f0;
 }

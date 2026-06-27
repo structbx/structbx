@@ -418,6 +418,23 @@
                                         <div class="table-header" id="tableHeader">
                                             <div class="header-row" id="headerRow"></div>
                                         </div>
+                                        <!-- Batch actions bar -->
+                                        <div id="batchActionsBar" class="batch-actions-bar d-none">
+                                            <span class="batch-count" data-i18n-html="table.x_selected">
+                                                <span class="batch-count-num">0</span>
+                                                <span data-i18n="table.selected">selected</span>
+                                            </span>
+                                            <button class="btn btn-sm btn-dark-shadow batch-edit-mass" disabled data-i18n="table.edit_selected">
+                                                <i class="fas fa-pen me-1"></i>Edit Selected
+                                            </button>
+                                            <button class="btn btn-sm btn-danger batch-delete-mass" disabled data-i18n="table.delete_selected">
+                                                <i class="fas fa-trash me-1"></i>Delete Selected
+                                            </button>
+                                            <button class="btn btn-sm btn-link batch-clear" data-i18n="table.clear_selection">
+                                                Clear
+                                            </button>
+                                        </div>
+                                        <!-- /Batch actions bar -->
                                         <div class="table-body" id="tableBody"></div>
                                     </div>
                                 </div>
@@ -534,7 +551,7 @@
                         </div>
                         <!-- /Data: Modify -->
 
-                        <!-- Data: Delete -->
+                        <!-- Data: Delete (single and batch) -->
                         <div class="modal right-side-modal fade" id="component_data_delete" tabindex="-1" aria-labelledby="component_data_delete_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <form class="modal-content" novalidate>
@@ -547,7 +564,10 @@
                                     <div class="modal-body">
                                         <div class="notifications"></div>
                                         <input type="hidden" name="identifier" required>
-                                        <p data-i18n="table.modal_confirm_delete_record">Are you sure you want to delete the record ID <strong class="identifier"></strong></p>
+                                        <!-- Single delete message (existing, kept for backward compat) -->
+                                        <p class="single-delete-msg" data-i18n="table.modal_confirm_delete_record">Are you sure you want to delete the record ID <strong class="identifier"></strong></p>
+                                        <!-- Batch delete message -->
+                                        <p class="batch-delete-msg d-none" data-i18n-html="table.modal_batch_delete_confirm">Are you sure you want to delete <strong class="batch-count-target"></strong> records?</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
@@ -561,6 +581,57 @@
                             </div>
                         </div>
                         <!-- /Data: Delete -->
+
+                        <!-- Data: Batch Edit -->
+                        <div class="modal right-side-modal fade" id="component_data_batch_edit" tabindex="-1" aria-labelledby="component_data_batch_edit_label" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form class="modal-content" novalidate>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="component_data_batch_edit_label" data-i18n-html="table.modal_batch_edit_title">
+                                            <i class="fas fa-pen me-2"></i>Edit <span class="batch-count-target"></span> records
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="container-xxl">
+                                            <div class="notifications"></div>
+                                            <p class="text-muted mb-3" data-i18n="table.modal_batch_edit_desc">
+                                                <i class="fas fa-info-circle me-1"></i>Select the columns you want to modify and set their new values.
+                                            </p>
+
+                                            <!-- Sub header (color) -->
+                                            <ul class="nav nav-pills justify-content-end">
+                                                <li class="nav-item dropdown">
+                                                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#" role="button" aria-expanded="false" data-i18n="table.modal_options">Options</a>
+                                                    <ul class="dropdown-menu p-3" style="min-width: 360px;">
+                                                        <li>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span data-i18n="table.modal_color"><i class="fas fa-paint-brush me-2"></i>Color</span>
+                                                                <div id="component_data_batch_edit_colorHeader"></div>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                            <!-- /Sub header -->
+
+                                            <table class="table table-form">
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" data-i18n="table.modal_batch_edit_btn">
+                                            <i class="fas fa-check me-2"></i>Update all selected
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <!-- /Data: Batch Edit -->
 
                         <!-- Data: Import data -->
                         <div id="component_data_import" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_data_import_label" aria-hidden="true">

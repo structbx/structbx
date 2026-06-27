@@ -30,6 +30,8 @@ export class DataController extends BaseController{
         this.data_read_page_end = false;
         this.users_in_database = {};
         this.read_mutex = false;
+        this.selectedRecords = new Set();
+        this.batchEditIdentifiers = [];
         this.colorsSelect = 
         [
             {color: '#4361ee', html: `<span class='small' style='background-color:#4361ee;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.primary_blue') : 'Primary Blue'}</span>`},
@@ -91,6 +93,9 @@ export class DataController extends BaseController{
 
         this.row_cell = (contents) => {
             return `<div class="data-cell editable" style="width: 200px; flex: 0 0 200px;">${contents}</div>`;
+        }
+        this.checkbox_cell = (identifier) => {
+            return `<div class="data-cell checkbox-cell"><input type="checkbox" class="row-selector" value="${identifier}"></div>`;
         }
         this.column_cell = (identifier, contents) => {
             return `
@@ -236,8 +241,10 @@ export class DataController extends BaseController{
             this.add(e);
         });
         
-        // Read columns and data to modify
+        // Read columns and data to modify (ignore checkbox clicks)
         $(document).on("click", '#component_data_read .data-row', (e) => {
+            if($(e.target).is('.row-selector, .row-selector *, .checkbox-cell, .checkbox-cell *'))
+                return;
             e.preventDefault();
             this.preModify(e);
         });
@@ -254,10 +261,13 @@ export class DataController extends BaseController{
             this.preDelete(e);
         });
         
-        // Delete record
+        // Delete record (single or batch)
         $('#component_data_delete form').submit((e) => {
             e.preventDefault();
-            this.delete();
+            if($('#component_data_delete form').attr('data-batch-mode') === '1')
+                this.batchDeleteRecords();
+            else
+                this.delete();
         });
         
         // Export Data
@@ -269,6 +279,46 @@ export class DataController extends BaseController{
         $('#component_data_export .export').click((e) => {
             e.preventDefault();
             this.export();
+        });
+
+        // ── Selection events ────────────────────────────────────────────────
+
+        // Row checkbox toggle
+        $(document).on('change', '#tableBody .row-selector', (e) => {
+            const cb = e.target;
+            this.toggleSelection($(cb).val(), cb.checked);
+        });
+
+        // Select all checkbox
+        $(document).on('change', '#selectAll', (e) => {
+            if(e.target.checked)
+                this.selectAll();
+            else
+                this.deselectAll();
+        });
+
+        // Batch Edit button
+        $('#batchActionsBar .batch-edit-mass').click((e) => {
+            e.preventDefault();
+            this.preBatchEdit();
+        });
+
+        // Batch Edit form submit
+        $('#component_data_batch_edit form').submit((e) => {
+            e.preventDefault();
+            this.batchEdit(e);
+        });
+
+        // Batch Delete button
+        $('#batchActionsBar .batch-delete-mass').click((e) => {
+            e.preventDefault();
+            this.preBatchDelete();
+        });
+
+        // Batch Clear button
+        $('#batchActionsBar .batch-clear').click((e) => {
+            e.preventDefault();
+            this.deselectAll();
         });
 
         // Start long polling for real-time updates
@@ -303,6 +353,13 @@ export class DataController extends BaseController{
         // Variables
         let keys = response_data.body.columns_meta.data;
 
+        // Add checkbox column header as first column
+        $('#component_data_read #headerRow').append(`
+            <div class="header-cell checkbox-cell" style="width:40px;flex:0 0 40px;">
+                <input type="checkbox" id="selectAll" title="${window.structbxI18n ? window.structbxI18n.t('table.select_all') : 'Select all'}">
+            </div>`
+        );
+
         // Setup columns meta
         new wtools.UIElementsCreator('#component_data_read #headerRow', keys)
         .Build_((column) => {
@@ -323,6 +380,9 @@ export class DataController extends BaseController{
     createRow(response_data, row)
     {
         let elements = [];
+
+        // Add checkbox cell as first element for row selection
+        elements.push(this.checkbox_cell(row.identifier));
 
         // Loop through each column in the response_data.body.columns array.
         let key = 0;
@@ -447,6 +507,15 @@ export class DataController extends BaseController{
                     return new wtools.UIElementsPackage(`<div id="${row.identifier}" class="data-row" identifier="${row.identifier}"></div>`, elements).Pack_();
                 });
 
+                // Restore selection state for existing rows
+                for(const id of this.selectedRecords){
+                    const row = $(`#${id}`);
+                    if(row.length){
+                        row.addClass('selected');
+                        row.find('.row-selector').prop('checked', true);
+                    }
+                }
+
                 // Next page if not reload
                 if(!reload)
                     this.data_read_page++;
@@ -492,6 +561,12 @@ export class DataController extends BaseController{
                 $('#' + row_identifier).html('');
                 for(let element of elements){
                     $('#' + row_identifier).append(element);
+                }
+
+                // Preserve selected state after update
+                if(this.selectedRecords.has(row_identifier)){
+                    $('#' + row_identifier).addClass('selected');
+                    $('#' + row_identifier).find('.row-selector').prop('checked', true);
                 }
             });
 
@@ -543,17 +618,268 @@ export class DataController extends BaseController{
                     // need to move to a different sort position. Force a full
                     // reload to keep the view consistent.
                     if(reload || (updates.length > 0 && this._viewHasFilterOrSort())) {
+                        this.deselectAll();
                         this.read(true);
                     } else {
-                        for(const id of deletes)
+                        for(const id of deletes){
                             $(`#${id}`).remove();
+                            this.selectedRecords.delete(id);
+                        }
                         for(const id of updates)
                             this.updateRow(id);
+                        this.updateBatchActions();
                     }
                 }
             }
         });
     };
+
+    // ── Selection methods ──────────────────────────────────────────────────
+
+    toggleSelection(identifier, checked){
+        if(checked){
+            this.selectedRecords.add(identifier);
+            $(`#${identifier}`).addClass('selected');
+        } else {
+            this.selectedRecords.delete(identifier);
+            $(`#${identifier}`).removeClass('selected');
+            $('#selectAll').prop('checked', false);
+        }
+        this.updateBatchActions();
+    }
+
+    selectAll(){
+        const checkboxes = $('#tableBody .row-selector');
+        checkboxes.each((i, cb) => {
+            $(cb).prop('checked', true);
+            this.toggleSelection($(cb).val(), true);
+        });
+    }
+
+    deselectAll(){
+        const checkboxes = $('#tableBody .row-selector');
+        checkboxes.each((i, cb) => {
+            $(cb).prop('checked', false);
+        });
+        this.selectedRecords.clear();
+        $('#selectAll').prop('checked', false);
+        $('#tableBody .data-row').removeClass('selected');
+        this.updateBatchActions();
+    }
+
+    updateBatchActions(){
+        const count = this.selectedRecords.size;
+        const bar = $('#batchActionsBar');
+        const editBtn = bar.find('.batch-edit-mass');
+        const deleteBtn = bar.find('.batch-delete-mass');
+        const countEl = bar.find('.batch-count-num');
+
+        countEl.text(count);
+        if(count > 0){
+            bar.removeClass('d-none');
+            editBtn.prop('disabled', false);
+            deleteBtn.prop('disabled', false);
+        } else {
+            bar.addClass('d-none');
+            editBtn.prop('disabled', true);
+            deleteBtn.prop('disabled', true);
+        }
+    }
+
+    // ── Batch Edit ──────────────────────────────────────────────────────────
+
+    preBatchEdit(){
+        $('#component_data_batch_edit .notifications').html('');
+        $('#component_data_batch_edit .batch-count-target').text(this.selectedRecords.size);
+
+        this.batchEditIdentifiers = [...this.selectedRecords];
+
+        // Setup form
+        $('#component_data_batch_edit .form_input_header').html('');
+        $('#component_data_batch_edit table tbody').html('');
+
+        // Read columns
+        this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier())
+        .then((response_data) => {
+            const result = new ResponseManager(response_data, '', 'target.data_columns_read');
+            if(!result.Verify_()) return;
+
+            if(response_data.body.data.length < 1){
+                new wtools.Notification('WARNING').Show_(
+                    window.structbxI18n ? window.structbxI18n.t('data.create_columns_first') : 'You must create columns to add records.');
+                return;
+            }
+
+            // Get color select for batch edit
+            this.colorSelectBatchEdit = new DOME.CustomSelect('#component_data_batch_edit_colorHeader');
+            this.colorSelectBatchEdit.AddOption_('', window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --');
+            this.colorsSelect.forEach(co => {
+                this.colorSelectBatchEdit.AddOption_(co.color, co.html);
+            });
+            this.colorSelectBatchEdit.hiddenInput.attr('name', '_structbx_column_colorHeader');
+
+            // Build rows: checkbox + field for each column
+            new wtools.UIElementsCreator('#component_data_batch_edit table tbody', response_data.body.data)
+            .Build_((row) => {
+                if(row.identifier == "identifier"
+                    || row.column_type == ColumnType.CreatedDate
+                    || row.column_type == ColumnType.UpdatedDate
+                    || row.column_type == ColumnType.Image
+                    || row.column_type == ColumnType.File)
+                    return undefined;
+
+                let table_element_object = new TableElements(
+                    wtools.IFUndefined(row.column_type, ColumnType.Text), row, this.getTableIdentifier());
+                let table_icon = table_element_object.GetIcon_();
+                let table_element = $(table_element_object.Get_());
+                let elements = [];
+
+                if(row.column_type == ColumnType.Selection){
+                    table_element = $('<td></td>');
+                    let cs = new DOME.CustomSelect(table_element);
+                    cs.hiddenInput.attr('name', row.identifier);
+                    this.linkSelectionOptions(cs, row.link_to, row.name, '#component_data_batch_edit .notifications', '');
+                } else if(row.column_type == ColumnType.User || row.column_type == ColumnType.CurrentUser) {
+                    table_element = $('<td></td>');
+                    let cs = new DOME.CustomSelect(table_element);
+                    cs.hiddenInput.attr('name', row.identifier);
+                    this.linkUsersInDatabaseOptions(cs, '#component_data_batch_edit .notifications', '');
+                } else {
+                    $(table_element).attr('name', row.identifier);
+                }
+
+                elements.push(`<td class="batch-col-check"><input type="checkbox" name="_modify_col_${row.identifier}" value="${row.identifier}"></td>`);
+                elements.push(`<th scope="row" class="batch-col-field">${table_icon}${row.name}</th>`);
+                elements.push($('<td class="batch-col-field"></td>').append(table_element));
+
+                return new wtools.UIElementsPackage('<tr></tr>', elements).Pack_();
+            });
+
+            $('#component_data_batch_edit form').removeClass('was-validated');
+            $('#component_data_batch_edit').modal('show');
+        });
+    }
+
+    batchEdit(e){
+        // Get form data
+        const form = e.target;
+        const formData = new FormData(form);
+        const checkedColumns = [];
+        form.querySelectorAll('input[type="checkbox"][name^="_modify_col_"]:checked').forEach(cb => {
+            checkedColumns.push(cb.value);
+        });
+
+        if(checkedColumns.length === 0){
+            $('#component_data_batch_edit .notifications').html('');
+            new wtools.Notification('WARNING', 5000, '#component_data_batch_edit .notifications').Show_(
+                window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'Select at least one column to modify.');
+            return;
+        }
+
+        let wait = new wtools.ElementState('#component_data_batch_edit form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const table_identifier = this.getTableIdentifier();
+        const color_header = formData.get('_structbx_column_colorHeader') || '';
+        let success = 0;
+        let errors = 0;
+        let errorDetails = [];
+
+        const processNext = (index) => {
+            if(index >= this.batchEditIdentifiers.length){
+                // Done
+                wait.Off_();
+                $('#component_data_batch_edit').modal('hide');
+                if(success > 0){
+                    new wtools.Notification('SUCCESS').Show_(
+                        window.structbxI18n ? window.structbxI18n.t('table.batch_edit_success', {success: success}) : `${success} records updated.`);
+                    this.deselectAll();
+                    this.changeIntVerification();
+                }
+                if(errorDetails.length > 0){
+                    new wtools.Notification('WARNING', 8000, '#component_data_batch_edit .notifications').Show_(
+                        errorDetails.join('; '));
+                }
+                return;
+            }
+
+            const id = this.batchEditIdentifiers[index];
+            const data = new FormData();
+            data.append('table-identifier', table_identifier);
+            data.append('identifier', id);
+            data.append('_structbx_column_colorHeader', color_header);
+            for(const colId of checkedColumns){
+                data.append(colId, formData.get(colId) || '');
+            }
+
+            this.tableData.modify(data).then((rd) => {
+                const result = new ResponseManager(rd, '', 'target.data_modify');
+                if(result.Verify_()){
+                    success++;
+                } else {
+                    errors++;
+                    errorDetails.push(window.structbxI18n
+                        ? window.structbxI18n.t('table.batch_edit_error', {identifier: id, error: rd.body.message || 'Unknown'})
+                        : `Error updating ${id}: ${rd.body.message || 'Unknown'}`);
+                }
+                processNext(index + 1);
+            });
+        };
+
+        processNext(0);
+    }
+
+    // ── Batch Delete ────────────────────────────────────────────────────────
+
+    preBatchDelete(){
+        const count = this.selectedRecords.size;
+        $('.batch-delete-msg .batch-count-target').text(count);
+        $('.batch-delete-msg').removeClass('d-none');
+        $('.single-delete-msg').addClass('d-none');
+        $('#component_data_delete form').attr('data-batch-mode', '1');
+        $('#component_data_delete').modal('show');
+    }
+
+    batchDeleteRecords(){
+        const identifiers = [...this.selectedRecords];
+        const table_identifier = this.getTableIdentifier();
+        let success = 0;
+        let errors = 0;
+        let wait = new wtools.ElementState('#component_data_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const processNext = (index) => {
+            if(index >= identifiers.length){
+                wait.Off_();
+                $('#component_data_delete').modal('hide');
+                $('.batch-delete-msg').addClass('d-none');
+                $('.single-delete-msg').removeClass('d-none');
+                $('#component_data_delete form').removeAttr('data-batch-mode');
+                if(success > 0){
+                    new wtools.Notification('SUCCESS').Show_(
+                        window.structbxI18n ? window.structbxI18n.t('table.batch_delete_success', {success: success}) : `${success} records deleted.`);
+                    this.deselectAll();
+                    this.changeIntVerification();
+                }
+                if(errors > 0){
+                    new wtools.Notification('WARNING', 8000, '#component_data_delete .notifications').Show_(
+                        `${errors} deletion errors.`);
+                }
+                return;
+            }
+
+            const id = identifiers[index];
+            this.tableData.delete(id, table_identifier).then((rd) => {
+                const result = new ResponseManager(rd, '', 'target.data_delete');
+                if(result.Verify_()){
+                    success++;
+                } else {
+                    errors++;
+                }
+                processNext(index + 1);
+            });
+        };
+
+        processNext(0);
+    }
 
     setupColumn(row, elements, first, target, value = undefined){
         // If column type is a NORMAL type

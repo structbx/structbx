@@ -1798,6 +1798,15 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
         if(column_type->ToString_() == ColumnType::CreatedDate || column_type->ToString_() == ColumnType::UpdatedDate)
             continue;
 
+        // Partial update: for kModify, skip columns not present in the request
+        // so that only explicitly sent columns are updated (supports batch edit)
+        if(type == Type::kModify)
+        {
+            auto func_param = self.GetParameter_(identifier->ToString_());
+            if(func_param == self.get_parameters().end())
+                continue;
+        }
+
         // Step 2: Search column type image or file
         if(column_type->ToString_() == ColumnType::Image || column_type->ToString_() == ColumnType::File)
         {
