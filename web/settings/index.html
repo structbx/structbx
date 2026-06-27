@@ -138,6 +138,45 @@
                                 </section>
                                 <!-- /Databases: Read -->
 
+                                <!-- Databases: Modify -->
+                                <section id="component_databases_modify" class="d-none">
+                                    <article class="card p-4 bg-white mb-4">
+                                        <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                            <div class="flex-grow-1 align-self-center">
+                                                <span class="fw-bold" data-i18n="settings.modal_edit_db">Edit database</span>
+                                                <span class="database-name ms-2"></span>
+                                            </div>
+                                        </header>
+                                        <div class="mb-2 mt-4">
+                                            <div class="notifications"></div>
+                                            <form novalidate>
+                                                <input type="hidden" name="identifier" required>
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th scope="row" data-i18n="settings.name">Name</th>
+                                                            <td><input class="form-control" type="text" name="name" required></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th scope="row" data-i18n="settings.description">Description</th>
+                                                            <td><textarea class="form-control" name="description"></textarea></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div class="mt-2 d-flex gap-2">
+                                                    <button type="button" class="delete btn btn-danger me-auto" data-i18n="settings.modal_delete_db">
+                                                        <i class="fas fa-times me-2"></i>Delete database
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary" data-i18n="settings.save">
+                                                        <i class="fas fa-save me-2"></i>Save
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </article>
+                                </section>
+                                <!-- /Databases: Modify -->
+
                                 <!-- Databases: Add -->
                                 <div class="modal right-side-modal fade" id="component_databases_add" tabindex="-1" aria-labelledby="component_databases_add_label" aria-hidden="true">
                                     <div class="modal-dialog modal-lg">
@@ -270,6 +309,35 @@
                                     </div>
                                 </div>
                                 <!-- /Databases: Users: Delete -->
+
+                                <!-- Databases: Delete -->
+                                <div class="modal right-side-modal fade" id="component_databases_delete" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form class="modal-content" novalidate>
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" data-i18n="settings.modal_delete_db">
+                                                    <i class="fas fa-times me-2"></i>Delete database
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="notifications"></div>
+                                                <input type="hidden" name="identifier" required>
+                                                <p data-i18n-html="settings.confirm_delete_db">To delete this database, type its name: <strong class="database-name"></strong></p>
+                                                <input class="form-control mt-3" type="text" name="confirm_name" placeholder="Type the database name to confirm" data-i18n-placeholder="settings.type_name_to_confirm" required>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="settings.cancel">
+                                                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                                                </button>
+                                                <button type="submit" class="btn btn-danger" disabled data-i18n="settings.borrar">
+                                                    <i class="fas fa-times me-2"></i>Delete
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <!-- /Databases: Delete -->
 
                             </section>
                             <!-- /Databases section -->

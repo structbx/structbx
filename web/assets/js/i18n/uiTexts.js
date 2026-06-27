@@ -649,6 +649,14 @@ export const uiTexts = {
         en: "You must select a group first.",
         es: "Debe seleccionar un grupo primero."
     },
+    "settings.database_modified": {
+        en: "Database modified successfully.",
+        es: "Base de datos modificada exitosamente."
+    },
+    "settings.database_deleted": {
+        en: "Database deleted.",
+        es: "Base de datos eliminada."
+    },
     "settings.endpoints_read_failed": {
         en: "Could not access endpoints.",
         es: "No se pudo acceder a los endpoints."
@@ -1249,4 +1257,8 @@ export const uiTexts = {
     "settings.modal_endpoint": { en: "Endpoint", es: "Endpoint" },
     "settings.modal_delete_permission": { en: "Delete permission", es: "Eliminar permiso" },
     "settings.confirm_delete_permission": { en: "Are you sure you want to delete the permission", es: "Seguro desea eliminar el permiso" },
+    "settings.modal_edit_db": { en: "Edit database", es: "Editar base de datos" },
+    "settings.modal_delete_db": { en: "Delete database", es: "Eliminar base de datos" },
+    "settings.confirm_delete_db": { en: "To delete this database, type its name: <strong class=\"database-name\"></strong>", es: "Para eliminar esta base de datos, escriba su nombre: <strong class=\"database-name\"></strong>" },
+    "settings.type_name_to_confirm": { en: "Type the database name to confirm", es: "Escriba el nombre de la base de datos para confirmar" },
 };

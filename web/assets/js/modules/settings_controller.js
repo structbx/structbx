@@ -27,6 +27,8 @@ export class SettingsController extends BaseController{
         this.database = new Database;
         this.databaseUser = new DatabaseUser;
         this.currentDatabaseIdentifier = null;
+        this.currentDatabaseName = null;
+        this.currentDatabaseDescription = null;
 
         // Notifications for each entity
         this.notifications = {
@@ -51,7 +53,9 @@ export class SettingsController extends BaseController{
             },
             databases: {
                 read: new wtools.Notification('WARNING', 5000, '#component_databases_read .notifications'),
-                add: new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications')
+                add: new wtools.Notification('WARNING', 5000, '#component_databases_add .notifications'),
+                modify: new wtools.Notification('WARNING', 5000, '#component_databases_modify .notifications'),
+                delete: new wtools.Notification('WARNING', 5000, '#component_databases_delete .notifications')
             },
             databasesUsers: {
                 read: new wtools.Notification('WARNING', 5000, '#component_databases_users_read .notifications'),
@@ -202,6 +206,17 @@ export class SettingsController extends BaseController{
             this.preDeleteDatabaseUser(e);
         });
         $(document).on('submit', '#component_databases_users_delete form', e => this.deleteDatabaseUser(e));
+        $(document).on('click', '#component_databases_modify .delete', (e) => {
+            e.preventDefault();
+            this.preDeleteDatabase();
+        });
+        $(document).on('submit', '#component_databases_modify form', e => this.modifyDatabase(e));
+        $(document).on('submit', '#component_databases_delete form', e => this.deleteDatabase(e));
+        $(document).on('input', '#component_databases_delete input[name="confirm_name"]', function() {
+            const expected = $('#component_databases_delete .database-name').text();
+            const typed = $(this).val();
+            $('#component_databases_delete button[type="submit"]').prop('disabled', typed !== expected);
+        });
 
         // ---- PERMISSIONS ----
         $(document).on('change', '#component_permissions_read select[name=id_group]', () => {
@@ -669,17 +684,102 @@ export class SettingsController extends BaseController{
         });
     }
 
+    modifyDatabase(e) {
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_databases_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check) {
+            $('#component_databases_modify .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_databases_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
+            return;
+        }
+
+        const identifier = $('#component_databases_modify input[name="identifier"]').val();
+        const name = $('#component_databases_modify input[name="name"]').val();
+        const description = $('#component_databases_modify textarea[name="description"]').val();
+
+        this.database.modify(identifier, name, description).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_databases_modify .notifications', 'target.databases_modify');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_modified') : 'Database modified successfully.');
+            this.readDatabases();
+            wtools.CleanForm($('#component_databases_modify form'));
+        });
+    }
+
+    preDeleteDatabase() {
+        const identifier = $('#component_databases_modify input[name="identifier"]').val();
+        const name = $('#component_databases_modify .database-name').text();
+        if (!identifier || !name) {
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_identifier_not_found') : 'Database identifier not found.');
+            return;
+        }
+        $('#component_databases_delete input[name="identifier"]').val(identifier);
+        $('#component_databases_delete .database-name').text(name);
+        $('#component_databases_delete input[name="confirm_name"]').val('');
+        $('#component_databases_delete button[type="submit"]').prop('disabled', true);
+        $('#component_databases_delete .notifications').html('');
+        $('#component_databases_delete').modal('show');
+    }
+
+    deleteDatabase(e) {
+        e.preventDefault();
+
+        const identifier = $('#component_databases_delete input[name="identifier"]').val();
+        const typed = $('#component_databases_delete input[name="confirm_name"]').val();
+        const expected = $('#component_databases_delete .database-name').text();
+
+        if (typed !== expected) {
+            new wtools.Notification('WARNING', 5000, '#component_databases_delete .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'The database name does not match.');
+            return;
+        }
+
+        const wait = new wtools.ElementState('#component_databases_delete button[type="submit"]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        this.database.delete(identifier).then(response => {
+            wait.Off_();
+
+            const result = new ResponseManager(response, '#component_databases_delete .notifications', 'target.databases_delete');
+            if(!result.Verify_())
+                return;
+
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_deleted') : 'Database deleted.');
+            $('#component_databases_delete').modal('hide');
+            $('#component_databases_modify').addClass('d-none');
+            $('#component_databases_users_read').addClass('d-none');
+            this.currentDatabaseIdentifier = null;
+            this.currentDatabaseName = null;
+            this.currentDatabaseDescription = null;
+            this.readDatabases();
+        });
+    }
+
     // --------------------------------------------------
     // DATABASE USERS
     // --------------------------------------------------
     showDatabaseUsers(e){
         const identifier = $(e.currentTarget).attr('database-identifier');
         const name = $(e.currentTarget).attr('database-name');
+        const description = $(e.currentTarget).find('td:nth-child(4)').text().trim();
         if (!identifier) {
             new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_identifier_not_found') : 'Database identifier not found.');
             return;
         }
         this.currentDatabaseIdentifier = identifier;
+        this.currentDatabaseName = name;
+        this.currentDatabaseDescription = description;
+        $('#component_databases_modify .database-name').text(name);
+        $('#component_databases_modify input[name="identifier"]').val(identifier);
+        $('#component_databases_modify input[name="name"]').val(name);
+        $('#component_databases_modify textarea[name="description"]').val(description);
+        $('#component_databases_modify').removeClass('d-none');
         $('#component_databases_users_read .database-name').text(name);
         $('#component_databases_users_read').removeClass('d-none');
         this.readDatabaseUsers();

@@ -18,4 +18,18 @@ export class Database{
 
         return await new wtools.Request("/api/databases/add", "POST", data, false).Exec_();
     }
+    async modify(identifier, name, description){
+        const data = new FormData();
+        data.append('identifier', identifier);
+        data.append('name', name);
+        data.append('description', description);
+
+        return await new wtools.Request("/api/databases/modify", "PUT", data).Exec_();
+    }
+    async delete(identifier){
+        const data = new FormData();
+        data.append('identifier', identifier);
+
+        return await new wtools.Request("/api/databases/delete", "DELETE", data).Exec_();
+    }
 }
