@@ -7,6 +7,8 @@
 // 1. FROM JAVASCRIPT (controllers / submodules):
 //      i18n.t('section.key')                   → "textContent"
 //      i18n.t('section.key', {param: value})   → with ${param} interpolation
+//      structbxi18n.t('section.key')                   → "textContent"
+//      structbxi18n.t('section.key', {param: value})   → with ${param} interpolation
 //
 // 2. FROM HTML (data-i18n attributes):
 //      data-i18n="section.key"                 → replaces textContent
