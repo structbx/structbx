@@ -270,7 +270,7 @@ export class BaseController {
 
             // Results elements creator (Header)
             if(response_data.body.data.length < 2)
-                $('#component_databases_selector').append('<li class="p-2"><span class="text-white">No hay m&aacute;s bases de datos</span></li>');
+                $('#component_databases_selector').append('<li class="p-2"><span class="text-white">' + structbxI18n.t('base.no_more_databases') + '</span></li>');
 
             new wtools.UIElementsCreator('#component_databases_selector', response_data.body.data)
             .Build_((row) => {
