@@ -5,6 +5,7 @@ import { I18n } from '../i18n/i18n.js';
 import { Table } from '../models/Table.js';
 import { TableColumn } from '../models/TableColumn.js';
 import { TablePermission } from '../models/TablePermission.js';
+import { RowPolicy } from '../models/RowPolicy.js';
 
 export class TableSettingsController extends BaseController{
     constructor() {
@@ -13,18 +14,22 @@ export class TableSettingsController extends BaseController{
         this.table = new Table;
         this.tableColumn = new TableColumn;
         this.tablePermission = new TablePermission;
+        this.rowPolicy = new RowPolicy;
 
         this.notification.read = new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications');
         this.notification.add = new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications');
         this.notification.modify = new wtools.Notification('WARNING', 5000, '#component_settings_permissions_modify .notifications');
         this.notification.delete = new wtools.Notification('WARNING', 5000, '#component_settings_delete .notifications');
+        this.notification.row_policy_add = new wtools.Notification('WARNING', 5000, '#component_settings_row_policies_add .notifications');
+        this.notification.row_policy_modify = new wtools.Notification('WARNING', 5000, '#component_settings_row_policies_modify .notifications');
+        this.notification.row_policy_delete = new wtools.Notification('WARNING', 5000, '#component_settings_row_policies_delete .notifications');
 
         this.options_permissions = new wtools.SelectOptions([
             new wtools.OptionValue("0", window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No', true),
             new wtools.OptionValue("1", window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
         ]);
 
-        const perm_selectors = ['read', 'add', 'modify', 'delete', 'just_owner'];
+        const perm_selectors = ['read', 'add', 'modify', 'delete'];
         for(const perm of perm_selectors){
             this.options_permissions.Build_(`#component_settings_permissions_add select[name="${perm}"]`);
             this.options_permissions.Build_(`#component_settings_permissions_modify select[name="${perm}"]`);
@@ -83,6 +88,32 @@ export class TableSettingsController extends BaseController{
         });
 
         $(document).on('submit', '#component_settings_permissions_delete form', e => this.deletePermission(e));
+
+        $(document).on('click', '#component_settings_row_policies .add', e => {
+            e.preventDefault();
+            this.preAddRowPolicy();
+        });
+
+        $(document).on('change', '#component_settings_row_policies_add select[name="target_type"]', e => this.toggleTargetIdInput(e));
+        $(document).on('change', '#component_settings_row_policies_add select[name="action_type"]', e => this.toggleFilterRows(e));
+        $(document).on('change', '#component_settings_row_policies_modify select[name="target_type"]', e => this.toggleTargetIdInput(e));
+        $(document).on('change', '#component_settings_row_policies_modify select[name="action_type"]', e => this.toggleFilterRows(e));
+
+        $(document).on('submit', '#component_settings_row_policies_add form', e => this.addRowPolicy(e));
+
+        $(document).on('click', '#component_settings_row_policies table tbody tr', e => {
+            e.preventDefault();
+            this.preModifyRowPolicy(e);
+        });
+
+        $(document).on('submit', '#component_settings_row_policies_modify form', e => this.modifyRowPolicy(e));
+
+        $(document).on('click', '#component_settings_row_policies_modify .delete', e => {
+            e.preventDefault();
+            this.preDeleteRowPolicy();
+        });
+
+        $(document).on('submit', '#component_settings_row_policies_delete form', e => this.deleteRowPolicy(e));
     }
 
     readSettings(){
@@ -102,6 +133,8 @@ export class TableSettingsController extends BaseController{
                 new wtools.Notification('SUCCESS', 5000, '#component_settings_general .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
+            this.readPermissions();
+            this.readRowPolicies();
             const row = response.body.data[0];
             $('#component_settings_general input[name="name"]').val(row.name);
             $('#component_settings_general select[name="public_form"]').val(row.public_form);
@@ -228,8 +261,7 @@ export class TableSettingsController extends BaseController{
                     `<td scope="row">${this.options_permissions.ValueToOption_(row.read)}</td>`,
                     `<td scope="row">${this.options_permissions.ValueToOption_(row.add)}</td>`,
                     `<td scope="row">${this.options_permissions.ValueToOption_(row.modify)}</td>`,
-                    `<td scope="row">${this.options_permissions.ValueToOption_(row.delete)}</td>`,
-                    `<td scope="row">${this.options_permissions.ValueToOption_(row.just_owner)}</td>`
+                    `<td scope="row">${this.options_permissions.ValueToOption_(row.delete)}</td>`
                 ];
                 return new wtools.UIElementsPackage(`<tr permission-identifier="${row.identifier}"></tr>`, elements).Pack_();
             });
@@ -261,7 +293,6 @@ export class TableSettingsController extends BaseController{
                 $('#component_settings_permissions_add form select[name="add"]').val("1");
                 $('#component_settings_permissions_add form select[name="modify"]').val("1");
                 $('#component_settings_permissions_add form select[name="delete"]').val("1");
-                $('#component_settings_permissions_add form select[name="just_owner"]').val("0");
                 $('#component_settings_permissions_add').modal('show');
             } catch(error){
                 new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.db_users_failed') : 'Could not access database users.');
@@ -332,7 +363,6 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_permissions_modify select[name="add"]').val(response.body.data[0].add);
             $('#component_settings_permissions_modify select[name="modify"]').val(response.body.data[0].modify);
             $('#component_settings_permissions_modify select[name="delete"]').val(response.body.data[0].delete);
-            $('#component_settings_permissions_modify select[name="just_owner"]').val(response.body.data[0].just_owner);
 
             wait.Off_();
             $('#component_settings_permissions_modify form').removeClass('was-validated');
@@ -395,6 +425,253 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_permissions_delete').modal('hide');
             $('#component_settings_permissions_modify').modal('hide');
             this.readPermissions();
+        });
+    }
+
+    readRowPolicies(){
+        const wait = new wtools.ElementState('#component_settings_row_policies .notifications', false, 'block', new wtools.WaitAnimation().for_block);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            return;
+        }
+
+        this.rowPolicy.read(table_identifier).then(response => {
+            wait.Off_();
+            $('#component_settings_row_policies .notifications').html('');
+            $('#component_settings_row_policies table tbody').html('');
+
+            const result = new ResponseManager(response, '#component_settings_row_policies .notifications', 'target.settings_row_policies');
+            if(!result.Verify_()) return;
+
+            if(response.body.data.length < 1){
+                new wtools.Notification('SUCCESS', 5000, '#component_settings_row_policies .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
+                return;
+            }
+
+            new wtools.UIElementsCreator('#component_settings_row_policies table tbody', response.body.data).Build_(row => {
+                const target_label = row.target_type == 'all'
+                    ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_all') : 'All')
+                    : row.target_type + ': ' + (row.target_id || '-');
+                const action_label = row.action_type == 'bypass'
+                    ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_bypass') : 'Bypass')
+                    : (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_filter') : 'Filter');
+                const condition = row.action_type == 'filter'
+                    ? (row.filter_column + ' ' + row.filter_operator + ' ' + row.filter_value)
+                    : '-';
+                const active = row.is_active == 1
+                    ? (window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
+                    : (window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No');
+
+                const elements = [
+                    `<th scope="row">${row.policy_name || '-'}</th>`,
+                    `<td>${target_label}</td>`,
+                    `<td>${action_label}</td>`,
+                    `<td>${condition}</td>`,
+                    `<td>${active}</td>`
+                ];
+                return new wtools.UIElementsPackage(`<tr policy-identifier="${row.identifier}"></tr>`, elements).Pack_();
+            });
+        });
+    }
+
+    preAddRowPolicy(){
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
+            return;
+        }
+
+        this.populatePolicyColumnsSelect(table_identifier, '#component_settings_row_policies_add select[name="filter_column"]', () => {
+            $('#component_settings_row_policies_add .notifications').html('');
+            wtools.CleanForm($('#component_settings_row_policies_add form'));
+            $('#component_settings_row_policies_add select[name="is_active"]').val("1");
+            $('#component_settings_row_policies_add select[name="priority"]').val("0");
+            $('#component_settings_row_policies_add .target-id-row').addClass('d-none');
+            $('#component_settings_row_policies_add .filter-row').show();
+            $('#component_settings_row_policies_add').modal('show');
+        });
+    }
+
+    toggleTargetIdInput(e){
+        const target_type = $(e.currentTarget).val();
+        const modal = $(e.currentTarget).closest('.modal');
+        if(target_type == 'all'){
+            modal.find('.target-id-row').addClass('d-none');
+        } else {
+            modal.find('.target-id-row').removeClass('d-none');
+        }
+    }
+
+    toggleFilterRows(e){
+        const action_type = $(e.currentTarget).val();
+        const modal = $(e.currentTarget).closest('.modal');
+        if(action_type == 'bypass'){
+            modal.find('.filter-row').hide();
+        } else {
+            modal.find('.filter-row').show();
+        }
+    }
+
+    populatePolicyColumnsSelect(table_identifier, selector, callback){
+        const select = $(selector);
+        select.html('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_column') : 'Select column...') + '</option>');
+
+        this.tableColumn.read(table_identifier, '').then(response => {
+            if(response.body.data && response.body.data.length > 0){
+                for(const col of response.body.data){
+                    select.append(`<option value="${col.identifier}">${col.name}</option>`);
+                }
+            }
+            if(callback) callback();
+        });
+    }
+
+    addRowPolicy(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_row_policies_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_settings_row_policies_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_settings_row_policies_add .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
+            return;
+        }
+
+        const data = new FormData($('#component_settings_row_policies_add form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        this.rowPolicy.add(data).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_row_policies_add .notifications', 'target.row_policy_add');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.row_policy_created') : 'Row policy created successfully.');
+            this.readRowPolicies();
+            $('#component_settings_row_policies_add').modal('hide');
+        });
+    }
+
+    preModifyRowPolicy(e){
+        const wait = new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
+            return;
+        }
+
+        const identifier = $(e.currentTarget).attr('policy-identifier');
+        if(identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.policy_identifier_not_found') : 'Row policy identifier not found.');
+            return;
+        }
+
+        this.rowPolicy.readByIdentifier(identifier).then(response => {
+            const result = new ResponseManager(response, '', 'target.row_policy_modify');
+            if(!result.Verify_()){
+                wait.Off_();
+                return;
+            }
+
+            if(response.body.data.length < 1){
+                new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.policy_not_found') : 'Row policy not found.');
+                wait.Off_();
+                return;
+            }
+
+            const data = response.body.data[0];
+            $('#component_settings_row_policies_modify input[name="identifier"]').val(data.identifier);
+            $('#component_settings_row_policies_modify input[name="policy_name"]').val(data.policy_name || '');
+            $('#component_settings_row_policies_modify select[name="target_type"]').val(data.target_type);
+            $('#component_settings_row_policies_modify input[name="target_id"]').val(data.target_id || '');
+            $('#component_settings_row_policies_modify select[name="action_type"]').val(data.action_type);
+            $('#component_settings_row_policies_modify select[name="is_active"]').val(String(data.is_active));
+            $('#component_settings_row_policies_modify input[name="priority"]').val(data.priority || 0);
+
+            if(data.target_type == 'all'){
+                $('#component_settings_row_policies_modify .target-id-row').addClass('d-none');
+            } else {
+                $('#component_settings_row_policies_modify .target-id-row').removeClass('d-none');
+            }
+
+            if(data.action_type == 'bypass'){
+                $('#component_settings_row_policies_modify .filter-row').hide();
+            } else {
+                $('#component_settings_row_policies_modify .filter-row').show();
+            }
+
+            this.populatePolicyColumnsSelect(table_identifier, '#component_settings_row_policies_modify select[name="filter_column"]', () => {
+                $('#component_settings_row_policies_modify select[name="filter_column"]').val(data.filter_column || '');
+                $('#component_settings_row_policies_modify select[name="filter_operator"]').val(data.filter_operator || '=');
+                $('#component_settings_row_policies_modify input[name="filter_value"]').val(data.filter_value || '');
+
+                wait.Off_();
+                $('#component_settings_row_policies_modify form').removeClass('was-validated');
+                $('#component_settings_row_policies_modify').modal('show');
+            });
+        });
+    }
+
+    modifyRowPolicy(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_row_policies_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check){
+            $('#component_settings_row_policies_modify .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_settings_row_policies_modify .notifications').Show_(window.structbxI18n ? window.structbxI18n.t('login.invalid_fields') : 'There are invalid fields.');
+            return;
+        }
+
+        const data = new FormData($('#component_settings_row_policies_modify form')[0]);
+        data.append('table-identifier', this.getTableIdentifier());
+
+        this.rowPolicy.modify(data).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_row_policies_modify .notifications', 'target.row_policy_modify');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.row_policy_updated') : 'Row policy updated successfully.');
+            $('#component_settings_row_policies_modify').modal('hide');
+            this.readRowPolicies();
+        });
+    }
+
+    preDeleteRowPolicy(){
+        const data = new FormData($('#component_settings_row_policies_modify form')[0]);
+        const identifier = data.get('identifier');
+        $('#component_settings_row_policies_delete input[name=identifier]').val(identifier);
+        $('#component_settings_row_policies_delete').modal('show');
+    }
+
+    deleteRowPolicy(e){
+        e.preventDefault();
+
+        const wait = new wtools.ElementState('#component_settings_row_policies_delete form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        const table_identifier = this.getTableIdentifier();
+        if(table_identifier == undefined){
+            wait.Off_();
+            new wtools.Notification('WARNING').Show_(window.structbxI18n ? window.structbxI18n.t('base.table_identifier_not_found') : 'Table identifier not found.');
+            return;
+        }
+
+        const identifier = $('#component_settings_row_policies_delete input[name=identifier]').val();
+
+        this.rowPolicy.delete(identifier, table_identifier).then(response => {
+            wait.Off_();
+            const result = new ResponseManager(response, '#component_settings_row_policies_delete .notifications', 'target.row_policy_delete');
+            if(!result.Verify_()) return;
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.row_policy_deleted') : 'Row policy deleted.');
+            $('#component_settings_row_policies_delete').modal('hide');
+            $('#component_settings_row_policies_modify').modal('hide');
+            this.readRowPolicies();
         });
     }
 }

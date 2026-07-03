@@ -157,6 +157,19 @@
 #define ERR_PERM_ID_EMPTY ERR_CODE("permissions.cpp", "validatePermission", "validate_input", "perm_id_empty")
 #define ERR_PERM_USER_ID_EMPTY ERR_CODE("permissions.cpp", "validatePermission", "validate_input", "user_id_empty")
 
+// Row Policy controller
+#define ERR_ROW_POLICY_TABLE_ID_EMPTY ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "table_id_empty")
+#define ERR_ROW_POLICY_COLUMN_EMPTY ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "column_empty")
+#define ERR_ROW_POLICY_OP_INVALID ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "operator_invalid")
+#define ERR_ROW_POLICY_VALUE_EMPTY ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "value_empty")
+#define ERR_ROW_POLICY_TARGET_INVALID ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "target_type_invalid")
+#define ERR_ROW_POLICY_ACTION_INVALID ERR_CODE("row_policy.cpp", "validatePolicy", "validate_input", "action_type_invalid")
+#define ERR_ROW_POLICY_NOT_FOUND ERR_CODE("row_policy.cpp", "modifyPolicy", "validate_existence", "not_found")
+#define ERR_ROW_POLICY_CREATE_FAIL ERR_CODE("row_policy.cpp", "addPolicy", "execute_create", "create_failed")
+#define ERR_ROW_POLICY_UPDATE_FAIL ERR_CODE("row_policy.cpp", "modifyPolicy", "execute_update", "update_failed")
+#define ERR_ROW_POLICY_DELETE_FAIL ERR_CODE("row_policy.cpp", "deletePolicy", "execute_delete", "delete_failed")
+#define ERR_ROW_POLICY_LOAD_FAIL ERR_CODE("row_policy.cpp", "loadPolicies", "execute_load", "load_failed")
+
 // Forms controller
 #define ERR_FORM_NOT_FOUND ERR_CODE("forms.cpp", "readForm", "validate_existence", "form_not_found")
 

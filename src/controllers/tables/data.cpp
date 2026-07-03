@@ -219,32 +219,193 @@ void Tables::Data::VerifyPermissionsDelete::CheckDeletePermission(StructBX::Func
     action->AddParameter_("id_user", get_id_user(), false);
 }
 
-Tables::Data::VerifyPermissionsJustOwner::VerifyPermissionsJustOwner(Tools::FunctionData& function_data) : Tools::FunctionData(function_data)
+Tables::Data::RowPolicyEvaluator::RowPolicyEvaluator() 
 {
     
 }
 
-void Tables::Data::VerifyPermissionsJustOwner::CheckJustOwnerMode(StructBX::Functions::Action::Ptr action)
+bool Tables::Data::RowPolicyEvaluator::LoadPolicies(
+    Functions::Function& self, std::string table_identifier)
 {
-    action->set_sql_code(
-        "SELECT fp.just_owner AS just_owner " \
-        "FROM tables f " \
-        "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
-        "WHERE f.identifier = ? " \
-            "AND fp.id_user = ?"
+    auto load_action = self.AddAction_("load_row_policies");
+    load_action->set_suppress_debug(true);
+    load_action->set_sql_code(
+        "SELECT identifier, target_type, target_id, action_type, "
+        "filter_column, filter_operator, filter_value, priority "
+        "FROM tables_row_policies "
+        "WHERE id_table = ? AND is_active = 1 "
+        "ORDER BY priority ASC"
     );
-    action->AddParameter_("table-identifier", "", true)
-    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->get_value()->ToString_() == "")
-        {
-            param->set_error("The table identifier cannot be empty.");
-            return false;
-        }
-        return true;
-    });
+    load_action->AddParameter_("id_table", table_identifier, false);
 
-    action->AddParameter_("id_user", get_id_user(), false);
+    if(!load_action->Work_())
+    {
+        return false;
+    }
+
+    policies_.clear();
+    for(auto& row : *load_action->get_results())
+    {
+        PolicyInfo info;
+        info.identifier = row->ExtractField_("identifier")->ToString_();
+        info.target_type = row->ExtractField_("target_type")->ToString_();
+        info.target_id = row->ExtractField_("target_id")->ToString_();
+        info.action_type = row->ExtractField_("action_type")->ToString_();
+        info.filter_column = row->ExtractField_("filter_column")->ToString_();
+        info.filter_operator = row->ExtractField_("filter_operator")->ToString_();
+        info.filter_value = row->ExtractField_("filter_value")->ToString_();
+        info.priority = row->ExtractField_("priority")->Int_();
+        policies_.push_back(info);
+    }
+
+    return true;
+}
+
+void Tables::Data::RowPolicyEvaluator::SetValidColumns(Query::Results::Ptr columns_results)
+{
+    valid_columns_.clear();
+    for(auto& row : *columns_results)
+    {
+        auto field = row->ExtractField_("identifier");
+        if(!field->IsNull_())
+            valid_columns_.insert(field->ToString_());
+    }
+}
+
+bool Tables::Data::RowPolicyEvaluator::MatchPolicyTarget(
+    const PolicyInfo& policy, Functions::Function& self, std::string current_user_id)
+{
+    if(policy.target_type == "all")
+        return true;
+
+    if(policy.target_type == "user")
+        return policy.target_id == current_user_id;
+
+    if(policy.target_type == "user_type")
+        return policy.target_id == self.get_current_user().get_type();
+
+    if(policy.target_type == "group")
+        return policy.target_id == self.get_current_user().get_id_group();
+
+    return false;
+}
+
+bool Tables::Data::RowPolicyEvaluator::HasBypass(
+    Functions::Function& self, std::string current_user_id)
+{
+    for(auto& p : policies_)
+    {
+        if(p.action_type != "bypass")
+            continue;
+
+        if(MatchPolicyTarget(p, self, current_user_id))
+            return true;
+    }
+    return false;
+}
+
+std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
+    Functions::Function& self, std::string table_alias, std::string current_user_id)
+{
+    std::string condition = "";
+    bool first = true;
+
+    for(auto& policy : policies_)
+    {
+        if(policy.action_type != "filter")
+            continue;
+
+        // Check if policy targets the current user
+        if(!MatchPolicyTarget(policy, self, current_user_id))
+            continue;
+
+        // Skip if the referenced column no longer exists in the table
+        if(!valid_columns_.empty() && valid_columns_.find(policy.filter_column) == valid_columns_.end())
+            continue;
+
+        // Build column reference with alias
+        std::string col = table_alias.empty() ? 
+            policy.filter_column : 
+            table_alias + "." + policy.filter_column;
+
+        // Replace placeholders in value
+        std::string val = policy.filter_value;
+        {
+            auto pos = val.find("{current_user_id}");
+            if(pos != std::string::npos)
+                val.replace(pos, 17, current_user_id);
+        }
+        {
+            auto pos = val.find("{current_username}");
+            if(pos != std::string::npos)
+                val.replace(pos, 18, self.get_current_user().get_username());
+        }
+        {
+            auto pos = val.find("{user_type}");
+            if(pos != std::string::npos)
+                val.replace(pos, 11, self.get_current_user().get_type());
+        }
+        {
+            auto pos = val.find("{user_group}");
+            if(pos != std::string::npos)
+                val.replace(pos, 12, self.get_current_user().get_id_group());
+        }
+
+        // Validate operator
+        if(valid_filters_ops.find(policy.filter_operator) == valid_filters_ops.end())
+            continue;
+
+        std::string op = policy.filter_operator;
+
+        // Build condition part
+        std::string part;
+        if(op == "IS NULL" || op == "IS NOT NULL")
+        {
+            part = col + " " + op;
+        }
+        else if(op == "IN" || op == "NOT IN")
+        {
+            part = col + " " + op + " (" + val + ")";
+        }
+        else if(op == "LIKE" || op == "NOT LIKE")
+        {
+            std::string escaped_val;
+            escaped_val.reserve(val.size());
+            for(char ch : val)
+            {
+                if(ch == '\'')
+                    escaped_val += "''";
+                else
+                    escaped_val += ch;
+            }
+            part = col + " " + op + " '%" + escaped_val + "%'";
+        }
+        else
+        {
+            std::string escaped_val;
+            escaped_val.reserve(val.size());
+            for(char ch : val)
+            {
+                if(ch == '\'')
+                    escaped_val += "''";
+                else
+                    escaped_val += ch;
+            }
+            part = col + " " + op + " '" + escaped_val + "'";
+        }
+
+        if(first)
+        {
+            condition = part;
+            first = false;
+        }
+        else
+        {
+            condition += " AND " + part;
+        }
+    }
+
+    return condition;
 }
 
 std::string Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::string view_identifier)
@@ -457,12 +618,9 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
     auto fpv2 = function->AddAction_("fpv2");
     VerifyPermissionsReadFromLink(function_data).CheckReadViaLinkPermission(fpv2);
 
-    auto just_owner = function->AddAction_("just_owner");
-    VerifyPermissionsJustOwner(function_data).CheckJustOwnerMode(just_owner);
-
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, default_view, link_to_action, table_columns, fpv, fpv2, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, default_view, link_to_action, table_columns, fpv, fpv2](StructBX::Functions::Function& self)
     {
         // Get table IDENTIFIER
         auto table_identifier = self.GetParameter_("table-identifier");
@@ -700,30 +858,29 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             }
         }
         
-        // Setup just owner
-        if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
+        // Evaluate row-level security policies
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
-            return;
-        }
-        // Get just_owner value
-        int is_just_owner = 0;
-        if(just_owner->get_results()->size() > 0)
-        {
-            auto just_owner_field = just_owner->get_results()->begin()->get()->ExtractField_("just_owner");
-            if(!just_owner_field->IsNull_())
+            RowPolicyEvaluator rpe;
+            rpe.SetValidColumns(table_columns->get_results());
+            if(!rpe.LoadPolicies(self, table_identifier->get()->ToString_()))
             {
-                is_just_owner = just_owner_field->Int_();
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to load row policies.", ERR_SRV_INTERNAL);
+                return;
+            }
+            if(!rpe.HasBypass(self, self.get_current_user().get_id()))
+            {
+                std::string policy_condition = rpe.BuildCondition(
+                    self, "_" + table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                if(!policy_condition.empty())
+                {
+                    if(filters_query == "")
+                        filters_query = " WHERE " + policy_condition;
+                    else
+                        filters_query += " AND " + policy_condition;
+                }
             }
         }
-        if(is_just_owner == 1)
-        {
-            std::string just_owner_condition = "_" + table_identifier->get()->ToString_() + "._structbx_column_user_owner = " + self.get_current_user().get_id();
-            if(filters_query == "")
-                filters_query = " WHERE " + just_owner_condition;
-            else
-                filters_query += " AND " + just_owner_condition;
-        }
+
         // Setup color header
         if(!export_data)
             columns += ",_" + table_identifier->get()->ToString_() + "._structbx_column_colorHeader AS _structbx_column_colorHeader"; 
@@ -1442,12 +1599,9 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
     auto fpv = function->AddAction_("fpv");
     VerifyPermissionsModify(function_data).CheckModifyPermission(fpv);
 
-    auto just_owner = function->AddAction_("just_owner");
-    VerifyPermissionsJustOwner(function_data).CheckJustOwnerMode(just_owner);
-
     // Setup Custom Process
     auto id_database = get_database_id();
-    function->SetupCustomProcess_([id_database, table_columns, modify_record, fpv, just_owner](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([id_database, table_columns, modify_record, fpv](StructBX::Functions::Function& self)
     {
         // Execute actions
         if(!table_columns->Work_())
@@ -1509,26 +1663,24 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             "UPDATE " + id_database + "." + table_identifier->get()->ToString_() + " " \
             "SET " + columns + ", _structbx_column_colorHeader = ? WHERE identifier = ?");
 
-        // Setup just owner
-        if(!just_owner->Work_() && just_owner->get_results()->size() == 0)
+        // Evaluate row-level security policies
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_UNAUTHORIZED, fpv->get_custom_error(), fpv->get_custom_error_code());
-            return;
-        }
-        // Get just_owner value
-        int is_just_owner = 0;
-        if(just_owner->get_results()->size() > 0)
-        {
-            auto just_owner_field = just_owner->get_results()->begin()->get()->ExtractField_("just_owner");
-            if(!just_owner_field->IsNull_())
+            RowPolicyEvaluator rpe;
+            rpe.SetValidColumns(table_columns->get_results());
+            if(!rpe.LoadPolicies(self, table_identifier->get()->ToString_()))
             {
-                is_just_owner = just_owner_field->Int_();
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to load row policies.", ERR_SRV_INTERNAL);
+                return;
             }
-        }
-        if(is_just_owner == 1)
-        {
-            std::string just_owner_condition = "_structbx_column_user_owner = " + self.get_current_user().get_id();
-            modify_record->set_sql_code(modify_record->get_sql_code() + " AND " + just_owner_condition);
+            if(!rpe.HasBypass(self, self.get_current_user().get_id()))
+            {
+                std::string policy_condition = rpe.BuildCondition(
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                if(!policy_condition.empty())
+                {
+                    modify_record->set_sql_code(modify_record->get_sql_code() + " AND " + policy_condition);
+                }
+            }
         }
 
         // Execute action 3
@@ -1683,11 +1835,30 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             }
         }
 
-        // Action: Delete record from table
-        delete_record->set_sql_code(
-            "DELETE FROM " + id_database + "." + table_identifier->get()->ToString_() + 
-            " WHERE identifier = ?"
-        );
+        // Build delete SQL
+        std::string delete_sql = "DELETE FROM " + id_database + "." + table_identifier->get()->ToString_() + " WHERE identifier = ?";
+
+        // Evaluate row-level security policies
+        {
+            RowPolicyEvaluator rpe;
+            rpe.SetValidColumns(table_columns->get_results());
+            if(!rpe.LoadPolicies(self, table_identifier->get()->ToString_()))
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to load row policies.", ERR_SRV_INTERNAL);
+                return;
+            }
+            if(!rpe.HasBypass(self, self.get_current_user().get_id()))
+            {
+                std::string policy_condition = rpe.BuildCondition(
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                if(!policy_condition.empty())
+                {
+                    delete_sql += " AND " + policy_condition;
+                }
+            }
+        }
+
+        delete_record->set_sql_code(delete_sql);
 
         // Execute action 2
         self.IdentifyParameters_(delete_record);

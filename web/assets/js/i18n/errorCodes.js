@@ -292,5 +292,51 @@ export const errorCodes = {
     "function.cpp:Process_:setup_response:setup_response_failed": {
         en: "Failed to set up the response.",
         es: "Error al configurar la respuesta."
+    },
+
+    // Row Policies
+    "row_policy.cpp:validatePolicy:validate_input:table_id_empty": {
+        en: "The table identifier cannot be empty.",
+        es: "El identificador de tabla no puede estar vacío."
+    },
+    "row_policy.cpp:validatePolicy:validate_input:column_empty": {
+        en: "The filter column cannot be empty.",
+        es: "La columna de filtro no puede estar vacía."
+    },
+    "row_policy.cpp:validatePolicy:validate_input:operator_invalid": {
+        en: "The filter operator is invalid.",
+        es: "El operador de filtro no es válido."
+    },
+    "row_policy.cpp:validatePolicy:validate_input:value_empty": {
+        en: "The filter value cannot be empty.",
+        es: "El valor de filtro no puede estar vacío."
+    },
+    "row_policy.cpp:validatePolicy:validate_input:target_type_invalid": {
+        en: "The target type is invalid.",
+        es: "El tipo de destino no es válido."
+    },
+    "row_policy.cpp:validatePolicy:validate_input:action_type_invalid": {
+        en: "The action type is invalid.",
+        es: "El tipo de acción no es válido."
+    },
+    "row_policy.cpp:modifyPolicy:validate_existence:not_found": {
+        en: "The row policy was not found.",
+        es: "La política de fila no fue encontrada."
+    },
+    "row_policy.cpp:addPolicy:execute_create:create_failed": {
+        en: "Failed to create the row policy.",
+        es: "Error al crear la política de fila."
+    },
+    "row_policy.cpp:modifyPolicy:execute_update:update_failed": {
+        en: "Failed to update the row policy.",
+        es: "Error al actualizar la política de fila."
+    },
+    "row_policy.cpp:deletePolicy:execute_delete:delete_failed": {
+        en: "Failed to delete the row policy.",
+        es: "Error al eliminar la política de fila."
+    },
+    "row_policy.cpp:loadPolicies:execute_load:load_failed": {
+        en: "Failed to load row policies.",
+        es: "Error al cargar las políticas de fila."
     }
 };

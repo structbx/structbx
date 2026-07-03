@@ -47,6 +47,7 @@ set(
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/data.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/columns.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/permissions.cpp
+    ${PROJECT_SOURCE_DIR}/src/controllers/tables/row_policy.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/views.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/filters.cpp
     ${PROJECT_SOURCE_DIR}/src/controllers/tables/sorts.cpp

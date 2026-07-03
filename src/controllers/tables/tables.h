@@ -8,6 +8,7 @@
 #include "controllers/tables/data.h"
 #include "controllers/tables/columns.h"
 #include "controllers/tables/permissions.h"
+#include "controllers/tables/row_policy.h"
 #include "controllers/tables/views.h"
 #include "controllers/tables/filters.h"
 #include "controllers/tables/sorts.h"
@@ -75,6 +76,7 @@ class StructBX::Controllers::Tables::Tables : public Tools::FunctionData
         Data function_data_;
         Columns function_columns_;
         Permissions function_permissions_;
+        RowPolicy function_row_policy_;
         Views function_views_;
         Filters function_filters_;
         Sorts function_sorts_;

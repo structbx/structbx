@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "tools/base_action.h"
 #include "tools/function_data.h"
@@ -122,11 +123,31 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
 
             void CheckDeletePermission(StructBX::Functions::Action::Ptr action);
         };
-        struct VerifyPermissionsJustOwner : public Tools::FunctionData
+        struct PolicyInfo
         {
-            VerifyPermissionsJustOwner(Tools::FunctionData& function_data);
+            std::string identifier;
+            std::string target_type;
+            std::string target_id;
+            std::string action_type;
+            std::string filter_column;
+            std::string filter_operator;
+            std::string filter_value;
+            int priority;
+        };
+        struct RowPolicyEvaluator
+        {
+            RowPolicyEvaluator();
 
-            void CheckJustOwnerMode(StructBX::Functions::Action::Ptr action);
+            bool LoadPolicies(Functions::Function& self, std::string table_identifier);
+            void SetValidColumns(Query::Results::Ptr columns_results);
+            bool HasBypass(Functions::Function& self, std::string current_user_id);
+            std::string BuildCondition(Functions::Function& self, std::string table_alias, std::string current_user_id);
+
+        private:
+            bool MatchPolicyTarget(const PolicyInfo& policy, Functions::Function& self, std::string current_user_id);
+
+            std::vector<PolicyInfo> policies_;
+            std::unordered_set<std::string> valid_columns_;
         };
         struct Read : public Tools::FunctionData
         {

@@ -2,6 +2,7 @@
 #include "controllers/tables/tables.h"
 #include "controllers/tables/column_types.h"
 #include "functions/action.h"
+#include "tools/dvalue.h"
 #include "tools/random_generator.h"
 #include "core/error_codes.h"
 #include <Poco/JSON/Object.h>
@@ -13,6 +14,7 @@ Tables::Tables(Tools::FunctionData& function_data) :
     ,function_data_(function_data)
     ,function_columns_(function_data)
     ,function_permissions_(function_data)
+    ,function_row_policy_(function_data)
     ,function_views_(function_data)
     ,function_filters_(function_data)
     ,function_sorts_(function_data)
@@ -347,7 +349,7 @@ void Tables::Add::InsertTableMetadata(StructBX::Functions::Action::Ptr action)
         }
         return true;
     });
-    action->AddParameter_("state", "", true);
+    action->AddParameter_("state", "active", true);
     action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
     action->AddParameter_("id_database", get_database_id(), false);
@@ -513,7 +515,13 @@ void Tables::Modify::UpdateTableMetadata(StructBX::Functions::Action::Ptr action
     action->AddParameter_("state", "", true);
     action->AddParameter_("public_form", 0, true);
     action->AddParameter_("description", "", true);
-    action->AddParameter_("id_column_display", "", true);
+    action->AddParameter_("id_column_display", Tools::DValue::Ptr(new Tools::DValue()), true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+    if(param->get_value()->ToString_() == "")
+            param->set_value(Tools::DValue::Ptr(new Tools::DValue()));
+        return true;
+    });
 
     action->AddParameter_("identifier", "", true)
     ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)

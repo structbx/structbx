@@ -218,7 +218,25 @@ ENGINE = InnoDB;)",
   `created_at` DATETIME NOT NULL DEFAULT current_timestamp() ,
   `id_table` VARCHAR(20) NOT NULL,
    PRIMARY KEY (`id`),
-  CONSTRAINT `UQ_tables_columns_identifier` UNIQUE (`identifier`)
+   CONSTRAINT `UQ_tables_columns_identifier` UNIQUE (`identifier`)
+  )
+ENGINE = InnoDB;)",
+        R"(CREATE TABLE IF NOT EXISTS `tables_row_policies` ( 
+  `id` INT AUTO_INCREMENT NOT NULL,
+  `identifier` VARCHAR(20) NOT NULL,
+  `id_table` VARCHAR(20) NOT NULL,
+  `policy_name` VARCHAR(100) DEFAULT NULL,
+  `target_type` VARCHAR(20) NOT NULL DEFAULT 'all',
+  `target_id` VARCHAR(100) DEFAULT NULL,
+  `action_type` VARCHAR(20) NOT NULL DEFAULT 'filter',
+  `filter_column` VARCHAR(100) DEFAULT NULL,
+  `filter_operator` VARCHAR(20) DEFAULT NULL,
+  `filter_value` VARCHAR(500) DEFAULT NULL,
+  `is_active` TINYINT NOT NULL DEFAULT 1,
+  `priority` INT NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT current_timestamp(),
+   PRIMARY KEY (`id`),
+  CONSTRAINT `UQ_tables_row_policies_identifier` UNIQUE (`identifier`)
 )
 ENGINE = InnoDB;)"
     };

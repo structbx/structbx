@@ -32,7 +32,7 @@ Permissions::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDat
 void Permissions::Read::ReadTablePermissions(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT fp.identifier, fp.`read`, fp.`add`, fp.`modify`, fp.`delete`, fp.just_owner, nu.username " \
+        "SELECT fp.identifier, fp.`read`, fp.`add`, fp.`modify`, fp.`delete`, nu.username " \
         "FROM tables f " \
         "JOIN tables_permissions fp ON fp.id_table = f.identifier " \
         "JOIN users nu ON nu.identifier = fp.id_user "
@@ -175,9 +175,9 @@ Permissions::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(
 void Permissions::Add::InsertTablePermission(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, `just_owner`, id_user, id_table) "
+        "INSERT INTO tables_permissions (identifier, `read`, `add`, `modify`, `delete`, id_user, id_table) "
         "SELECT "
-            "?, ?, ?, ?, ?, ? "
+            "?, ?, ?, ?, ? "
             ",(SELECT id_user FROM databases_users WHERE id_user = ? AND id_database = ?) "
             ",? "
     );
@@ -220,15 +220,6 @@ void Permissions::Add::InsertTablePermission(StructBX::Functions::Action::Ptr ac
         }
         return true;
     });
-    action->AddParameter_("just_owner", "", true)
-    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() != "0" && param->ToString_() != "1")
-        {
-            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
-        }
-        return true;
-    });
     action->AddParameter_("id_user", "", true)
     ->SetupCondition_("condition-id_user", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -261,7 +252,7 @@ Permissions::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functio
     auto action1 = function->AddAction_("modify_table_permission");
     action1->set_sql_code(
         "UPDATE tables_permissions "
-        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ?, `just_owner` = ? "
+        "SET `read` = ?, `add` = ?, `modify` = ?, `delete` = ? "
         "WHERE "
             "identifier = ? "
             "AND id_table = ? "
@@ -301,15 +292,6 @@ void Permissions::Modify::ModifyTablePermission(StructBX::Functions::Action::Ptr
     });
     action->AddParameter_("delete", "", true)
     ->SetupCondition_("condition-delete", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
-    {
-        if(param->ToString_() != "0" && param->ToString_() != "1")
-        {
-            param->set_value(std::make_shared<StructBX::Tools::DValue>(1));
-        }
-        return true;
-    });
-    action->AddParameter_("just_owner", "", true)
-    ->SetupCondition_("condition-just_owner", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->ToString_() != "0" && param->ToString_() != "1")
         {
