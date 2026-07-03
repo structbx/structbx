@@ -1,6 +1,9 @@
 
 #include "controllers/tables/row_policy.h"
+#include "controllers/tables/filters.h"
 #include "core/error_codes.h"
+
+#include <regex>
 
 using namespace StructBX::Controllers::Tables;
 
@@ -35,7 +38,7 @@ void RowPolicy::Read::ReadPoliciesByTable(StructBX::Functions::Action::Ptr actio
         "rp.is_active, rp.priority, rp.created_at, "
         "tc.name AS filter_column_name "
         "FROM tables_row_policies rp "
-        "LEFT JOIN tables_columns tc ON tc.identifier = rp.filter_column "
+        "LEFT JOIN tables_columns tc ON tc.identifier = SUBSTRING_INDEX(rp.filter_column, '>', 1) "
         "  AND tc.id_table = rp.id_table "
         "WHERE rp.id_table = ? "
         "ORDER BY rp.priority ASC"
@@ -72,7 +75,7 @@ void RowPolicy::ReadSpecific::ReadPolicyByIdentifier(StructBX::Functions::Action
         "tc.name AS filter_column_name "
         "FROM tables_row_policies rp "
         "JOIN tables t ON t.identifier = rp.id_table "
-        "LEFT JOIN tables_columns tc ON tc.identifier = rp.filter_column "
+        "LEFT JOIN tables_columns tc ON tc.identifier = SUBSTRING_INDEX(rp.filter_column, '>', 1) "
         "  AND tc.id_table = rp.id_table "
         "WHERE rp.identifier = ? AND t.id_database = ?"
     );
@@ -153,7 +156,19 @@ void RowPolicy::Add::InsertPolicy(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("filter_column", "", true);
+    action->AddParameter_("filter_column", "", true)
+    ->SetupCondition_("condition-filter_column", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        auto val = param->get_value()->ToString_();
+        if(val.empty()) return true;
+        std::regex path_pattern(R"(^[a-zA-Z0-9]+(>[a-zA-Z0-9]+)*$)");
+        if(!std::regex_match(val, path_pattern))
+        {
+            param->set_error("Invalid column path format. Use identifiers separated by > (e.g. col1>col2>col3).");
+            return false;
+        }
+        return true;
+    });
     action->AddParameter_("filter_operator", "", true)
     ->SetupCondition_("condition-filter_operator", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
@@ -220,7 +235,19 @@ void RowPolicy::Modify::UpdatePolicy(StructBX::Functions::Action::Ptr action)
         return true;
     });
 
-    action->AddParameter_("filter_column", "", true);
+    action->AddParameter_("filter_column", "", true)
+    ->SetupCondition_("condition-filter_column", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        auto val = param->get_value()->ToString_();
+        if(val.empty()) return true;
+        std::regex path_pattern(R"(^[a-zA-Z0-9]+(>[a-zA-Z0-9]+)*$)");
+        if(!std::regex_match(val, path_pattern))
+        {
+            param->set_error("Invalid column path format. Use identifiers separated by > (e.g. col1>col2>col3).");
+            return false;
+        }
+        return true;
+    });
     action->AddParameter_("filter_operator", "", true)
     ->SetupCondition_("condition-filter_operator", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {

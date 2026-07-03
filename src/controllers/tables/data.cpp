@@ -1,5 +1,6 @@
 
 #include <chrono>
+#include <sstream>
 #include <thread>
 #include <unordered_map>
 
@@ -312,7 +313,7 @@ bool Tables::Data::RowPolicyEvaluator::HasBypass(
 }
 
 std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
-    Functions::Function& self, std::string table_alias, std::string current_user_id, std::string id_database)
+    Functions::Function& self, std::string table_alias, std::string current_user_id, std::string id_database, std::string table_identifier)
 {
     std::string condition = "";
     bool first = true;
@@ -322,114 +323,109 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
         if(policy.action_type != "filter")
             continue;
 
-        // Check if policy targets the current user
         if(!MatchPolicyTarget(policy, self, current_user_id))
             continue;
 
-        // Validate operator early
         if(valid_filters_ops.find(policy.filter_operator) == valid_filters_ops.end())
             continue;
 
-        // Skip if the referenced column no longer exists in the table
-        auto col_it = valid_columns_.find(policy.filter_column);
-        if(!valid_columns_.empty() && col_it == valid_columns_.end())
-            continue;
-
-        // Build column reference with alias
-        std::string col = table_alias.empty() ? 
-            policy.filter_column : 
-            table_alias + "." + policy.filter_column;
-
         std::string op = policy.filter_operator;
         std::string val = policy.filter_value;
+        std::string col;
 
-        // Check if the value contains a placeholder — if so, skip resolution
-        bool has_placeholder = (val.find('{') != std::string::npos);
-        if(!has_placeholder && col_it != valid_columns_.end())
+        // Check if filter_column is a multi-segment path (contains '>')
+        bool is_path = (policy.filter_column.find('>') != std::string::npos);
+
+        if(is_path)
         {
-            const auto& col_info = col_it->second;
-            if(col_info.type == "user" || col_info.type == "current-user")
+            // Multi-segment path: build nested subqueries
+            std::vector<std::string> segments;
+            std::string segment;
+            std::istringstream path_stream(policy.filter_column);
+            while(std::getline(path_stream, segment, '>'))
             {
-                // Try to resolve username → user identifier
-                auto resolve = self.AddAction_("resolve_policy_user_" + policy.identifier);
-                resolve->set_suppress_debug(true);
-                resolve->set_sql_code("SELECT identifier FROM users WHERE username = ?");
-                resolve->AddParameter_("username", val, false);
-                if(resolve->Work_() && resolve->get_results()->size() > 0)
-                {
-                    val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
-                }
+                if(!segment.empty())
+                    segments.push_back(segment);
             }
-            else if(col_info.type == "selection" && !col_info.link_to.empty())
+
+            if(segments.size() < 2)
+                continue;
+
+            // Validate all intermediate segments are selection columns with link_to
+            bool valid_path = true;
+            std::vector<std::string> table_chain;
+            std::string current_table = table_identifier;
+            for(size_t i = 0; i < segments.size() - 1; ++i)
             {
-                // Find the display column for the linked table
-                auto disp = self.AddAction_("resolve_policy_disp_" + policy.identifier);
-                disp->set_suppress_debug(true);
-                disp->set_sql_code(
-                    "SELECT COALESCE(tc.identifier, "
-                    "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS col "
-                    "FROM tables t "
-                    "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
-                    "WHERE t.identifier = ?"
-                );
-                disp->AddParameter_("link_to", col_info.link_to, false);
-                std::string display_col = "identifier";
-                if(disp->Work_() && disp->get_results()->size() > 0)
+                std::string col_type, col_link_to;
+
+                if(i == 0)
                 {
-                    auto f = disp->get_results()->begin()->get()->ExtractField_("col");
-                    if(!f->IsNull_())
-                        display_col = f->ToString_();
+                    auto it = valid_columns_.find(segments[i]);
+                    if(it == valid_columns_.end())
+                    {
+                        valid_path = false;
+                        break;
+                    }
+                    col_type = it->second.type;
+                    col_link_to = it->second.link_to;
+                }
+                else
+                {
+                    auto resolve = self.AddAction_("rpe_path_col_" + policy.identifier + "_" + std::to_string(i));
+                    resolve->set_suppress_debug(true);
+                    resolve->set_sql_code(
+                        "SELECT column_type, link_to FROM tables_columns WHERE identifier = ? AND id_table = ?"
+                    );
+                    resolve->AddParameter_("col_id", segments[i], false);
+                    resolve->AddParameter_("table_id", current_table, false);
+                    if(!resolve->Work_() || resolve->get_results()->size() < 1)
+                    {
+                        valid_path = false;
+                        break;
+                    }
+                    auto row = resolve->get_results()->begin()->get();
+                    auto type_f = row->ExtractField_("column_type");
+                    auto link_f = row->ExtractField_("link_to");
+                    col_type = (!type_f->IsNull_()) ? type_f->ToString_() : "";
+                    col_link_to = (!link_f->IsNull_()) ? link_f->ToString_() : "";
                 }
 
-                // Try to resolve display value → record identifier
-                auto resolve = self.AddAction_("resolve_policy_sel_" + policy.identifier);
-                resolve->set_suppress_debug(true);
-                resolve->set_sql_code(
-                    "SELECT identifier FROM " + id_database + "." + col_info.link_to +
-                    " WHERE " + display_col + " = ?"
-                );
-                resolve->AddParameter_("display_val", val, false);
-                if(resolve->Work_() && resolve->get_results()->size() > 0)
+                if(col_type != "selection" || col_link_to.empty())
                 {
-                    val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
+                    valid_path = false;
+                    break;
                 }
+
+                table_chain.push_back(col_link_to);
+                current_table = col_link_to;
             }
-        }
+            if(!valid_path) continue;
 
-        // Replace placeholders in value
-        {
-            auto pos = val.find("{current_user_id}");
-            if(pos != std::string::npos)
-                val.replace(pos, 17, current_user_id);
-        }
-        {
-            auto pos = val.find("{current_username}");
-            if(pos != std::string::npos)
-                val.replace(pos, 18, self.get_current_user().get_username());
-        }
-        {
-            auto pos = val.find("{user_type}");
-            if(pos != std::string::npos)
-                val.replace(pos, 11, self.get_current_user().get_type());
-        }
-        {
-            auto pos = val.find("{user_group}");
-            if(pos != std::string::npos)
-                val.replace(pos, 12, self.get_current_user().get_id_group());
-        }
+            // Replace placeholders in value
+            {
+                auto pos = val.find("{current_user_id}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 17, current_user_id);
+            }
+            {
+                auto pos = val.find("{current_username}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 18, self.get_current_user().get_username());
+            }
+            {
+                auto pos = val.find("{user_type}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 11, self.get_current_user().get_type());
+            }
+            {
+                auto pos = val.find("{user_group}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 12, self.get_current_user().get_id_group());
+            }
 
-        // Build condition part
-        std::string part;
-        if(op == "IS NULL" || op == "IS NOT NULL")
-        {
-            part = col + " " + op;
-        }
-        else if(op == "IN" || op == "NOT IN")
-        {
-            part = col + " " + op + " (" + val + ")";
-        }
-        else if(op == "LIKE" || op == "NOT LIKE")
-        {
+            // Build innermost subquery first
+            std::string subquery;
             std::string escaped_val;
             escaped_val.reserve(val.size());
             for(char ch : val)
@@ -439,30 +435,168 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
                 else
                     escaped_val += ch;
             }
-            part = col + " " + op + " '%" + escaped_val + "%'";
-        }
-        else
-        {
-            std::string escaped_val;
-            escaped_val.reserve(val.size());
-            for(char ch : val)
-            {
-                if(ch == '\'')
-                    escaped_val += "''";
-                else
-                    escaped_val += ch;
-            }
-            part = col + " " + op + " '" + escaped_val + "'";
-        }
 
-        if(first)
-        {
-            condition = part;
-            first = false;
+            // Innermost: SELECT identifier FROM table WHERE last_col op 'val'
+            std::string last_segment = segments.back();
+            std::string last_table = table_chain.back();
+            if(op == "IS NULL" || op == "IS NOT NULL")
+                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op;
+            else if(op == "LIKE" || op == "NOT LIKE")
+                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " '%" + escaped_val + "%'";
+            else if(op == "IN" || op == "NOT IN")
+                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " (" + escaped_val + ")";
+            else
+                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " '" + escaped_val + "'";
+
+            // Intermediate subqueries (from inner to outer)
+            for(int i = (int)table_chain.size() - 2; i >= 0; --i)
+            {
+                subquery = "SELECT identifier FROM " + id_database + "." + table_chain[i] +
+                    " WHERE " + segments[i + 1] + " IN (" + subquery + ")";
+            }
+
+            // Outer condition: first segment in the main table
+            col = table_alias.empty() ? segments[0] : table_alias + "." + segments[0];
+            std::string part = col + " IN (" + subquery + ")";
+
+            if(first)
+            {
+                condition = part;
+                first = false;
+            }
+            else
+            {
+                condition += " AND " + part;
+            }
         }
         else
         {
-            condition += " AND " + part;
+            // Single column — existing logic
+            auto col_it = valid_columns_.find(policy.filter_column);
+            if(!valid_columns_.empty() && col_it == valid_columns_.end())
+                continue;
+
+            col = table_alias.empty() ?
+                policy.filter_column :
+                table_alias + "." + policy.filter_column;
+
+            bool has_placeholder = (val.find('{') != std::string::npos);
+            if(!has_placeholder && col_it != valid_columns_.end())
+            {
+                const auto& col_info = col_it->second;
+                if(col_info.type == "user" || col_info.type == "current-user")
+                {
+                    auto resolve = self.AddAction_("resolve_policy_user_" + policy.identifier);
+                    resolve->set_suppress_debug(true);
+                    resolve->set_sql_code("SELECT identifier FROM users WHERE username = ?");
+                    resolve->AddParameter_("username", val, false);
+                    if(resolve->Work_() && resolve->get_results()->size() > 0)
+                    {
+                        val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
+                    }
+                }
+                else if(col_info.type == "selection" && !col_info.link_to.empty())
+                {
+                    auto disp = self.AddAction_("resolve_policy_disp_" + policy.identifier);
+                    disp->set_suppress_debug(true);
+                    disp->set_sql_code(
+                        "SELECT COALESCE(tc.identifier, "
+                        "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS col "
+                        "FROM tables t "
+                        "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                        "WHERE t.identifier = ?"
+                    );
+                    disp->AddParameter_("link_to", col_info.link_to, false);
+                    std::string display_col = "identifier";
+                    if(disp->Work_() && disp->get_results()->size() > 0)
+                    {
+                        auto f = disp->get_results()->begin()->get()->ExtractField_("col");
+                        if(!f->IsNull_())
+                            display_col = f->ToString_();
+                    }
+
+                    auto resolve = self.AddAction_("resolve_policy_sel_" + policy.identifier);
+                    resolve->set_suppress_debug(true);
+                    resolve->set_sql_code(
+                        "SELECT identifier FROM " + id_database + "." + col_info.link_to +
+                        " WHERE " + display_col + " = ?"
+                    );
+                    resolve->AddParameter_("display_val", val, false);
+                    if(resolve->Work_() && resolve->get_results()->size() > 0)
+                    {
+                        val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
+                    }
+                }
+            }
+
+            // Replace placeholders in value
+            {
+                auto pos = val.find("{current_user_id}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 17, current_user_id);
+            }
+            {
+                auto pos = val.find("{current_username}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 18, self.get_current_user().get_username());
+            }
+            {
+                auto pos = val.find("{user_type}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 11, self.get_current_user().get_type());
+            }
+            {
+                auto pos = val.find("{user_group}");
+                if(pos != std::string::npos)
+                    val.replace(pos, 12, self.get_current_user().get_id_group());
+            }
+
+            // Build condition part
+            std::string part;
+            if(op == "IS NULL" || op == "IS NOT NULL")
+            {
+                part = col + " " + op;
+            }
+            else if(op == "IN" || op == "NOT IN")
+            {
+                part = col + " " + op + " (" + val + ")";
+            }
+            else if(op == "LIKE" || op == "NOT LIKE")
+            {
+                std::string escaped_val;
+                escaped_val.reserve(val.size());
+                for(char ch : val)
+                {
+                    if(ch == '\'')
+                        escaped_val += "''";
+                    else
+                        escaped_val += ch;
+                }
+                part = col + " " + op + " '%" + escaped_val + "%'";
+            }
+            else
+            {
+                std::string escaped_val;
+                escaped_val.reserve(val.size());
+                for(char ch : val)
+                {
+                    if(ch == '\'')
+                        escaped_val += "''";
+                    else
+                        escaped_val += ch;
+                }
+                part = col + " " + op + " '" + escaped_val + "'";
+            }
+
+            if(first)
+            {
+                condition = part;
+                first = false;
+            }
+            else
+            {
+                condition += " AND " + part;
+            }
         }
     }
 
@@ -931,7 +1065,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, "_" + table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
+                    self, "_" + table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database, table_identifier->get()->ToString_());
                 if(!policy_condition.empty())
                 {
                     if(filters_query == "")
@@ -1736,7 +1870,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database, table_identifier->get()->ToString_());
                 if(!policy_condition.empty())
                 {
                     modify_record->set_sql_code(modify_record->get_sql_code() + " AND " + policy_condition);
@@ -1911,7 +2045,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database, table_identifier->get()->ToString_());
                 if(!policy_condition.empty())
                 {
                     delete_sql += " AND " + policy_condition;

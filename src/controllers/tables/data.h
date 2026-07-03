@@ -146,13 +146,13 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
             bool LoadPolicies(Functions::Function& self, std::string table_identifier);
             void SetValidColumns(Query::Results::Ptr columns_results);
             bool HasBypass(Functions::Function& self, std::string current_user_id);
-            std::string BuildCondition(Functions::Function& self, std::string table_alias, std::string current_user_id, std::string id_database);
+            std::string BuildCondition(Functions::Function& self, std::string table_alias, std::string current_user_id, std::string id_database, std::string table_identifier);
 
         private:
             bool MatchPolicyTarget(const PolicyInfo& policy, Functions::Function& self, std::string current_user_id);
 
             std::vector<PolicyInfo> policies_;
-            std::unordered_map<std::string, ColumnInfo> valid_columns_;
+            std::map<std::string, ColumnInfo> valid_columns_;
         };
         struct Read : public Tools::FunctionData
         {

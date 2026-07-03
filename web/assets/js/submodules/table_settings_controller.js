@@ -100,10 +100,10 @@ export class TableSettingsController extends BaseController{
 
         $(document).on('change', '#component_settings_row_policies_add select[name="target_type"]', e => this.toggleTargetIdInput(e));
         $(document).on('change', '#component_settings_row_policies_add select[name="action_type"]', e => this.toggleFilterRows(e));
-        $(document).on('change', '#component_settings_row_policies_add select[name="filter_column"]', e => this.onFilterColumnChange(e));
+        $(document).on('change', '#component_settings_row_policies_add .filter-column-path-container select', e => this.onPathLevelChange(e));
         $(document).on('change', '#component_settings_row_policies_modify select[name="target_type"]', e => this.toggleTargetIdInput(e));
         $(document).on('change', '#component_settings_row_policies_modify select[name="action_type"]', e => this.toggleFilterRows(e));
-        $(document).on('change', '#component_settings_row_policies_modify select[name="filter_column"]', e => this.onFilterColumnChange(e));
+        $(document).on('change', '#component_settings_row_policies_modify .filter-column-path-container select', e => this.onPathLevelChange(e));
 
         $(document).on('submit', '#component_settings_row_policies_add form', e => this.addRowPolicy(e));
 
@@ -492,7 +492,9 @@ export class TableSettingsController extends BaseController{
             return;
         }
 
-        this.populatePolicyColumnsSelect(table_identifier, '#component_settings_row_policies_add select[name="filter_column"]', () => {
+        const container = $('#component_settings_row_policies_add .filter-column-path-container');
+        const hiddenInput = $('#component_settings_row_policies_add input[name="filter_column"]');
+        this.renderColumnPathSelects(container, hiddenInput, table_identifier, '', (lastColType, lastLinkTo) => {
             $('#component_settings_row_policies_add .notifications').html('');
             wtools.CleanForm($('#component_settings_row_policies_add form'));
             $('#component_settings_row_policies_add select[name="is_active"]').val("1");
@@ -548,17 +550,6 @@ export class TableSettingsController extends BaseController{
             }
         }
 
-        onFilterColumnChange(e){
-            const select = $(e.currentTarget);
-            const selectedOption = select.find('option:selected');
-            const columnType = selectedOption.data('column-type') || '';
-            const linkTo = selectedOption.data('link-to') || '';
-            const modal = select.closest('.modal');
-            const wrapper = modal.find('.filter-value-wrapper');
-            const existingValue = modal.find('input[name="filter_value"]').val() || modal.find('select[name="filter_value"]').val() || '';
-            this.populateFilterValueField(wrapper, columnType, linkTo, existingValue);
-        }
-
         populateFilterValueField(wrapper, columnType, linkTo, selectedValue){
             wrapper.html('');
             if(columnType == 'selection' || columnType == 'user' || columnType == 'current-user'){
@@ -602,6 +593,116 @@ export class TableSettingsController extends BaseController{
             });
         }
 
+        renderColumnPathSelects(container, hiddenInput, tableIdentifier, existingPath, callback){
+            container.html('');
+            hiddenInput.val('');
+
+            const segments = existingPath ? existingPath.split('>') : [];
+            this.tableColumn.read(tableIdentifier, '').then(response => {
+                if(!response.body.data || response.body.data.length === 0){
+                    if(callback) callback('', '');
+                    return;
+                }
+                const columns = response.body.data;
+                this._buildPathLevel(container, hiddenInput, columns, tableIdentifier, segments, 0, callback);
+            });
+        }
+
+        _buildPathLevel(container, hiddenInput, columns, tableIdentifier, segments, level, callback){
+            const select = $(`<select class="form-select form-select-sm mb-1" data-level="${level}"></select>`);
+            select.append('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_column') : 'Select column...') + '</option>');
+            for(const col of columns){
+                const selected = (segments[level] === col.identifier) ? ' selected' : '';
+                select.append(`<option value="${col.identifier}" data-column-type="${col.column_type || ''}" data-link-to="${col.link_to || ''}" data-table-name="${col.link_to_table_name || ''}"${selected}>${col.name}</option>`);
+            }
+            container.append(select);
+            this._updatePathAndContinue(container, hiddenInput, columns, tableIdentifier, segments, level, callback);
+        }
+
+        _updatePathAndContinue(container, hiddenInput, columns, tableIdentifier, segments, level, callback){
+            const selects = container.find('select');
+            const path = [];
+            let lastColType = '';
+            let lastLinkTo = '';
+            selects.each(function(){
+                const val = $(this).val();
+                if(val){
+                    path.push(val);
+                    const opt = $(this).find('option:selected');
+                    lastColType = opt.data('column-type') || '';
+                    lastLinkTo = opt.data('link-to') || '';
+                }
+            });
+            hiddenInput.val(path.join('>'));
+
+            const currentSelect = container.find(`select[data-level="${level}"]`);
+            if(!currentSelect.val()){
+                if(callback) callback(lastColType, lastLinkTo);
+                return;
+            }
+
+            const isLastSegment = (level === segments.length - 1);
+            if(!isLastSegment && lastColType === 'selection' && lastLinkTo){
+                this.tableColumn.read(lastLinkTo, '').then(linkedResp => {
+                    if(linkedResp.body.data){
+                        this._buildPathLevel(container, hiddenInput, linkedResp.body.data, tableIdentifier, segments, level + 1, callback);
+                    }
+                });
+            } else if(level < segments.length - 1){
+                const nextTable = lastLinkTo || tableIdentifier;
+                this.tableColumn.read(nextTable, '').then(linkedResp => {
+                    if(linkedResp.body.data){
+                        this._buildPathLevel(container, hiddenInput, linkedResp.body.data, tableIdentifier, segments, level + 1, callback);
+                    }
+                });
+            } else {
+                if(callback) callback(lastColType, lastLinkTo);
+            }
+        }
+
+        onPathLevelChange(e){
+            const changedSelect = $(e.currentTarget);
+            const modal = changedSelect.closest('.modal');
+            const container = modal.find('.filter-column-path-container');
+            const hiddenInput = modal.find('input[name="filter_column"]');
+            const level = parseInt(changedSelect.data('level'));
+            const selectedOption = changedSelect.find('option:selected');
+            const columnType = selectedOption.data('column-type') || '';
+            const linkTo = selectedOption.data('link-to') || '';
+
+            container.find('select').each(function(){
+                if(parseInt($(this).data('level')) > level){
+                    $(this).remove();
+                }
+            });
+
+            const selects = container.find('select');
+            const path = [];
+            selects.each(function(){
+                const val = $(this).val();
+                if(val) path.push(val);
+            });
+            hiddenInput.val(path.join('>'));
+
+            if(columnType === 'selection' && linkTo){
+                const tableIdentifier = this.getTableIdentifier();
+                this.tableColumn.read(tableIdentifier, '').then(response => {
+                    if(!response.body.data) return;
+                    this.tableColumn.read(linkTo, '').then(linkedResp => {
+                        if(linkedResp.body.data){
+                            this._buildPathLevel(container, hiddenInput, linkedResp.body.data, tableIdentifier, [], level + 1, (lastType, lastLink) => {
+                                const wrapper = modal.find('.filter-value-wrapper');
+                                this.populateFilterValueField(wrapper, lastType || columnType, lastLink || linkTo, '');
+                            });
+                        }
+                    });
+                });
+            } else {
+                const wrapper = modal.find('.filter-value-wrapper');
+                this.populateFilterValueField(wrapper, columnType, linkTo, '');
+            }
+        }
+
         toggleTargetIdInput(e){
         const target_type = $(e.currentTarget).val();
         const modal = $(e.currentTarget).closest('.modal');
@@ -623,20 +724,6 @@ export class TableSettingsController extends BaseController{
         } else {
             modal.find('.filter-row').show();
         }
-    }
-
-    populatePolicyColumnsSelect(table_identifier, selector, callback){
-        const select = $(selector);
-        select.html('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_column') : 'Select column...') + '</option>');
-
-        this.tableColumn.read(table_identifier, '').then(response => {
-            if(response.body.data && response.body.data.length > 0){
-                for(const col of response.body.data){
-                    select.append(`<option value="${col.identifier}" data-column-type="${col.column_type || ''}" data-link-to="${col.link_to || ''}">${col.name}</option>`);
-                }
-            }
-            if(callback) callback();
-        });
     }
 
     addRowPolicy(e){
@@ -716,18 +803,16 @@ export class TableSettingsController extends BaseController{
                 $('#component_settings_row_policies_modify .filter-row').show();
             }
 
-            this.populatePolicyColumnsSelect(table_identifier, '#component_settings_row_policies_modify select[name="filter_column"]', () => {
-                $('#component_settings_row_policies_modify select[name="filter_column"]').val(data.filter_column || '');
-                $('#component_settings_row_policies_modify select[name="filter_operator"]').val(data.filter_operator || '=');
+            const filterPathContainer = $('#component_settings_row_policies_modify .filter-column-path-container');
+            const filterHiddenInput = $('#component_settings_row_policies_modify input[name="filter_column"]');
+            const filterPath = data.filter_column || '';
 
-                const filterColSelect = $('#component_settings_row_policies_modify select[name="filter_column"]');
-                const selectedOption = filterColSelect.find('option:selected');
-                const colType = selectedOption.data('column-type') || '';
-                const linkTo = selectedOption.data('link-to') || '';
+            this.renderColumnPathSelects(filterPathContainer, filterHiddenInput, table_identifier, filterPath, (lastColType, lastLinkTo) => {
+                $('#component_settings_row_policies_modify select[name="filter_operator"]').val(data.filter_operator || '=');
                 this.populateFilterValueField(
                     $('#component_settings_row_policies_modify .filter-value-wrapper'),
-                    colType,
-                    linkTo,
+                    lastColType,
+                    lastLinkTo,
                     data.filter_value || ''
                 );
 
