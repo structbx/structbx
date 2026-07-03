@@ -32,8 +32,11 @@ void RowPolicy::Read::ReadPoliciesByTable(StructBX::Functions::Action::Ptr actio
     action->set_sql_code(
         "SELECT rp.identifier, rp.policy_name, rp.target_type, rp.target_id, "
         "rp.action_type, rp.filter_column, rp.filter_operator, rp.filter_value, "
-        "rp.is_active, rp.priority, rp.created_at "
+        "rp.is_active, rp.priority, rp.created_at, "
+        "tc.name AS filter_column_name "
         "FROM tables_row_policies rp "
+        "LEFT JOIN tables_columns tc ON tc.identifier = rp.filter_column "
+        "  AND tc.id_table = rp.id_table "
         "WHERE rp.id_table = ? "
         "ORDER BY rp.priority ASC"
     );
@@ -65,9 +68,12 @@ RowPolicy::ReadSpecific::ReadSpecific(Tools::FunctionData& function_data) : Tool
 void RowPolicy::ReadSpecific::ReadPolicyByIdentifier(StructBX::Functions::Action::Ptr action)
 {
     action->set_sql_code(
-        "SELECT rp.*, t.name AS table_name "
+        "SELECT rp.*, t.name AS table_name, "
+        "tc.name AS filter_column_name "
         "FROM tables_row_policies rp "
         "JOIN tables t ON t.identifier = rp.id_table "
+        "LEFT JOIN tables_columns tc ON tc.identifier = rp.filter_column "
+        "  AND tc.id_table = rp.id_table "
         "WHERE rp.identifier = ? AND t.id_database = ?"
     );
 

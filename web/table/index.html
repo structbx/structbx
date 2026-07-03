@@ -856,7 +856,7 @@
                         <!-- /Views: Delete -->
 
                         <!-- Settings -->
-                        <div class="modal fade" id="component_settings" tabindex="-1" aria-labelledby="component_settings_label" aria-hidden="true">
+                        <div class="modal right-side-modal fade" id="component_settings" tabindex="-1" aria-labelledby="component_settings_label" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
@@ -1173,6 +1173,30 @@
                                         </article>
                                         <!-- /Settings: Row Policies -->
 
+                                        <!-- Settings: General: Delete -->
+                                        <article id="component_settings_general_delete" class="card p-4 bg-white mb-4">
+                                            <!-- Card header -->
+                                            <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
+                                                <div class="flex-grow-1 align-self-center">
+                                                    <span class="fw-bold" data-i18n="table.settings_delete_table">Delete table</span>
+                                                </div>
+                                            </header>
+                                            <!-- /Card header -->
+                                            <!-- Contents -->
+                                            <div class="mb-2">
+
+                                                <div class="notifications"></div>
+                                                <div class="mt-2">
+                                                    <span data-i18n="table.settings_irreversible">This action cannot be undone:</span>
+                                                    <button class="btn btn-danger ms-2 delete" data-i18n="table.settings_delete_btn">Delete table</button>
+                                                </div>
+                                            </div>
+                                            <!-- /Contents -->
+                                        </article>
+                                        <!-- /Settings: General: Delete -->
+
+                                    </div>
+
                                         <!-- Settings: Row Policies: Add -->
                                         <div id="component_settings_row_policies_add" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_settings_row_policies_add_label" aria-hidden="true">
                                             <div class="modal-dialog">
@@ -1207,7 +1231,7 @@
                                                                 <tr class="target-id-row d-none">
                                                                     <th scope="row" data-i18n="table.settings_row_policy_target_id">Target ID</th>
                                                                     <td>
-                                                                        <input type="text" class="form-control" name="target_id" placeholder="admin">
+                                                                        <div class="target-id-wrapper"></div>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -1245,43 +1269,45 @@
                                                                         </select>
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="filter-row">
-                                                                    <th scope="row" data-i18n="table.settings_row_policy_value">Value</th>
-                                                                    <td>
+                                                            <tr class="filter-row">
+                                                                <th scope="row" data-i18n="table.settings_row_policy_value">Value</th>
+                                                                <td>
+                                                                    <div class="filter-value-wrapper">
                                                                         <input type="text" class="form-control" name="filter_value" placeholder='e.g. {current_user_id}'>
-                                                                        <small class="text-muted" data-i18n-html="table.settings_row_policy_value_hint">Available placeholders: <code>{current_user_id}</code>, <code>{current_username}</code>, <code>{user_type}</code>, <code>{user_group}</code></small>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th scope="row" data-i18n="table.settings_row_policy_active">Active</th>
-                                                                    <td>
-                                                                        <select class="form-select" name="is_active" required>
-                                                                            <option value="1" data-i18n="table.yes">Yes</option>
-                                                                            <option value="0" data-i18n="table.no">No</option>
-                                                                        </select>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th scope="row" data-i18n="table.settings_row_policy_priority">Priority</th>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="priority" value="0" min="0">
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
-                                                            <i class="fas fa-arrow-left me-2"></i>Cancel
-                                                        </button>
-                                                        <button type="submit" class="btn btn-primary" data-i18n="table.add">
-                                                            <i class="fas fa-plus-circle me-2"></i>Add policy
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                                                    </div>
+                                                                    <small class="text-muted" data-i18n-html="table.settings_row_policy_value_hint">Available placeholders: <code>{current_user_id}</code>, <code>{current_username}</code>, <code>{user_type}</code>, <code>{user_group}</code></small>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row" data-i18n="table.settings_row_policy_active">Active</th>
+                                                                <td>
+                                                                    <select class="form-select" name="is_active" required>
+                                                                        <option value="1" data-i18n="table.yes">Yes</option>
+                                                                        <option value="0" data-i18n="table.no">No</option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="row" data-i18n="table.settings_row_policy_priority">Priority</th>
+                                                                <td>
+                                                                    <input type="number" class="form-control" name="priority" value="0" min="0">
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary" data-i18n="table.add">
+                                                        <i class="fas fa-plus-circle me-2"></i>Add policy
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
-                                        <!-- /Settings: Row Policies: Add -->
+                                    </div>
+                                    <!-- /Settings: Row Policies: Add -->
 
                                         <!-- Settings: Row Policies: Modify -->
                                         <div id="component_settings_row_policies_modify" class="modal right-side-modal fade" tabindex="-1" aria-labelledby="component_settings_row_policies_modify_label" aria-hidden="true">
@@ -1318,7 +1344,7 @@
                                                                 <tr class="target-id-row">
                                                                     <th scope="row" data-i18n="table.settings_row_policy_target_id">Target ID</th>
                                                                     <td>
-                                                                        <input type="text" class="form-control" name="target_id">
+                                                                        <div class="target-id-wrapper"></div>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -1359,7 +1385,9 @@
                                                                 <tr class="filter-row">
                                                                     <th scope="row" data-i18n="table.settings_row_policy_value">Value</th>
                                                                     <td>
-                                                                        <input type="text" class="form-control" name="filter_value">
+                                                                        <div class="filter-value-wrapper">
+                                                                            <input type="text" class="form-control" name="filter_value">
+                                                                        </div>
                                                                         <small class="text-muted" data-i18n-html="table.settings_row_policy_value_hint">Available placeholders: <code>{current_user_id}</code>, <code>{current_username}</code>, <code>{user_type}</code>, <code>{user_group}</code></small>
                                                                     </td>
                                                                 </tr>
@@ -1424,28 +1452,6 @@
                                             </div>
                                         </div>
                                         <!-- /Settings: Row Policies: Delete -->
-
-                                        <!-- Settings: General: Delete -->
-                                        <article id="component_settings_general_delete" class="card p-4 bg-white mb-4">
-                                            <!-- Card header -->
-                                            <header class="mb-4 px-4 py-2 primary-background rounded d-flex">
-                                                <div class="flex-grow-1 align-self-center">
-                                                    <span class="fw-bold" data-i18n="table.settings_delete_table">Delete table</span>
-                                                </div>
-                                            </header>
-                                            <!-- /Card header -->
-                                            <!-- Contents -->
-                                            <div class="mb-2">
-
-                                                <div class="notifications"></div>
-                                                <div class="mt-2">
-                                                    <span data-i18n="table.settings_irreversible">This action cannot be undone:</span>
-                                                    <button class="btn btn-danger ms-2 delete" data-i18n="table.settings_delete_btn">Delete table</button>
-                                                </div>
-                                            </div>
-                                            <!-- /Contents -->
-                                        </article>
-                                        <!-- /Settings: General: Delete -->
 
                                         <!-- Settings: Delete -->
                                         <div id="component_settings_delete" class="modal right-side-modal fade" tabindex="-1" aria-hidden="true">

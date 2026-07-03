@@ -266,9 +266,16 @@ void Tables::Data::RowPolicyEvaluator::SetValidColumns(Query::Results::Ptr colum
     valid_columns_.clear();
     for(auto& row : *columns_results)
     {
-        auto field = row->ExtractField_("identifier");
-        if(!field->IsNull_())
-            valid_columns_.insert(field->ToString_());
+        auto id_field = row->ExtractField_("identifier");
+        if(!id_field->IsNull_())
+        {
+            ColumnInfo info;
+            auto type_field = row->ExtractField_("column_type");
+            info.type = (!type_field->IsNull_()) ? type_field->ToString_() : "";
+            auto link_field = row->ExtractField_("link_to");
+            info.link_to = (!link_field->IsNull_()) ? link_field->ToString_() : "";
+            valid_columns_[id_field->ToString_()] = info;
+        }
     }
 }
 
@@ -305,7 +312,7 @@ bool Tables::Data::RowPolicyEvaluator::HasBypass(
 }
 
 std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
-    Functions::Function& self, std::string table_alias, std::string current_user_id)
+    Functions::Function& self, std::string table_alias, std::string current_user_id, std::string id_database)
 {
     std::string condition = "";
     bool first = true;
@@ -319,8 +326,13 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
         if(!MatchPolicyTarget(policy, self, current_user_id))
             continue;
 
+        // Validate operator early
+        if(valid_filters_ops.find(policy.filter_operator) == valid_filters_ops.end())
+            continue;
+
         // Skip if the referenced column no longer exists in the table
-        if(!valid_columns_.empty() && valid_columns_.find(policy.filter_column) == valid_columns_.end())
+        auto col_it = valid_columns_.find(policy.filter_column);
+        if(!valid_columns_.empty() && col_it == valid_columns_.end())
             continue;
 
         // Build column reference with alias
@@ -328,8 +340,63 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
             policy.filter_column : 
             table_alias + "." + policy.filter_column;
 
-        // Replace placeholders in value
+        std::string op = policy.filter_operator;
         std::string val = policy.filter_value;
+
+        // Check if the value contains a placeholder — if so, skip resolution
+        bool has_placeholder = (val.find('{') != std::string::npos);
+        if(!has_placeholder && col_it != valid_columns_.end())
+        {
+            const auto& col_info = col_it->second;
+            if(col_info.type == "user" || col_info.type == "current-user")
+            {
+                // Try to resolve username → user identifier
+                auto resolve = self.AddAction_("resolve_policy_user_" + policy.identifier);
+                resolve->set_suppress_debug(true);
+                resolve->set_sql_code("SELECT identifier FROM users WHERE username = ?");
+                resolve->AddParameter_("username", val, false);
+                if(resolve->Work_() && resolve->get_results()->size() > 0)
+                {
+                    val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
+                }
+            }
+            else if(col_info.type == "selection" && !col_info.link_to.empty())
+            {
+                // Find the display column for the linked table
+                auto disp = self.AddAction_("resolve_policy_disp_" + policy.identifier);
+                disp->set_suppress_debug(true);
+                disp->set_sql_code(
+                    "SELECT COALESCE(tc.identifier, "
+                    "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS col "
+                    "FROM tables t "
+                    "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                    "WHERE t.identifier = ?"
+                );
+                disp->AddParameter_("link_to", col_info.link_to, false);
+                std::string display_col = "identifier";
+                if(disp->Work_() && disp->get_results()->size() > 0)
+                {
+                    auto f = disp->get_results()->begin()->get()->ExtractField_("col");
+                    if(!f->IsNull_())
+                        display_col = f->ToString_();
+                }
+
+                // Try to resolve display value → record identifier
+                auto resolve = self.AddAction_("resolve_policy_sel_" + policy.identifier);
+                resolve->set_suppress_debug(true);
+                resolve->set_sql_code(
+                    "SELECT identifier FROM " + id_database + "." + col_info.link_to +
+                    " WHERE " + display_col + " = ?"
+                );
+                resolve->AddParameter_("display_val", val, false);
+                if(resolve->Work_() && resolve->get_results()->size() > 0)
+                {
+                    val = resolve->get_results()->begin()->get()->ExtractField_("identifier")->ToString_();
+                }
+            }
+        }
+
+        // Replace placeholders in value
         {
             auto pos = val.find("{current_user_id}");
             if(pos != std::string::npos)
@@ -350,12 +417,6 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
             if(pos != std::string::npos)
                 val.replace(pos, 12, self.get_current_user().get_id_group());
         }
-
-        // Validate operator
-        if(valid_filters_ops.find(policy.filter_operator) == valid_filters_ops.end())
-            continue;
-
-        std::string op = policy.filter_operator;
 
         // Build condition part
         std::string part;
@@ -870,7 +931,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, "_" + table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                    self, "_" + table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
                 if(!policy_condition.empty())
                 {
                     if(filters_query == "")
@@ -1675,7 +1736,7 @@ Tables::Data::Modify::Modify(Tools::FunctionData& function_data) : Tools::Functi
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
                 if(!policy_condition.empty())
                 {
                     modify_record->set_sql_code(modify_record->get_sql_code() + " AND " + policy_condition);
@@ -1850,7 +1911,7 @@ Tables::Data::Delete::Delete(Tools::FunctionData& function_data) : Tools::Functi
             if(!rpe.HasBypass(self, self.get_current_user().get_id()))
             {
                 std::string policy_condition = rpe.BuildCondition(
-                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id());
+                    self, table_identifier->get()->ToString_(), self.get_current_user().get_id(), id_database);
                 if(!policy_condition.empty())
                 {
                     delete_sql += " AND " + policy_condition;

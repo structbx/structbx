@@ -6,6 +6,8 @@ import { Table } from '../models/Table.js';
 import { TableColumn } from '../models/TableColumn.js';
 import { TablePermission } from '../models/TablePermission.js';
 import { RowPolicy } from '../models/RowPolicy.js';
+import { User } from '../models/User.js';
+import { Group } from '../models/Group.js';
 
 export class TableSettingsController extends BaseController{
     constructor() {
@@ -15,6 +17,8 @@ export class TableSettingsController extends BaseController{
         this.tableColumn = new TableColumn;
         this.tablePermission = new TablePermission;
         this.rowPolicy = new RowPolicy;
+        this.user = new User;
+        this.group = new Group;
 
         this.notification.read = new wtools.Notification('WARNING', 5000, '#component_settings_general .notifications');
         this.notification.add = new wtools.Notification('WARNING', 5000, '#component_settings_permissions_add .notifications');
@@ -96,8 +100,10 @@ export class TableSettingsController extends BaseController{
 
         $(document).on('change', '#component_settings_row_policies_add select[name="target_type"]', e => this.toggleTargetIdInput(e));
         $(document).on('change', '#component_settings_row_policies_add select[name="action_type"]', e => this.toggleFilterRows(e));
+        $(document).on('change', '#component_settings_row_policies_add select[name="filter_column"]', e => this.onFilterColumnChange(e));
         $(document).on('change', '#component_settings_row_policies_modify select[name="target_type"]', e => this.toggleTargetIdInput(e));
         $(document).on('change', '#component_settings_row_policies_modify select[name="action_type"]', e => this.toggleFilterRows(e));
+        $(document).on('change', '#component_settings_row_policies_modify select[name="filter_column"]', e => this.onFilterColumnChange(e));
 
         $(document).on('submit', '#component_settings_row_policies_add form', e => this.addRowPolicy(e));
 
@@ -457,8 +463,11 @@ export class TableSettingsController extends BaseController{
                 const action_label = row.action_type == 'bypass'
                     ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_bypass') : 'Bypass')
                     : (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_filter') : 'Filter');
+                const columnDisplay = row.filter_column_name
+                    ? row.filter_column_name + ' (' + row.filter_column + ')'
+                    : row.filter_column;
                 const condition = row.action_type == 'filter'
-                    ? (row.filter_column + ' ' + row.filter_operator + ' ' + row.filter_value)
+                    ? (columnDisplay + ' ' + row.filter_operator + ' ' + row.filter_value)
                     : '-';
                 const active = row.is_active == 1
                     ? (window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
@@ -489,18 +498,120 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_row_policies_add select[name="is_active"]').val("1");
             $('#component_settings_row_policies_add select[name="priority"]').val("0");
             $('#component_settings_row_policies_add .target-id-row').addClass('d-none');
+            $('#component_settings_row_policies_add .target-id-wrapper').html('');
+            $('#component_settings_row_policies_add select[name="target_type"]').val('all');
             $('#component_settings_row_policies_add .filter-row').show();
+            this.populateFilterValueField(
+                $('#component_settings_row_policies_add .filter-value-wrapper'),
+                '',
+                '',
+                ''
+            );
             $('#component_settings_row_policies_add').modal('show');
         });
     }
 
-    toggleTargetIdInput(e){
+    populateTargetIdField(container, targetType, selectedValue){
+        container.html('');
+        if(targetType == 'all') return;
+
+        if(targetType == 'user'){
+            const select = $('<select class="form-select" name="target_id" required></select>');
+            select.append('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_user') : 'Select user...') + '</option>');
+            container.append(select);
+            this.user.readAll().then(response => {
+                if(response.body.data){
+                    for(const user of response.body.data){
+                        select.append(`<option value="${user.identifier}">${user.username}</option>`);
+                    }
+                }
+                if(selectedValue) select.val(selectedValue);
+            });
+        } else if(targetType == 'group'){
+            const select = $('<select class="form-select" name="target_id" required></select>');
+            select.append('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_group') : 'Select group...') + '</option>');
+            container.append(select);
+            this.group.readAll().then(response => {
+                if(response.body.data){
+                    for(const group of response.body.data){
+                        select.append(`<option value="${group.identifier}">${group.group}</option>`);
+                    }
+                }
+                if(selectedValue) select.val(selectedValue);
+            });
+            } else if(targetType == 'user_type'){
+                const select = $('<select class="form-select" name="target_id" required></select>');
+                select.append('<option value="admin">admin</option>');
+                select.append('<option value="default">default</option>');
+                container.append(select);
+                if(selectedValue) select.val(selectedValue);
+            }
+        }
+
+        onFilterColumnChange(e){
+            const select = $(e.currentTarget);
+            const selectedOption = select.find('option:selected');
+            const columnType = selectedOption.data('column-type') || '';
+            const linkTo = selectedOption.data('link-to') || '';
+            const modal = select.closest('.modal');
+            const wrapper = modal.find('.filter-value-wrapper');
+            const existingValue = modal.find('input[name="filter_value"]').val() || modal.find('select[name="filter_value"]').val() || '';
+            this.populateFilterValueField(wrapper, columnType, linkTo, existingValue);
+        }
+
+        populateFilterValueField(wrapper, columnType, linkTo, selectedValue){
+            wrapper.html('');
+            if(columnType == 'selection' || columnType == 'user' || columnType == 'current-user'){
+                const select = $('<select class="form-select" name="filter_value"></select>');
+                select.append('<option value="">' + (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_select_value') : 'Select value or placeholder...') + '</option>');
+                select.append('<option value="{current_user_id}">{current_user_id}</option>');
+                select.append('<option value="{current_username}">{current_username}</option>');
+                select.append('<option value="{user_type}">{user_type}</option>');
+                select.append('<option value="{user_group}">{user_group}</option>');
+                select.append('<option value="" disabled>──────────</option>');
+                wrapper.append(select);
+                if(columnType == 'user' || columnType == 'current-user'){
+                    this.user.readAll().then(response => {
+                        if(response.body.data){
+                            for(const user of response.body.data){
+                                select.append(`<option value="${user.identifier}">${user.username}</option>`);
+                            }
+                        }
+                        if(selectedValue) select.val(selectedValue);
+                    });
+                } else if(columnType == 'selection' && linkTo){
+                    this.linkSelectionOptionsSimple(select, linkTo, selectedValue);
+                }
+            } else {
+                const input = $('<input type="text" class="form-control" name="filter_value" placeholder="e.g. {current_user_id}">');
+                wrapper.append(input);
+                if(selectedValue) input.val(selectedValue);
+            }
+        }
+
+        linkSelectionOptionsSimple(select, linkTo, selectedValue){
+            this.table_data.readToLinkSelectionOptions(linkTo, '').then(response => {
+                if(response.body.data && response.body.columns && response.body.columns.length > 1){
+                    const idCol = response.body.columns[0];
+                    const displayCol = response.body.columns[1];
+                    for(const row of response.body.data){
+                        select.append(`<option value="${row[idCol]}">${row[displayCol] || row[idCol]}</option>`);
+                    }
+                }
+                if(selectedValue) select.val(selectedValue);
+            });
+        }
+
+        toggleTargetIdInput(e){
         const target_type = $(e.currentTarget).val();
         const modal = $(e.currentTarget).closest('.modal');
+        const container = modal.find('.target-id-wrapper');
         if(target_type == 'all'){
             modal.find('.target-id-row').addClass('d-none');
+            container.html('');
         } else {
             modal.find('.target-id-row').removeClass('d-none');
+            this.populateTargetIdField(container, target_type);
         }
     }
 
@@ -521,7 +632,7 @@ export class TableSettingsController extends BaseController{
         this.tableColumn.read(table_identifier, '').then(response => {
             if(response.body.data && response.body.data.length > 0){
                 for(const col of response.body.data){
-                    select.append(`<option value="${col.identifier}">${col.name}</option>`);
+                    select.append(`<option value="${col.identifier}" data-column-type="${col.column_type || ''}" data-link-to="${col.link_to || ''}">${col.name}</option>`);
                 }
             }
             if(callback) callback();
@@ -588,13 +699,13 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_row_policies_modify input[name="identifier"]').val(data.identifier);
             $('#component_settings_row_policies_modify input[name="policy_name"]').val(data.policy_name || '');
             $('#component_settings_row_policies_modify select[name="target_type"]').val(data.target_type);
-            $('#component_settings_row_policies_modify input[name="target_id"]').val(data.target_id || '');
             $('#component_settings_row_policies_modify select[name="action_type"]').val(data.action_type);
             $('#component_settings_row_policies_modify select[name="is_active"]').val(String(data.is_active));
             $('#component_settings_row_policies_modify input[name="priority"]').val(data.priority || 0);
 
             if(data.target_type == 'all'){
                 $('#component_settings_row_policies_modify .target-id-row').addClass('d-none');
+                $('#component_settings_row_policies_modify .target-id-wrapper').html('');
             } else {
                 $('#component_settings_row_policies_modify .target-id-row').removeClass('d-none');
             }
@@ -608,7 +719,23 @@ export class TableSettingsController extends BaseController{
             this.populatePolicyColumnsSelect(table_identifier, '#component_settings_row_policies_modify select[name="filter_column"]', () => {
                 $('#component_settings_row_policies_modify select[name="filter_column"]').val(data.filter_column || '');
                 $('#component_settings_row_policies_modify select[name="filter_operator"]').val(data.filter_operator || '=');
-                $('#component_settings_row_policies_modify input[name="filter_value"]').val(data.filter_value || '');
+
+                const filterColSelect = $('#component_settings_row_policies_modify select[name="filter_column"]');
+                const selectedOption = filterColSelect.find('option:selected');
+                const colType = selectedOption.data('column-type') || '';
+                const linkTo = selectedOption.data('link-to') || '';
+                this.populateFilterValueField(
+                    $('#component_settings_row_policies_modify .filter-value-wrapper'),
+                    colType,
+                    linkTo,
+                    data.filter_value || ''
+                );
+
+                this.populateTargetIdField(
+                    $('#component_settings_row_policies_modify .target-id-wrapper'),
+                    data.target_type,
+                    data.target_id || ''
+                );
 
                 wait.Off_();
                 $('#component_settings_row_policies_modify form').removeClass('was-validated');
