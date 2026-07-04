@@ -34,6 +34,7 @@
 
 // Databases controller
 #define ERR_DB_NAME_EMPTY ERR_CODE("databases.cpp", "createDatabase", "validate_input", "name_empty")
+#define ERR_DB_LAST_DELETE ERR_CODE("databases.cpp", "deleteDatabase", "validate_last", "cannot_delete_last")
 #define ERR_DB_IDENT_EMPTY ERR_CODE("databases.cpp", "createDatabase", "validate_input", "ident_empty")
 #define ERR_DB_NAME_SHORT ERR_CODE("databases.cpp", "createDatabase", "validate_input", "name_too_short")
 #define ERR_DB_USER_NOT_OWNED ERR_CODE("databases.cpp", "modifyDatabase", "validate_ownership", "user_not_owner")
@@ -48,6 +49,8 @@
 
 // Users controller
 #define ERR_USR_ID_EMPTY ERR_CODE("users.cpp", "modifyUser", "validate_input", "id_empty")
+#define ERR_USR_SELF_DELETE ERR_CODE("users.cpp", "deleteUser", "validate_self_delete", "cannot_delete_self")
+#define ERR_USR_LAST_DELETE ERR_CODE("users.cpp", "deleteUser", "validate_last", "cannot_delete_last")
 #define ERR_USR_USERNAME_EMPTY ERR_CODE("users.cpp", "Create_", "validate_input", "username_empty")
 #define ERR_USR_USERNAME_INVALID ERR_CODE("users.cpp", "Create_", "validate_format", "username_invalid")
 #define ERR_USR_PASSWORD_EMPTY ERR_CODE("users.cpp", "Create_", "validate_input", "password_empty")
@@ -64,6 +67,7 @@
 #define ERR_GRP_NAME_EMPTY ERR_CODE("groups.cpp", "Create_", "validate_input", "name_empty")
 #define ERR_GRP_DUP_NAME ERR_CODE("groups.cpp", "Create_", "validate_uniqueness", "duplicate_name")
 #define ERR_GRP_CREATE_FAIL ERR_CODE("groups.cpp", "Create_", "execute_create", "create_failed")
+#define ERR_GRP_LAST_DELETE ERR_CODE("groups.cpp", "deleteGroup", "validate_last", "cannot_delete_last")
 
 // Permissions controller
 #define ERR_PER_ENDPOINT_EMPTY ERR_CODE("permissions.cpp", "Create_", "validate_input", "endpoint_empty")
@@ -84,6 +88,7 @@
 
 // Columns controller
 #define ERR_COL_TABLE_ID_EMPTY ERR_CODE("columns.cpp", "readColumns", "validate_input", "table_id_empty")
+#define ERR_COL_LAST_DELETE ERR_CODE("columns.cpp", "deleteColumn", "validate_last", "cannot_delete_last")
 #define ERR_COL_COL_ID_EMPTY ERR_CODE("columns.cpp", "validateColumn", "validate_input", "col_id_empty")
 #define ERR_COL_NAME_NOT_STRING ERR_CODE("columns.cpp", "validateName", "validate_input", "name_not_string")
 #define ERR_COL_NAME_EMPTY ERR_CODE("columns.cpp", "validateName", "validate_input", "name_empty")
@@ -99,6 +104,7 @@
 #define ERR_VIEW_TABLE_ID_EMPTY ERR_CODE("views.cpp", "readViews", "validate_input", "table_id_empty")
 #define ERR_VIEW_VIEW_ID_EMPTY ERR_CODE("views.cpp", "readViews", "validate_input", "view_id_empty")
 #define ERR_VIEW_NAME_EMPTY ERR_CODE("views.cpp", "addView", "validate_input", "name_empty")
+#define ERR_VIEW_LAST_DELETE ERR_CODE("views.cpp", "deleteView", "validate_last", "cannot_delete_last")
 
 // Filters controller
 #define ERR_FILT_VIEW_ID_EMPTY ERR_CODE("filters.cpp", "readFilters", "validate_input", "view_id_empty")

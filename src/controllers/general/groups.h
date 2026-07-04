@@ -56,6 +56,7 @@ class StructBX::Controllers::General::Groups : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
+            void CountGroups(StructBX::Functions::Action::Ptr action);
             void DeleteGroup(StructBX::Functions::Action::Ptr action);
         };
 

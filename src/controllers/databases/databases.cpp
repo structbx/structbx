@@ -543,6 +543,12 @@ Databases::Delete::Delete(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/databases/delete", HTTP::EnumMethods::kHTTP_DEL);
 
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 0: Count user databases (prevent deleting last database)
+    auto action0 = function->AddAction_("count_user_databases");
+    CountUserDatabases(action0);
+
     // Action 1: Verify that current user is in the database
     auto action1 = function->AddAction_("verify_user_database_ownership");
     VerifyUserDatabaseOwnership(action1);
@@ -555,7 +561,66 @@ Databases::Delete::Delete(Tools::FunctionData& function_data) :
     auto action3 = function->AddAction_("delete_database_users");
     DeleteDatabaseUsers(action3);
 
+    // Setup Custom Process
+    auto id_user = get_id_user();
+    function->SetupCustomProcess_([id_user, action0, action1, action2, action3](StructBX::Functions::Function& self)
+    {
+        // Action 0: Count user databases
+        if(!action0->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action0->get_custom_error(), action0->get_custom_error_code());
+            return;
+        }
+
+        // Action 1: Verify ownership
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
+            return;
+        }
+
+        // Action 2: Mark database as deleted
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Action 3: Delete database users
+        if(!action3->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action3->get_custom_error(), action3->get_custom_error_code());
+            return;
+        }
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+    });
+
     get_functions()->push_back(function);
+}
+
+void Databases::Delete::CountUserDatabases(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT COUNT(*) AS cnt "
+        "FROM databases_users "
+        "WHERE id_user = ?"
+    );
+    action->SetupCondition_("count-user-databases", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    {
+        auto first = self.get_results()->First_();
+        if(first->IsNull_() || first->Int_() <= 1)
+        {
+            self.set_custom_error("Cannot delete the last database. You must belong to at least one database.");
+            self.set_custom_error_code(ERR_DB_LAST_DELETE);
+            return false;
+        }
+
+        return true;
+    });
+
+    action->AddParameter_("id_user", get_id_user(), false);
 }
 
 void Databases::Delete::VerifyUserDatabaseOwnership(StructBX::Functions::Action::Ptr action)

@@ -787,6 +787,10 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
 
     function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
 
+    // Action 0: Count columns (prevent deleting last column)
+    auto action0 = function->AddAction_("count_columns_by_table");
+    CountColumnsByTable(action0);
+
     // Action 1: Verify column existence
     auto action1 = function->AddAction_("verify_column_exists");
     VerifyColumnExists(action1);
@@ -797,9 +801,16 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
 
     // Setup Custom Process
     auto database_id = get_database_id();
-    function->SetupCustomProcess_([database_id, action1, action2](StructBX::Functions::Function& self)
+    function->SetupCustomProcess_([database_id, action0, action1, action2](StructBX::Functions::Function& self)
     {
-        // Execute action 1
+        // Execute action 0: Count columns
+        if(!action0->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action0->get_custom_error(), action0->get_custom_error_code());
+            return;
+        }
+
+        // Execute action 1: Verify column existence
         if(!action1->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
@@ -879,6 +890,39 @@ void Columns::Delete::VerifyColumnExists(StructBX::Functions::Action::Ptr action
 
     action->AddParameter_("table-identifier", "", true)
     ->SetupCondition_("condition-identifier-table", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("The table identifier cannot be empty.");
+            return false;
+        }
+        return true;
+    });
+}
+
+void Columns::Delete::CountColumnsByTable(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT COUNT(*) AS cnt "
+        "FROM tables_columns "
+        "WHERE id_table = ?"
+    );
+    action->set_final(false);
+    action->SetupCondition_("count-columns", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    {
+        auto first = self.get_results()->First_();
+        if(first->IsNull_() || first->Int_() <= 1)
+        {
+            self.set_custom_error("Cannot delete the last column. A table must have at least one column.");
+            self.set_custom_error_code(ERR_COL_LAST_DELETE);
+            return false;
+        }
+
+        return true;
+    });
+
+    action->AddParameter_("table-identifier", "", true)
+    ->SetupCondition_("condition-table-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
     {
         if(param->get_value()->ToString_() == "")
         {

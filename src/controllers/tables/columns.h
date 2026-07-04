@@ -94,6 +94,7 @@ class StructBX::Controllers::Tables::Columns : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
+            void CountColumnsByTable(StructBX::Functions::Action::Ptr action);
             void VerifyColumnExists(StructBX::Functions::Action::Ptr action);
             void DeleteColumnMetadata(StructBX::Functions::Action::Ptr action);
         };

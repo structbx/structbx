@@ -71,6 +71,7 @@ class StructBX::Controllers::General::Users : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
+            void CountUsers(StructBX::Functions::Action::Ptr action);
             void DeleteUser(StructBX::Functions::Action::Ptr action);
         };
 

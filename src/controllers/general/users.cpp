@@ -685,10 +685,71 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("delete_user");
-    DeleteUser(action1);
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Count users (prevent deleting last user)
+    auto action_count = function->AddAction_("count_users");
+    CountUsers(action_count);
+
+    // Action 2: Delete user
+    auto action2 = function->AddAction_("delete_user");
+    DeleteUser(action2);
+
+    // Setup Custom Process
+    auto id_user = get_id_user();
+    function->SetupCustomProcess_([id_user, action_count, action2](StructBX::Functions::Function& self)
+    {
+        // Action 1: Count users
+        if(!action_count->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_count->get_custom_error(), action_count->get_custom_error_code());
+            return;
+        }
+
+        // Self-delete check
+        auto identifier = self.GetParameter_("identifier");
+        if(identifier != self.get_parameters().end())
+        {
+            if(identifier->get()->ToString_() == id_user)
+            {
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "You cannot delete yourself.", ERR_USR_SELF_DELETE);
+                return;
+            }
+        }
+
+        // Action 2: Delete user
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
+    });
 
     get_functions()->push_back(function);
+}
+
+void Users::Delete::CountUsers(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT COUNT(*) AS cnt "
+        "FROM users "
+        "WHERE type = 'default'"
+    );
+    action->SetupCondition_("count-users", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    {
+        auto first = self.get_results()->First_();
+        if(first->IsNull_() || first->Int_() <= 1)
+        {
+            self.set_custom_error("Cannot delete the last user. There must be at least one user.");
+            self.set_custom_error_code(ERR_USR_LAST_DELETE);
+            return false;
+        }
+
+        return true;
+    });
 }
 
 void Users::Delete::DeleteUser(StructBX::Functions::Action::Ptr action)

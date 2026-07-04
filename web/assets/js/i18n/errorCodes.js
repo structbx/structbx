@@ -71,8 +71,20 @@ export const errorCodes = {
         en: "Database file directory could not be created.",
         es: "No se pudo crear el directorio de archivos de la base de datos."
     },
+    "databases.cpp:deleteDatabase:validate_last:cannot_delete_last": {
+        en: "Cannot delete the last database. You must belong to at least one database.",
+        es: "No se puede eliminar la última base de datos. Debes pertenecer al menos a una base de datos."
+    },
 
     // Users
+    "users.cpp:deleteUser:validate_self_delete:cannot_delete_self": {
+        en: "You cannot delete yourself.",
+        es: "No puedes eliminarte a ti mismo."
+    },
+    "users.cpp:deleteUser:validate_last:cannot_delete_last": {
+        en: "Cannot delete the last user. There must be at least one user.",
+        es: "No se puede eliminar el último usuario. Debe existir al menos un usuario."
+    },
     "users.cpp:modifyUser:validate_input:id_empty": {
         en: "The user ID cannot be empty.",
         es: "El id de usuario no puede estar vacío."
@@ -123,6 +135,10 @@ export const errorCodes = {
     },
 
     // Groups
+    "groups.cpp:deleteGroup:validate_last:cannot_delete_last": {
+        en: "Cannot delete the last group. There must be at least one group.",
+        es: "No se puede eliminar el último grupo. Debe existir al menos un grupo."
+    },
     "groups.cpp:Create_:validate_input:name_empty": {
         en: "The group name cannot be empty.",
         es: "El nombre de grupo no puede estar vacío."
@@ -152,6 +168,18 @@ export const errorCodes = {
     "permissions.cpp:Create_:execute_create:create_failed": {
         en: "Failed to create permission.",
         es: "Error al crear el permiso."
+    },
+
+    // Columns
+    "columns.cpp:deleteColumn:validate_last:cannot_delete_last": {
+        en: "Cannot delete the last column. A table must have at least one column.",
+        es: "No se puede eliminar la última columna. Una tabla debe tener al menos una columna."
+    },
+
+    // Views
+    "views.cpp:deleteView:validate_last:cannot_delete_last": {
+        en: "Cannot delete the last view. A table must have at least one view.",
+        es: "No se puede eliminar la última vista. Una tabla debe tener al menos una vista."
     },
 
     // Tables

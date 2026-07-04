@@ -186,10 +186,70 @@ Views::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData(
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/tables/views/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    auto action1 = function->AddAction_("delete_view");
-    DeleteView(action1);
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Count views by table (prevent deleting last view)
+    auto action_count = function->AddAction_("count_views_by_table");
+    CountViewsByTable(action_count);
+
+    // Action 2: Delete view
+    auto action2 = function->AddAction_("delete_view");
+    DeleteView(action2);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action_count, action2](StructBX::Functions::Function& self)
+    {
+        // Action 1: Count views
+        if(!action_count->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_count->get_custom_error(), action_count->get_custom_error_code());
+            return;
+        }
+
+        // Action 2: Delete view
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok.");
+    });
 
     get_functions()->push_back(function);
+}
+
+void Views::Delete::CountViewsByTable(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "SELECT COUNT(*) AS cnt "
+        "FROM views "
+        "WHERE id_table = (SELECT id_table FROM views WHERE identifier = ?)"
+    );
+    action->SetupCondition_("count-views", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    {
+        auto first = self.get_results()->First_();
+        if(first->IsNull_() || first->Int_() <= 1)
+        {
+            self.set_custom_error("Cannot delete the last view. A table must have at least one view.");
+            self.set_custom_error_code(ERR_VIEW_LAST_DELETE);
+            return false;
+        }
+
+        return true;
+    });
+
+    action->AddParameter_("identifier", "", true)
+    ->SetupCondition_("condition-identifier", Query::ConditionType::kError, [](Query::Parameter::Ptr param)
+    {
+        if(param->get_value()->ToString_() == "")
+        {
+            param->set_error("The view identifier cannot be empty.");
+            return false;
+        }
+        return true;
+    });
 }
 
 void Views::Delete::DeleteView(StructBX::Functions::Action::Ptr action)

@@ -52,6 +52,7 @@ class StructBX::Controllers::Tables::Views : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
+            void CountViewsByTable(StructBX::Functions::Action::Ptr action);
             void DeleteView(StructBX::Functions::Action::Ptr action);
         };
 

@@ -256,11 +256,55 @@ Groups::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionData
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/groups/delete", HTTP::EnumMethods::kHTTP_DEL);
     
-    // Delete group
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
+    // Action 1: Count groups (prevent deleting last group)
+    auto action_count = function->AddAction_("count_groups");
+    CountGroups(action_count);
+
+    // Action 2: Delete group
     auto action2 = function->AddAction_("delete_group");
     DeleteGroup(action2);
 
+    // Setup Custom Process
+    function->SetupCustomProcess_([action_count, action2](StructBX::Functions::Function& self)
+    {
+        // Action 1: Count groups
+        if(!action_count->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_count->get_custom_error(), action_count->get_custom_error_code());
+            return;
+        }
+
+        // Action 2: Delete group
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
+    });
+
     get_functions()->push_back(function);
+}
+
+void Groups::Delete::CountGroups(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code("SELECT COUNT(*) AS cnt FROM groups");
+    action->SetupCondition_("count-groups", Query::ConditionType::kError, [](StructBX::Functions::Action& self)
+    {
+        auto first = self.get_results()->First_();
+        if(first->IsNull_() || first->Int_() <= 1)
+        {
+            self.set_custom_error("Cannot delete the last group. There must be at least one group.");
+            self.set_custom_error_code(ERR_GRP_LAST_DELETE);
+            return false;
+        }
+
+        return true;
+    });
 }
 
 void Groups::Delete::DeleteGroup(StructBX::Functions::Action::Ptr action)

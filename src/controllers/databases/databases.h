@@ -69,6 +69,7 @@ class StructBX::Controllers::Databases::Databases : public Tools::FunctionData
         {
             Delete(Tools::FunctionData& function_data);
 
+            void CountUserDatabases(StructBX::Functions::Action::Ptr action);
             void VerifyUserDatabaseOwnership(StructBX::Functions::Action::Ptr action);
             void MarkDatabaseDeleted(StructBX::Functions::Action::Ptr action);
             void DeleteDatabaseUsers(StructBX::Functions::Action::Ptr action);
