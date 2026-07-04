@@ -240,7 +240,7 @@ Databases::Add::Add(Tools::FunctionData& function_data) :
         }
 
         // Create database
-        action4->set_sql_code("CREATE DATABASE " + database_identifier);
+        action4->set_sql_code("CREATE DATABASE IF NOT EXISTS " + database_identifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         if(!action4->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to create database.", ERR_DB_CREATE_FAIL);
