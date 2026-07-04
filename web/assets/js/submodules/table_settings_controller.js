@@ -456,33 +456,144 @@ export class TableSettingsController extends BaseController{
                 return;
             }
 
-            new wtools.UIElementsCreator('#component_settings_row_policies table tbody', response.body.data).Build_(row => {
-                const target_label = row.target_type == 'all'
-                    ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_all') : 'All')
-                    : row.target_type + ': ' + (row.target_id || '-');
-                const action_label = row.action_type == 'bypass'
-                    ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_bypass') : 'Bypass')
-                    : (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_filter') : 'Filter');
-                const columnDisplay = row.filter_column_name
-                    ? row.filter_column_name + ' (' + row.filter_column + ')'
-                    : row.filter_column;
-                const condition = row.action_type == 'filter'
-                    ? (columnDisplay + ' ' + row.filter_operator + ' ' + row.filter_value)
-                    : '-';
-                const active = row.is_active == 1
-                    ? (window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
-                    : (window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No');
+            const policies = response.body.data;
 
-                const elements = [
-                    `<th scope="row">${row.policy_name || '-'}</th>`,
-                    `<td>${target_label}</td>`,
-                    `<td>${action_label}</td>`,
-                    `<td>${condition}</td>`,
-                    `<td>${active}</td>`
-                ];
-                return new wtools.UIElementsPackage(`<tr policy-identifier="${row.identifier}"></tr>`, elements).Pack_();
+        // Load current table columns, users, and groups in parallel
+        Promise.all([
+            this.tableColumn.read(table_identifier, ''),
+            this.user.readAll(),
+            this.group.readAll()
+        ]).then(([colResponse, userResponse, groupResponse]) => {
+            const tablesColMaps = {};
+            const currentCols = (colResponse.body && colResponse.body.data) || [];
+            tablesColMaps[table_identifier] = {};
+            for(const col of currentCols){
+                tablesColMaps[table_identifier][col.identifier] = col;
+            }
+
+            // Build user map: identifier → username
+            const userMap = {};
+            if(userResponse.body && userResponse.body.data){
+                for(const u of userResponse.body.data){
+                    userMap[u.identifier] = u.username;
+                }
+            }
+
+            // Build group map: identifier → group name
+            const groupMap = {};
+            if(groupResponse.body && groupResponse.body.data){
+                for(const g of groupResponse.body.data){
+                    groupMap[g.identifier] = g.group;
+                }
+            }
+
+            // Iteratively load all linked table columns (for any path depth)
+            const allLoadedTables = new Set([table_identifier]);
+
+            const loadLinkedTablesIteratively = (callback) => {
+                const tablesToLoad = new Set();
+                for(const policy of policies){
+                    if(!policy.filter_column || policy.filter_column.indexOf('>') === -1) continue;
+                    const segments = policy.filter_column.split('>');
+                    let curTableId = table_identifier;
+                    for(let i = 0; i < segments.length - 1; i++){
+                        const colMeta = tablesColMaps[curTableId] && tablesColMaps[curTableId][segments[i]];
+                        if(colMeta && colMeta.link_to && !allLoadedTables.has(colMeta.link_to)){
+                            tablesToLoad.add(colMeta.link_to);
+                            allLoadedTables.add(colMeta.link_to);
+                        }
+                        if(colMeta){
+                            curTableId = colMeta.link_to || curTableId;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if(tablesToLoad.size === 0){
+                    callback();
+                    return;
+                }
+
+                const promises = Array.from(tablesToLoad).map(linkTo => {
+                    return this.tableColumn.read(linkTo, '').then(resp => {
+                        const cols = (resp.body && resp.body.data) || [];
+                        tablesColMaps[linkTo] = {};
+                        for(const col of cols){
+                            tablesColMaps[linkTo][col.identifier] = col;
+                        }
+                    }).catch(() => {
+                        tablesColMaps[linkTo] = {};
+                    });
+                });
+
+                Promise.all(promises).then(() => {
+                    loadLinkedTablesIteratively(callback);
+                });
+            };
+
+            loadLinkedTablesIteratively(() => {
+                // Resolve filter_column paths for all policies
+                for(const policy of policies){
+                    if(!policy.filter_column){
+                        policy.filter_column_name_full = '';
+                        continue;
+                    }
+                    const segments = policy.filter_column.split('>');
+                    const names = [];
+                    let curTableId = table_identifier;
+                    let prevLinkToTableName = '';
+                    for(let i = 0; i < segments.length; i++){
+                        const segId = segments[i];
+                        const colMeta = tablesColMaps[curTableId] && tablesColMaps[curTableId][segId];
+                        if(colMeta){
+                            if(i === 0){
+                                names.push(colMeta.name);
+                            } else {
+                                names.push(prevLinkToTableName ? colMeta.name + ' (' + prevLinkToTableName + ')' : colMeta.name);
+                            }
+                            prevLinkToTableName = colMeta.link_to_table_name || '';
+                            curTableId = colMeta.link_to || curTableId;
+                        } else {
+                            names.push(segId);
+                            break;
+                        }
+                    }
+                    policy.filter_column_name_full = names.join(' > ');
+                }
+
+                // Render policies table
+                new wtools.UIElementsCreator('#component_settings_row_policies table tbody', policies).Build_(row => {
+                    const target_label = row.target_type == 'all'
+                        ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_all') : 'All')
+                        : row.target_type == 'user'
+                            ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_user') : 'User') + ': ' + (userMap[row.target_id] || row.target_id || '-')
+                            : row.target_type == 'group'
+                                ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_group') : 'Group') + ': ' + (groupMap[row.target_id] || row.target_id || '-')
+                                : row.target_type + ': ' + (row.target_id || '-');
+                    const action_label = row.action_type == 'bypass'
+                        ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_bypass') : 'Bypass')
+                        : (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_filter') : 'Filter');
+                    const columnDisplay = row.filter_column_name_full || row.filter_column_name || row.filter_column;
+                    const condition = row.action_type == 'filter'
+                        ? (columnDisplay + ' ' + row.filter_operator + ' ' + row.filter_value)
+                        : '-';
+                    const active = row.is_active == 1
+                        ? (window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
+                        : (window.structbxI18n ? window.structbxI18n.t('columns.no') : 'No');
+
+                    const elements = [
+                        `<th scope="row">${row.policy_name || '-'}</th>`,
+                        `<td>${target_label}</td>`,
+                        `<td>${action_label}</td>`,
+                        `<td>${condition}</td>`,
+                        `<td>${active}</td>`
+                    ];
+                    return new wtools.UIElementsPackage(`<tr policy-identifier="${row.identifier}"></tr>`, elements).Pack_();
+                });
             });
         });
+    });
     }
 
     preAddRowPolicy(){
