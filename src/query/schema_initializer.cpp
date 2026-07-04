@@ -344,7 +344,8 @@ ENGINE = InnoDB;)"
         R"(ALTER TABLE `tables_permissions` ADD CONSTRAINT `FK_tables_permissions_id_table` FOREIGN KEY (`id_table`) REFERENCES `tables` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `tables_permissions` ADD CONSTRAINT `FK_tables_permissions_id_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `users` ADD CONSTRAINT `FK_users_id_group` FOREIGN KEY (`id_group`) REFERENCES `groups` (`identifier`) ON DELETE SET NULL ON UPDATE CASCADE;)",
-        R"(ALTER TABLE `tables_columns` ADD CONSTRAINT `FK_tables_columns_id_table` FOREIGN KEY (`id_table`) REFERENCES `tables` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)"
+        R"(ALTER TABLE `tables_columns` ADD CONSTRAINT `FK_tables_columns_id_table` FOREIGN KEY (`id_table`) REFERENCES `tables` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
+        R"(ALTER TABLE `tables_columns` ADD CONSTRAINT `FK_tables_columns_link_to` FOREIGN KEY (`link_to`) REFERENCES `tables` (`identifier`) ON DELETE SET NULL ON UPDATE CASCADE;)"
     };
 
     const std::string kSeedEndpoints = R"(INSERT IGNORE INTO `endpoints` (`endpoint`, `title`, `action`) VALUES
