@@ -562,7 +562,32 @@ export class TableSettingsController extends BaseController{
                     policy.filter_column_name_full = names.join(' > ');
                 }
 
-                // Render policies table
+                // Resolve filter_value display for selection/user column types
+                const policyResolutions = {};
+                const linkToQuerySet = new Set();
+
+                for(const policy of policies){
+                    if(policy.action_type !== 'filter' || !policy.filter_value) continue;
+                    const placeholders = ['{current_user_id}', '{current_username}', '{user_type}', '{user_group}'];
+                    if(placeholders.includes(policy.filter_value)) continue;
+
+                    const segments = policy.filter_column ? policy.filter_column.split('>') : [];
+                    let curTableId = table_identifier;
+                    let finalColType = '';
+                    let finalLinkTo = '';
+                    for(let i = 0; i < segments.length; i++){
+                        const colMeta = tablesColMaps[curTableId] && tablesColMaps[curTableId][segments[i]];
+                        if(colMeta){
+                            finalColType = colMeta.column_type || '';
+                            finalLinkTo = colMeta.link_to || '';
+                            curTableId = colMeta.link_to || curTableId;
+                        } else break;
+                    }
+                    policyResolutions[policy.identifier] = {type: finalColType, linkTo: finalLinkTo};
+                    if(finalColType === 'selection' && finalLinkTo) linkToQuerySet.add(finalLinkTo);
+                }
+
+                const doRender = (optionsMap) => {
                 new wtools.UIElementsCreator('#component_settings_row_policies table tbody', policies).Build_(row => {
                     const target_label = row.target_type == 'all'
                         ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_target_all') : 'All')
@@ -575,8 +600,15 @@ export class TableSettingsController extends BaseController{
                         ? (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_bypass') : 'Bypass')
                         : (window.structbxI18n ? window.structbxI18n.t('table.settings_row_policy_action_filter') : 'Filter');
                     const columnDisplay = row.filter_column_name_full || row.filter_column_name || row.filter_column;
+                    const policyRes = policyResolutions[row.identifier] || {};
+                    let filterValueDisplay = row.filter_value;
+                    if(policyRes.type === 'selection' && policyRes.linkTo && optionsMap[policyRes.linkTo] && optionsMap[policyRes.linkTo][row.filter_value]){
+                        filterValueDisplay = optionsMap[policyRes.linkTo][row.filter_value];
+                    } else if((policyRes.type === 'user' || policyRes.type === 'current-user') && userMap[row.filter_value]){
+                        filterValueDisplay = userMap[row.filter_value];
+                    }
                     const condition = row.action_type == 'filter'
-                        ? (columnDisplay + ' ' + row.filter_operator + ' ' + row.filter_value)
+                        ? (columnDisplay + ' ' + row.filter_operator + ' ' + filterValueDisplay)
                         : '-';
                     const active = row.is_active == 1
                         ? (window.structbxI18n ? window.structbxI18n.t('columns.yes') : 'Yes')
@@ -591,6 +623,28 @@ export class TableSettingsController extends BaseController{
                     ];
                     return new wtools.UIElementsPackage(`<tr policy-identifier="${row.identifier}"></tr>`, elements).Pack_();
                 });
+                };
+
+                if(linkToQuerySet.size === 0){
+                    doRender({});
+                } else {
+                    const optionsMap = {};
+                    const promises = Array.from(linkToQuerySet).map(linkTo => {
+                        return this.table_data.readToLinkSelectionOptions(linkTo, '').then(response => {
+                            optionsMap[linkTo] = {};
+                            if(response.body.data && response.body.columns && response.body.columns.length > 1){
+                                const idCol = response.body.columns[0];
+                                const displayCol = response.body.columns[1];
+                                for(const row of response.body.data){
+                                    optionsMap[linkTo][row[idCol]] = row[displayCol] || row[idCol];
+                                }
+                            }
+                        }).catch(() => {
+                            optionsMap[linkTo] = {};
+                        });
+                    });
+                    Promise.all(promises).then(() => doRender(optionsMap));
+                }
             });
         });
     });
