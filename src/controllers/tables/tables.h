@@ -55,6 +55,7 @@ class StructBX::Controllers::Tables::Tables : public Tools::FunctionData
             void GrantCreatorFullPermissions(StructBX::Functions::Action::Ptr action);
             void AddView(StructBX::Functions::Action::Ptr action);
             void AddDefaultColumn(StructBX::Functions::Action::Ptr action);
+            void SetDefaultColumnDisplay(StructBX::Functions::Action::Ptr action);
         };
         struct Modify : public Tools::FunctionData
         {

@@ -336,6 +336,7 @@ ENGINE = InnoDB;)"
         R"(ALTER TABLE `views_permissions` ADD CONSTRAINT `FK_views_permissions_id_view` FOREIGN KEY (`id_view`) REFERENCES `views` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `views` ADD CONSTRAINT `FK_views_id_table` FOREIGN KEY (`id_table`) REFERENCES `tables` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `tables` ADD CONSTRAINT `FK_tables_id_database` FOREIGN KEY (`id_database`) REFERENCES `databases` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
+        R"(ALTER TABLE `tables` ADD CONSTRAINT `FK_tables_id_column_display` FOREIGN KEY (`id_column_display`) REFERENCES `tables_columns` (`identifier`) ON DELETE SET NULL ON UPDATE CASCADE;)",
         R"(ALTER TABLE `databases_users` ADD CONSTRAINT `FK_databases_users_id_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `databases_users` ADD CONSTRAINT `FK_databases_users_id_database` FOREIGN KEY (`id_database`) REFERENCES `databases` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `views_sorts` ADD CONSTRAINT `FK_views_sort_id_column` FOREIGN KEY (`id_column`) REFERENCES `tables_columns` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",

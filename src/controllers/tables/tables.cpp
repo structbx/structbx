@@ -167,6 +167,10 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     auto add_default_column = function->AddAction_("add_default_column");
     AddDefaultColumn(add_default_column);
 
+    // Action: Set default column as display column
+    auto set_display_column = function->AddAction_("set_display_column");
+    SetDefaultColumnDisplay(set_display_column);
+
     // Action 3_1: Add table permissions to current user
     auto action3_1 = function->AddAction_("grant_creator_full_permissions");
     GrantCreatorFullPermissions(action3_1);
@@ -179,7 +183,7 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
     function->SetupCustomProcess_(
         [
             add_default_column, delete_table, database_id, action1, action2
-            ,action3_1, action4, add_view
+            ,action3_1, action4, add_view, set_display_column
         ](StructBX::Functions::Function& self)
     {
         Tools::RandomGenerator rg;
@@ -224,6 +228,16 @@ Tables::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(funct
         if(!add_default_column->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, add_default_column->get_custom_error(), add_default_column->get_custom_error_code());
+            return;
+        }
+
+        // Action: Set default column as display column
+        set_display_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(default_column)), "id_column_display");
+        set_display_column->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(table_identifier)), "table_identifier");
+        if(!set_display_column->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, set_display_column->get_custom_error(), set_display_column->get_custom_error_code());
+            delete_table(table_identifier);
             return;
         }
 
@@ -390,6 +404,16 @@ void Tables::Add::AddDefaultColumn(StructBX::Functions::Action::Ptr action)
     action->AddParameter_("identifier", "", false);
     action->AddParameter_("name", "Default", false);
     action->AddParameter_("column_type", std::string(ColumnType::Text), false);
+    action->AddParameter_("table_identifier", 0, false);
+}
+
+void Tables::Add::SetDefaultColumnDisplay(StructBX::Functions::Action::Ptr action)
+{
+    action->set_sql_code(
+        "UPDATE tables SET id_column_display = ? WHERE identifier = ?"
+    );
+
+    action->AddParameter_("id_column_display", "", false);
     action->AddParameter_("table_identifier", 0, false);
 }
 
