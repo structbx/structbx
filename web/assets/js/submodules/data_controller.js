@@ -34,6 +34,7 @@ export class DataController extends BaseController{
         this.read_mutex = false;
         this.selectedRecords = new Set();
         this.batchEditIdentifiers = [];
+        this.columnWidths = {};
         this.colorsSelect = 
         [
             {color: '#4361ee', html: `<span class='small' style='background-color:#4361ee;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.primary_blue') : 'Primary Blue'}</span>`},
@@ -93,15 +94,17 @@ export class DataController extends BaseController{
             {color: '#f94144', html: `<span class='small' style='background-color:#f94144;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.crimson') : 'Crimson'}</span>`}
         ];
 
-        this.row_cell = (contents) => {
-            return `<div class="data-cell editable" style="width: 200px; flex: 0 0 200px;">${contents}</div>`;
+        this.row_cell = (contents, columnIdentifier) => {
+            const width = this.columnWidths[columnIdentifier] || 200;
+            return `<div class="data-cell editable" column-identifier="${columnIdentifier}" style="width: ${width}px; flex: 0 0 ${width}px;">${contents}</div>`;
         }
         this.checkbox_cell = (identifier) => {
             return `<div class="data-cell checkbox-cell"><input type="checkbox" class="row-selector" value="${identifier}"></div>`;
         }
         this.column_cell = (identifier, contents) => {
+            const width = this.columnWidths[identifier] || 200;
             return `
-                <div class="header-cell" column-identifier="${identifier}" style="width: 200px; flex: 0 0 200px;">
+                <div class="header-cell" column-identifier="${identifier}" style="width: ${width}px; flex: 0 0 ${width}px;">
                     <div class="header-content">
                         <span>${contents}</span>
                     </div>
@@ -143,7 +146,7 @@ export class DataController extends BaseController{
         }
 
         // Basic <td> row - creates a standard text cell with no special formatting.
-        this.basic_row = (elements, row, column, link_color = undefined) => {
+        this.basic_row = (elements, row, column, link_color = undefined, columnIdentifier = '') => {
             // Get the header value from the row object using the specified column name.
             let header = row[column];
             
@@ -152,11 +155,11 @@ export class DataController extends BaseController{
                 header = tools.headerRowColor(link_color, row[column]);
 
             // Append the formatted header cell to the elements array.
-            elements.push(this.row_cell(header));
+            elements.push(this.row_cell(header, columnIdentifier));
         };
 
         // Header <td> row - creates a cell with styled text and color based on metadata.
-        this.header_row = (elements, row, column) => {
+        this.header_row = (elements, row, column, columnIdentifier = '') => {
             // Create a span element for the header.
             let header = `<span class="row-header">${row[column]}</span>`;
             
@@ -164,27 +167,27 @@ export class DataController extends BaseController{
             if(row["_structbx_column_colorHeader"] != undefined && row["_structbx_column_colorHeader"] != "")
                 header = tools.headerRowColor(row["_structbx_column_colorHeader"], row[column]);
 
-            // Append the styled header cell to the elements array.
-            elements.push(this.row_cell(header));
+            // Append the formatted header cell to the elements array.
+            elements.push(this.row_cell(header, columnIdentifier));
         };
 
         // User <td> row - creates a cell with user names based on their IDs in the users_in_database object.
-        this.user_row = (elements, row, column) => {
+        this.user_row = (elements, row, column, columnIdentifier = '') => {
             // Check if the user ID exists in the users_in_database object. If so, display the user's name; otherwise, display the user ID itself.
             if(this.users_in_database[row[column]] != undefined)
-                elements.push(this.row_cell(this.users_in_database[row[column]]));
+                elements.push(this.row_cell(this.users_in_database[row[column]], columnIdentifier));
             else
-                elements.push(this.row_cell(row[column]));
+                elements.push(this.row_cell(row[column], columnIdentifier));
         };
 
         // Image <td> row - creates a cell with an image based on the filepath provided in the row object.
-        this.image_row = (elements, row, column) => {
+        this.image_row = (elements, row, column, columnIdentifier = '') => {
             // Construct the URL for the image file and append it to the elements array.
-            elements.push(this.row_cell(`<img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${this.getTableIdentifier()}" alt="${column}" width="100px">`));
+            elements.push(this.row_cell(`<img class="" src="/api/tables/data/file/read?filepath=${row[column]}&table-identifier=${this.getTableIdentifier()}" alt="${column}" width="100px">`, columnIdentifier));
         };
 
         // File <td> row - creates a cell with truncated text for files longer than 10 characters.
-        this.file_row = (elements, row, column) => {
+        this.file_row = (elements, row, column, columnIdentifier = '') => {
             // If the file length exceeds 10 characters, truncate it and append to the elements array.
             if(row[column].length > 10){
                 let new_content = "";
@@ -192,11 +195,11 @@ export class DataController extends BaseController{
                 for(let i = max; i > max - 10; i--)
                     new_content = row[column][i] + new_content;
 
-                elements.push(this.row_cell(new_content));
+                elements.push(this.row_cell(new_content, columnIdentifier));
             }
             else
                 // Otherwise, create a basic row with the file name.
-                this.basic_row(elements, row, column);
+                this.basic_row(elements, row, column, undefined, columnIdentifier);
         };
 
         this.build();
@@ -323,6 +326,66 @@ export class DataController extends BaseController{
             this.deselectAll();
         });
 
+        // ── Column resize events ────────────────────────────────────────────
+
+        let resizeData = null;
+
+        $(document).on('mousedown', '#component_data_read .resize-handle', (e) => {
+            e.preventDefault();
+            const $handle = $(e.currentTarget);
+            const $headerCell = $handle.closest('.header-cell');
+            const colIdentifier = $headerCell.attr('column-identifier');
+            if(!colIdentifier) return;
+
+            const startX = e.clientX;
+            const startWidth = $headerCell.outerWidth();
+
+            resizeData = {
+                $headerCell,
+                colIdentifier,
+                startX,
+                startWidth
+            };
+
+            $handle.addClass('active');
+            $('body').css('cursor', 'col-resize');
+            $('body').css('user-select', 'none');
+        });
+
+        $(document).on('mousemove', (e) => {
+            if(!resizeData) return;
+
+            const diff = e.clientX - resizeData.startX;
+            let newWidth = resizeData.startWidth + diff;
+            if(newWidth < 50) newWidth = 50;
+
+            resizeData.$headerCell.css({
+                width: newWidth,
+                flex: `0 0 ${newWidth}px`
+            });
+
+            $(`#tableBody .data-cell[column-identifier="${resizeData.colIdentifier}"]`).css({
+                width: newWidth,
+                flex: `0 0 ${newWidth}px`
+            });
+
+            resizeData.currentWidth = newWidth;
+        });
+
+        $(document).on('mouseup', () => {
+            if(!resizeData) return;
+
+            if(resizeData.colIdentifier && resizeData.currentWidth){
+                this.columnWidths[resizeData.colIdentifier] = Math.round(resizeData.currentWidth);
+                this._saveColumnWidths();
+            }
+
+            resizeData.$headerCell.find('.resize-handle').removeClass('active');
+            $('body').css('cursor', '');
+            $('body').css('user-select', '');
+            resizeData = null;
+        });
+
         // Start long polling for real-time updates
         const longPoll = () => {
             try {
@@ -406,22 +469,23 @@ export class DataController extends BaseController{
             // If there's metadata and a value exists for this column, process it based on its type.
             if(column_meta != undefined && row[column] != ""){
                 let link_color = row[`_structbx_column_${column_meta.identifier}_colorHeader`];
+                let colId = column_meta.identifier;
 
                 // Determine the appropriate function to create the cell based on the column type.
                 if(column_meta.column_type == ColumnType.Image)
-                    this.image_row(elements, row, column);
+                    this.image_row(elements, row, column, colId);
                 else if(column_meta.column_type == ColumnType.File)
-                    this.file_row(elements, row, column);
+                    this.file_row(elements, row, column, colId);
                 else if(column_meta.column_type == ColumnType.User || column_meta.column_type == ColumnType.CurrentUser)
-                    this.user_row(elements, row, column);
+                    this.user_row(elements, row, column, colId);
                 else if(key == 0)
-                    this.header_row(elements, row, column);
+                    this.header_row(elements, row, column, colId);
                 else
-                    this.basic_row(elements, row, column, link_color);
+                    this.basic_row(elements, row, column, link_color, colId);
             }
             else
                 // If no metadata or the value is empty, create a basic row.
-                this.basic_row(elements, row, column);
+                this.basic_row(elements, row, column, undefined, column_meta ? column_meta.identifier : '');
 
             key++;
         }
@@ -488,6 +552,9 @@ export class DataController extends BaseController{
                     this.freeMutex();
                     return;
                 }
+
+                // Load cached column widths before rendering headers and rows
+                this._loadColumnWidths();
 
                 // Results elements creator (Columns)
                 if($('#component_data_read #headerRow').html() == "" && response_data.body.columns_meta != undefined){
@@ -594,6 +661,31 @@ export class DataController extends BaseController{
     
     _viewHasFilterOrSort(){
         return $('#filters_count').text().trim() !== '' || $('#sorts_count').text().trim() !== '';
+    }
+
+    _getColumnWidthsCacheKey(){
+        const tableId = this.getTableIdentifier();
+        const viewId = this.getViewIdentifier();
+        return `structbx_column_widths_${tableId}_${viewId || 'none'}`;
+    }
+
+    _loadColumnWidths(){
+        const key = this._getColumnWidthsCacheKey();
+        try {
+            const stored = localStorage.getItem(key);
+            this.columnWidths = stored ? JSON.parse(stored) : {};
+        } catch(e) {
+            this.columnWidths = {};
+        }
+    }
+
+    _saveColumnWidths(){
+        const key = this._getColumnWidthsCacheKey();
+        try {
+            localStorage.setItem(key, JSON.stringify(this.columnWidths));
+        } catch(e) {
+            // localStorage full or unavailable — silently ignore
+        }
     }
 
     changeIntVerification(){
