@@ -259,8 +259,7 @@ export class StartController extends BaseController {
             
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n.t('start.table_created'));
             $('#component_tables_add').modal('hide');
-            wtools.CleanForm('#component_tables_add form');
-            $('#component_tables_add form').removeClass('was-validated');
+            Tools.CleanForm('#component_tables_add form');
             this.readTables();
         });
     }

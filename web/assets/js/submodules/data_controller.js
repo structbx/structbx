@@ -896,6 +896,7 @@ export class DataController extends BaseController{
                 // Done
                 wait.Off_();
                 $('#component_data_batch_edit').modal('hide');
+                tools.CleanForm($('#component_data_batch_edit form'));
                 if(success > 0){
                     new wtools.Notification('SUCCESS').Show_(
                         window.structbxI18n ? window.structbxI18n.t('table.batch_edit_success', {success: success}) : `${success} records updated.`);
@@ -1134,6 +1135,7 @@ export class DataController extends BaseController{
 
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('data.record_saved') : 'Record saved.');
             $('#component_data_add').modal('hide');
+            tools.CleanForm($('#component_data_add form'));
             this.changeIntVerification();
         });
     }

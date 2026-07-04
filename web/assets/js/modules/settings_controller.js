@@ -403,8 +403,7 @@ export class SettingsController extends BaseController{
             const result = new ResponseManager(response, '#component_my_account_change_password .notifications', 'target.password_modify');
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.password_updated') : 'Password updated successfully.');
-            wtools.CleanForm($('#component_my_account_change_password form'));
-            $('#component_my_account_change_password form').removeClass('was-validated');
+            Tools.CleanForm($('#component_my_account_change_password form'));
         });
     }
 
@@ -425,7 +424,7 @@ export class SettingsController extends BaseController{
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_created') : 'User created successfully.');
             this.readUsers();
-            wtools.CleanForm($('#component_users_add form'));
+            Tools.CleanForm($('#component_users_add form'));
             $('#component_users_add').modal('hide');
         });
     }
@@ -446,7 +445,7 @@ export class SettingsController extends BaseController{
                     wait.Off_();
                     return;
                 }
-                wtools.CleanForm($('#component_users_modify form'));
+                Tools.CleanForm($('#component_users_modify form'));
                 $('#component_users_modify input[name="identifier"]').val(response.body.data[0].identifier);
                 $('#component_users_modify input[name="username"]').val(response.body.data[0].username);
                 $('#component_users_modify select[name="status"]').val(response.body.data[0].status);
@@ -474,7 +473,6 @@ export class SettingsController extends BaseController{
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_updated') : 'User updated successfully.');
             this.readUsers();
-            wtools.CleanForm($('#component_users_modify form'));
             $('#component_users_modify').modal('hide');
         });
     }
@@ -553,7 +551,7 @@ export class SettingsController extends BaseController{
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_added') : 'Group added successfully.');
             this.readGroups();
-            wtools.CleanForm($('#component_groups_add form'));
+            Tools.CleanForm($('#component_groups_add form'));
             $('#component_groups_add').modal('hide');
         });
     }
@@ -571,7 +569,7 @@ export class SettingsController extends BaseController{
                 new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table.no_results') : 'No results.');
                 return;
             }
-            wtools.CleanForm($('#component_groups_modify form'));
+            Tools.CleanForm($('#component_groups_modify form'));
             $('#component_groups_modify input[name="identifier"]').val(response.body.data[0].identifier);
             $('#component_groups_modify input[name="group"]').val(response.body.data[0].group);
             $('#component_groups_modify').modal('show');
@@ -596,7 +594,6 @@ export class SettingsController extends BaseController{
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.group_updated') : 'Group updated successfully.');
             this.readGroups();
-            wtools.CleanForm($('#component_groups_modify form'));
             $('#component_groups_modify').modal('hide');
         });
     }
@@ -710,7 +707,6 @@ export class SettingsController extends BaseController{
 
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.database_modified') : 'Database modified successfully.');
             this.readDatabases();
-            wtools.CleanForm($('#component_databases_modify form'));
         });
     }
 
@@ -851,7 +847,7 @@ export class SettingsController extends BaseController{
             if (!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.user_added') : 'User added successfully.');
             this.readDatabaseUsers();
-            wtools.CleanForm($('#component_databases_users_add form'));
+            Tools.CleanForm($('#component_databases_users_add form'));
             $('#component_databases_users_add').modal('hide');
         });
     }
@@ -991,7 +987,7 @@ export class SettingsController extends BaseController{
 
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('settings.permission_added') : 'Permission added successfully.');
             this.readPermissions();
-            wtools.CleanForm($('#component_permissions_add form'));
+            Tools.CleanForm($('#component_permissions_add form'));
             $('#component_permissions_add').modal('hide');
         });
     }

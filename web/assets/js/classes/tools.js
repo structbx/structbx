@@ -1,3 +1,14 @@
+export function CleanForm(formSelector)
+{
+    const forms = $(formSelector);
+    forms.each((i, form) => {
+        form.reset();
+        const $form = $(form);
+        $form.removeClass('was-validated');
+        $form.find('.is-invalid').removeClass('is-invalid');
+    });
+}
+
 export function randomGenerator(l)
 {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

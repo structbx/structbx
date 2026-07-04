@@ -230,6 +230,7 @@ export class ViewsController extends BaseController{
 
             this.notification.ok.Show_(window.structbxI18n ? window.structbxI18n.t('views.created') : 'View created successfully.');
             $('#component_views_add').modal('hide');
+            Tools.CleanForm($('#component_views_add form'));
             this.read();
         });
     }

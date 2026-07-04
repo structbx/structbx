@@ -1,4 +1,5 @@
 import { BaseController } from './base_controller.js';
+import { CleanForm } from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { TableElements } from '../classes/table_elements.js';
@@ -207,7 +208,7 @@ export class FormsController extends BaseController
             if(!result.Verify_())
                 return;
 
-            $('#component_form_addData form').trigger('reset');
+            CleanForm($('#component_form_addData form'));
             $('#component_form_successModal').modal('show');
         });
     }

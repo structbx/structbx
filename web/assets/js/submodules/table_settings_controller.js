@@ -1,5 +1,6 @@
 import { BaseController } from '../modules/base_controller.js';
 import { ResponseManager } from '../classes/response_manager.js';
+import { CleanForm } from '../classes/tools.js';
 import { I18n } from '../i18n/i18n.js';
 
 import { Table } from '../models/Table.js';
@@ -132,7 +133,7 @@ export class TableSettingsController extends BaseController{
         this.table.read(table_identifier).then(response => {
             wait.Off_();
             $('#component_settings_general .notifications').html('');
-            wtools.CleanForm($('#component_settings_general form'));
+            CleanForm($('#component_settings_general form'));
             const result = new ResponseManager(response, '#component_settings_general .notifications', 'target.settings_general');
             if(!result.Verify_()) return;
             if(response.body.data.length < 1){
@@ -329,6 +330,7 @@ export class TableSettingsController extends BaseController{
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.permission_created') : 'Table permission created successfully.');
             this.readPermissions();
+            CleanForm($('#component_settings_permissions_add form'));
             $('#component_settings_permissions_add').modal('hide');
         });
     }
@@ -661,7 +663,7 @@ export class TableSettingsController extends BaseController{
         const hiddenInput = $('#component_settings_row_policies_add input[name="filter_column"]');
         this.renderColumnPathSelects(container, hiddenInput, table_identifier, '', (lastColType, lastLinkTo) => {
             $('#component_settings_row_policies_add .notifications').html('');
-            wtools.CleanForm($('#component_settings_row_policies_add form'));
+            CleanForm($('#component_settings_row_policies_add form'));
             $('#component_settings_row_policies_add select[name="is_active"]').val("1");
             $('#component_settings_row_policies_add select[name="priority"]').val("0");
             $('#component_settings_row_policies_add .target-id-row').addClass('d-none');
@@ -913,6 +915,7 @@ export class TableSettingsController extends BaseController{
             if(!result.Verify_()) return;
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.row_policy_created') : 'Row policy created successfully.');
             this.readRowPolicies();
+            CleanForm($('#component_settings_row_policies_add form'));
             $('#component_settings_row_policies_add').modal('hide');
         });
     }

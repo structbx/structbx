@@ -1,4 +1,5 @@
 import { BaseController } from '../modules/base_controller.js';
+import { CleanForm } from '../classes/tools.js';
 import { ResponseManager } from '../classes/response_manager.js';
 import { CSVReader } from '../classes/csv_reader.js';
 import { I18n } from '../i18n/i18n.js';
@@ -155,6 +156,7 @@ export class DataImportController extends BaseController{
             const result = new ResponseManager(response, '#component_data_import .notifications', 'target.data_import');
             if(!result.Verify_()) return;
 
+            CleanForm($('#component_data_import form'));
             $('#component_data_reload').click();
             $('#component_data_import_message').modal('show');
             $('#component_data_import_message .contents').append($(`<p>${window.structbxI18n ? window.structbxI18n.t('import.message', {message: response.body.message}) : 'Message: ' + response.body.message}</p>`));

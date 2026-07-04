@@ -263,7 +263,7 @@ export class ColumnsController extends BaseController{
 
             this.notification.ok.Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_created') : 'Column created successfully.');
             $('#component_columns_add').modal('hide');
-            $('#component_columns_add form input[name="name"]').val(window.structbxI18n ? window.structbxI18n.t('columns.new_column') : 'New column');
+            Tools.CleanForm($('#component_columns_add form'));
             this.read();
             this.onChanged();
         });
