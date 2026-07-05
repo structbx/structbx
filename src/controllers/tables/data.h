@@ -3,6 +3,7 @@
 #define STRUCTBX_CONTROLLERS_TABLES_DATA_H
 
 #include <fstream>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -217,6 +218,18 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         };
 
     private:
+        static void ResolveDisplayChain(
+            const std::function<Functions::Action::Ptr(const std::string&)>& create_action,
+            const std::string& id_database,
+            const std::string& col_identifier,
+            std::string& current_table,
+            std::string& current_alias,
+            std::string& current_display_col,
+            std::string& accumulated_joins,
+            int max_depth,
+            std::string& out_column_expr
+        );
+
         Read struct_read_;
         ReadChangeInt struct_read_change_int_;
         ReadFile struct_read_file_;
