@@ -932,14 +932,25 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
 
             std::string column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
 
-            // Get LINK TO column
+            // Get LINK TO column (recursive display column resolution)
             if(!link_to->IsNull_())
             {
-                // Reset results
-                link_to_action->get_results()->clear();
+                const int kMaxDisplayDepth = 5;
 
-                // Get table link identifier and display_value
-                link_to_action->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(link_to->ToString_())), "link_to");
+                std::string current_table = link_to->ToString_();
+                std::string main_table_alias = "_" + table_identifier->get()->ToString_();
+                std::string prev_alias = main_table_alias;
+                std::string join_field = identifier->ToString_();
+                std::string current_alias = "_" + current_table;
+
+                // Build first level join
+                std::string accumulated_joins = " LEFT JOIN " + id_database + "." + current_table +
+                    " AS " + current_alias + " ON " + current_alias + ".identifier = " +
+                    prev_alias + "." + join_field;
+
+                // Get display column of the first linked table (reuse link_to_action)
+                link_to_action->get_results()->clear();
+                link_to_action->SetValueToParamater_(Tools::DValue::Ptr(new Tools::DValue(current_table)), "link_to");
                 if(!link_to_action->Work_())
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Action failed.", ERR_ACTION_FAILED);
@@ -956,16 +967,100 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                     self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "The requested table does not exist.", ERR_TBL_NOT_FOUND);
                     return;
                 }
-                
-                // Setup column link
-                column = "_" + link_to->ToString_() + "." + display_value->ToString_() + " AS '" + name->ToString_() + "'";
-                if(!export_data)
-                    column += ", _" + link_to->ToString_() + "._structbx_column_colorHeader AS '_structbx_column_" + identifier->ToString_() + "_colorHeader'";
 
-                // Setup new join
-                joins += " LEFT JOIN " + id_database + "." + link_to->ToString_() +
-                " AS _" + link_to->ToString_() + " ON _" + link_to->ToString_() + ".identifier = _" + 
-                table_identifier->get()->ToString_() + "." + identifier->ToString_();
+                std::string current_display_col = display_value->ToString_();
+                std::string final_column_expr;
+                int depth = 0;
+
+                while(depth < kMaxDisplayDepth)
+                {
+                    auto col_type_action = self.AddAction_("resolve_disp_type_" + identifier->ToString_() + "_d" + std::to_string(depth));
+                    col_type_action->set_suppress_debug(true);
+                    col_type_action->set_sql_code(
+                        "SELECT column_type, link_to FROM tables_columns WHERE identifier = ? AND id_table = ?"
+                    );
+                    col_type_action->AddParameter_("col_id", current_display_col, false);
+                    col_type_action->AddParameter_("table_id", current_table, false);
+
+                    if(!col_type_action->Work_() || col_type_action->get_results()->size() < 1)
+                    {
+                        final_column_expr = current_alias + "." + current_display_col;
+                        break;
+                    }
+
+                    auto type_field = col_type_action->get_results()->begin()->get()->ExtractField_("column_type");
+                    auto link_field = col_type_action->get_results()->begin()->get()->ExtractField_("link_to");
+
+                    std::string col_type_str = (!type_field->IsNull_()) ? type_field->ToString_() : "";
+                    std::string col_link_str = (!link_field->IsNull_()) ? link_field->ToString_() : "";
+
+                    if(col_type_str == ColumnType::Selection && !col_link_str.empty())
+                    {
+                        std::string next_table = col_link_str;
+                        std::string next_alias = current_alias + "_d" + std::to_string(depth);
+
+                        accumulated_joins += " LEFT JOIN " + id_database + "." + next_table +
+                            " AS " + next_alias + " ON " + next_alias + ".identifier = " +
+                            current_alias + "." + current_display_col;
+
+                        auto next_disp_action = self.AddAction_("resolve_disp_next_" + identifier->ToString_() + "_d" + std::to_string(depth));
+                        next_disp_action->set_suppress_debug(true);
+                        next_disp_action->set_sql_code(
+                            "SELECT COALESCE(tc.identifier, "
+                            "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
+                            "FROM tables t "
+                            "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                            "WHERE t.identifier = ?"
+                        );
+                        next_disp_action->AddParameter_("link_to", next_table, false);
+
+                        if(!next_disp_action->Work_() || next_disp_action->get_results()->size() < 1)
+                        {
+                            final_column_expr = current_alias + "." + current_display_col;
+                            break;
+                        }
+
+                        auto next_disp_field = next_disp_action->get_results()->begin()->get()->ExtractField_("identifier");
+                        if(next_disp_field->IsNull_())
+                        {
+                            final_column_expr = current_alias + "." + current_display_col;
+                            break;
+                        }
+
+                        current_table = next_table;
+                        prev_alias = current_alias;
+                        current_alias = next_alias;
+                        current_display_col = next_disp_field->ToString_();
+                        depth++;
+                        continue;
+                    }
+                    else if(col_type_str == ColumnType::User || col_type_str == ColumnType::CurrentUser)
+                    {
+                        std::string user_alias = current_alias + "_user_" + identifier->ToString_();
+                        accumulated_joins += " LEFT JOIN users AS " + user_alias +
+                            " ON " + user_alias + ".identifier = " +
+                            current_alias + "." + current_display_col;
+                        final_column_expr = user_alias + ".username";
+                        break;
+                    }
+                    else
+                    {
+                        final_column_expr = current_alias + "." + current_display_col;
+                        break;
+                    }
+                }
+
+                if(depth >= kMaxDisplayDepth)
+                {
+                    final_column_expr = current_alias + "." + current_display_col;
+                }
+
+                // Setup column expression
+                column = final_column_expr + " AS '" + name->ToString_() + "'";
+                if(!export_data)
+                    column += ", " + current_alias + "._structbx_column_colorHeader AS '_structbx_column_" + identifier->ToString_() + "_colorHeader'";
+
+                joins += accumulated_joins;
             }
             else if(!column_type->IsNull_() && (column_type->ToString_() == ColumnType::User || column_type->ToString_() == ColumnType::CurrentUser))
             {
@@ -2435,7 +2530,7 @@ Tables::Data::SelectionResolver::SelectionResolver(Query::Results::Ptr columns_r
             continue;
 
         // Find display column for linked table
-        auto link_action = Functions::Action("resolve_link_display");
+        auto link_action = Functions::Action("resolve_link_display_" + col_id->ToString_());
         link_action.set_suppress_debug(true);
         link_action.set_sql_code(
             "SELECT COALESCE(tc.identifier, "
@@ -2451,12 +2546,103 @@ Tables::Data::SelectionResolver::SelectionResolver(Query::Results::Ptr columns_r
         if(disp_col->IsNull_())
             continue;
 
-        // Load all records from linked table
-        auto load_action = Functions::Action("load_selection_options");
+        // Resolve display column chain recursively
+        const int kMaxSelDepth = 5;
+
+        std::string current_table = link_to->ToString_();
+        std::string current_alias = "t0";
+        std::string current_display_col = disp_col->ToString_();
+        std::string accumulated_joins;
+        int depth = 0;
+
+        while(depth < kMaxSelDepth)
+        {
+            auto col_type_action = Functions::Action("resolve_sel_type_" + col_id->ToString_() + "_d" + std::to_string(depth));
+            col_type_action.set_suppress_debug(true);
+            col_type_action.set_sql_code(
+                "SELECT column_type, link_to FROM tables_columns WHERE identifier = ? AND id_table = ?"
+            );
+            col_type_action.AddParameter_("col_id", current_display_col, false);
+            col_type_action.AddParameter_("table_id", current_table, false);
+
+            if(!col_type_action.Work_() || col_type_action.get_results()->size() < 1)
+            {
+                current_display_col = current_alias + "." + current_display_col;
+                break;
+            }
+
+            auto type_field = col_type_action.get_results()->begin()->get()->ExtractField_("column_type");
+            auto link_field = col_type_action.get_results()->begin()->get()->ExtractField_("link_to");
+
+            std::string col_type_str = (!type_field->IsNull_()) ? type_field->ToString_() : "";
+            std::string col_link_str = (!link_field->IsNull_()) ? link_field->ToString_() : "";
+
+            if(col_type_str == ColumnType::Selection && !col_link_str.empty())
+            {
+                std::string next_alias = "t" + std::to_string(depth + 1);
+
+                accumulated_joins += " LEFT JOIN " + id_database + "." + col_link_str +
+                    " AS " + next_alias + " ON " + next_alias + ".identifier = " +
+                    current_alias + "." + current_display_col;
+
+                auto next_disp_action = Functions::Action("resolve_sel_next_" + col_id->ToString_() + "_d" + std::to_string(depth));
+                next_disp_action.set_suppress_debug(true);
+                next_disp_action.set_sql_code(
+                    "SELECT COALESCE(tc.identifier, "
+                    "  (SELECT identifier FROM tables_columns WHERE id_table = t.identifier LIMIT 1)) AS identifier "
+                    "FROM tables t "
+                    "LEFT JOIN tables_columns tc ON tc.identifier = t.id_column_display "
+                    "WHERE t.identifier = ?"
+                );
+                next_disp_action.AddParameter_("link_to", col_link_str, false);
+
+                if(!next_disp_action.Work_() || next_disp_action.get_results()->size() < 1)
+                {
+                    current_display_col = current_alias + "." + current_display_col;
+                    break;
+                }
+
+                auto next_disp_field = next_disp_action.get_results()->begin()->get()->ExtractField_("identifier");
+                if(next_disp_field->IsNull_())
+                {
+                    current_display_col = current_alias + "." + current_display_col;
+                    break;
+                }
+
+                current_table = col_link_str;
+                current_alias = next_alias;
+                current_display_col = next_disp_field->ToString_();
+                depth++;
+                continue;
+            }
+            else if(col_type_str == ColumnType::User || col_type_str == ColumnType::CurrentUser)
+            {
+                std::string user_alias = "u_" + col_id->ToString_();
+                accumulated_joins += " LEFT JOIN users AS " + user_alias +
+                    " ON " + user_alias + ".identifier = " +
+                    current_alias + "." + current_display_col;
+                current_display_col = user_alias + ".username";
+                break;
+            }
+            else
+            {
+                current_display_col = current_alias + "." + current_display_col;
+                break;
+            }
+        }
+
+        if(depth >= kMaxSelDepth)
+        {
+            current_display_col = current_alias + "." + current_display_col;
+        }
+
+        // Load all records from linked table with resolved display expression
+        auto load_action = Functions::Action("load_selection_options_" + col_id->ToString_());
         load_action.set_suppress_debug(true);
         load_action.set_sql_code(
-            "SELECT identifier, " + disp_col->ToString_() + " AS display_value "
-            "FROM " + id_database + "." + link_to->ToString_()
+            "SELECT t0.identifier, " + current_display_col + " AS display_value "
+            "FROM " + id_database + "." + link_to->ToString_() + " AS t0" +
+            accumulated_joins
         );
         if(!load_action.Work_())
             continue;
