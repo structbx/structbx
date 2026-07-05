@@ -753,7 +753,19 @@ export class SettingsController extends BaseController{
             this.currentDatabaseIdentifier = null;
             this.currentDatabaseName = null;
             this.currentDatabaseDescription = null;
-            this.readDatabases();
+
+            const currentDbId = this.currentDatabaseFullData?.identifier;
+            if (currentDbId && identifier === currentDbId) {
+                this.database.read().then(dbResponse => {
+                    if (dbResponse.body.data && dbResponse.body.data.length > 0) {
+                        this.changeCurrentDatabase(dbResponse.body.data[0].identifier);
+                    } else {
+                        this.logout();
+                    }
+                });
+            } else {
+                this.readDatabases();
+            }
         });
     }
 

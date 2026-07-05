@@ -27,9 +27,6 @@ export class Database{
         return await new wtools.Request("/api/databases/modify", "PUT", data).Exec_();
     }
     async delete(identifier){
-        const data = new FormData();
-        data.append('identifier', identifier);
-
-        return await new wtools.Request("/api/databases/delete", "DELETE", data).Exec_();
+        return await new wtools.Request(`/api/databases/delete?identifier=${identifier}`, "DELETE").Exec_();
     }
 }
