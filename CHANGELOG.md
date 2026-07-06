@@ -1,3 +1,54 @@
+# Changelog - StructBX v0.2.1
+
+## New Features & Enhancements (Added)
+
+* **Security & Access Control:**
+* Implemented a complete **Row-Level Security (RLS) system** to restrict data access at the row level based on user permissions and ownership (#129).
+
+* **Data Management & Columns:**
+* Added **mass editing and deletion** capabilities for efficient batch operations on table records (#58).
+* Introduced a **Main column** concept for each table, serving as the primary identifying field (#92).
+* Added an **enum Column Type** to allow constrained value selection from a predefined list (#36).
+* Implemented **Setup Default View and Display Column** configuration to control which column is shown by default in linked contexts (#111).
+* Allowed using either the record **identifier or column name** when performing Add or Modify operations (#123).
+
+* **Frontend Enhancements:**
+* Improved **realtime updates** across the frontend for live data synchronization (#116).
+* Added **dark/light themes** with dark as the default theme (#126).
+* Enhanced UI with **detailed info** displays for better data visibility (#124).
+* Improved **error notification** handling and presentation in the frontend (#125).
+* Translated backend error messages to English and added **frontend i18n translations** for all error codes (#117).
+
+* **Developer Workflow & Build:**
+* Changed the build output to produce a **statically linked binary** for easier distribution and deployment (#118).
+* Created a **DB initializer** module to automate database schema setup and seeding (#119).
+* Added **descriptive names to Controller actions** for clearer API endpoint documentation and debugging (#120).
+* Renamed `main.cpp` to a **top-level name** aligning with the project's identity (#115).
+
+---
+
+## Bug Fixes (Fixed)
+
+* Fixed import errors that prevented proper module loading (#122).
+* Fixed forms not reloading to their **default values** after operations (#131).
+* Ensured the **first created column** is automatically set as the default display column (#132).
+* Resolved **column redimensioning** issues in the table layout (#133).
+* Set **`utf8mb4_unicode_ci`** as the default collation for database creation to support full Unicode (#136).
+* Fixed **record modification** failures when a column is of type `user` (#137).
+* Fixed errors when a linked column's **display column** (in the referenced table) is of type `user` or `current-user` (#138).
+* Fixed foreign key configuration on linked columns to use **`UPDATE CASCADE`** and **`DELETE SET NULL`** (#139).
+* Added validation to **prevent deletion of the last remaining items** in critical contexts (#140).
+* Fixed **database deletion** logic to properly clean up all associated resources (#141).
+
+---
+
+## Internal Build System (Under the Hood)
+
+* Upgraded the **build system** to support static linking workflows and the new DB initializer module (#118, #119).
+
+
+---
+
 # Changelog - StructBX v0.1.5
 
 ## New Features & Enhancements (Added)
