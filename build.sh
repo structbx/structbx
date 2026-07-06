@@ -30,9 +30,5 @@ if [ "$?" != "0" ]; then
     exit -1
 fi
 
-# Install
-echo "- Install"
-sudo cmake --build . --target install
-
 # Go back to the current directory
 cd $source_dir
