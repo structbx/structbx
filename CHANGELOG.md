@@ -1,4 +1,4 @@
-# Changelog - StructBX v0.2.1
+# Changelog - StructBX v0.2.0
 
 ## New Features & Enhancements (Added)
 
