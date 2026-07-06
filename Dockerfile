@@ -17,7 +17,7 @@ COPY . .
 
 # Build application
 RUN mkdir build && cd build && \
-    cmake ../ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ && \
+    cmake ../ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ -DBUILD_STATIC=OFF && \
     cmake --build . --parallel $(nproc) && \
     cmake --build . --target install
 

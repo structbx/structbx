@@ -50,6 +50,7 @@
 
 set(Poco_HINTS
 	/usr/local
+	/usr
 	C:/AppliedInformatics
 	${Poco_DIR} 
 	$ENV{Poco_DIR}
@@ -149,6 +150,7 @@ foreach( component ${components} )
 			HINTS ${Poco_ROOT_DIR}
 			PATH_SUFFIXES
 				lib
+				lib/${CMAKE_LIBRARY_ARCHITECTURE}
 				bin
 		)
 		if(Poco_${component}_LIBRARY)
@@ -168,6 +170,7 @@ foreach( component ${components} )
 			HINTS ${Poco_ROOT_DIR}
 			PATH_SUFFIXES
 				lib
+				lib/${CMAKE_LIBRARY_ARCHITECTURE}
 				bin
 		)
 		if(Poco_${component}_LIBRARY_DEBUG)
