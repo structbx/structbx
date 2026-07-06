@@ -48,7 +48,7 @@ cd structbx
 sudo apt install cmake g++ libpoco-dev libmariadb-dev libyaml-cpp-dev libssl-dev zlib1g-dev
 
 # Build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC=OFF
 cmake --build build --parallel $(nproc)
 
 # Install
