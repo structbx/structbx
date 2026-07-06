@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <memory>
 
@@ -6,6 +5,7 @@
 #include <Poco/Exception.h>
 
 #include "core/core.h"
+#include "structbxConfig.h"
 #include "functions/action.h"
 #include "query/schema_initializer.h"
 #include "tools/route.h"
@@ -22,6 +22,7 @@ struct Parameters
 {
     std::string properties_file = "";
     bool db_init = false;
+    bool version = false;
 };
 
 Parameters SetupParameters(std::vector<std::string>& parameters)
@@ -35,6 +36,10 @@ Parameters SetupParameters(std::vector<std::string>& parameters)
     // Database initialization flag
     auto db_init = std::find(parameters.begin(), parameters.end(), "--db-init");
     params.db_init = db_init != parameters.end();
+
+    // Version flag
+    auto version = std::find(parameters.begin(), parameters.end(), "--version");
+    params.version = version != parameters.end();
 
     // Remove all parameters except the first one
     std::string first_param = parameters.front();
@@ -53,6 +58,13 @@ int main(int argc, char** argv)
         auto& parameters = app.get_console_parameters();
         parameters = std::vector<std::string>(argv, argv + argc);
         Parameters params = SetupParameters(parameters);
+
+    // Version flag (--version)
+        if(params.version)
+        {
+            std::cout << STRUCTBX_VERSION << std::endl;
+            return 0;
+        }
 
     // Settings
         StructBX::Tools::SettingsManager::set_config_path(params.properties_file);
