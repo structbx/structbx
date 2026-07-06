@@ -832,7 +832,8 @@ export class DataController extends BaseController{
                     || row.column_type == ColumnType.CreatedDate
                     || row.column_type == ColumnType.UpdatedDate
                     || row.column_type == ColumnType.Image
-                    || row.column_type == ColumnType.File)
+                    || row.column_type == ColumnType.File
+                    || row.column_type == ColumnType.CurrentUser)
                     return undefined;
 
                 let table_element_object = new TableElements(
@@ -1014,7 +1015,6 @@ export class DataController extends BaseController{
             customSelect.hiddenInput.attr('name', row.identifier);
             this.linkUsersInDatabaseOptions(customSelect, `${target} .notifications`, value);
         }
-
         // Display column star indicator
         let display_mark = '';
         if(id_column_display && row.identifier === id_column_display){
@@ -1082,7 +1082,7 @@ export class DataController extends BaseController{
                     let first = true;
                     new wtools.UIElementsCreator('#component_data_add table tbody', data)
                     .Build_((row) => {
-                        if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
+                        if(row.identifier == "identifier" || row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate || row.column_type == ColumnType.CurrentUser)
                             return undefined;
 
                         let elements = [];
@@ -1204,7 +1204,7 @@ export class DataController extends BaseController{
                     let first = true;
                     new wtools.UIElementsCreator('#component_data_modify table tbody', data)
                     .Build_((row) => {
-                        if(row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate)
+                        if(row.column_type == ColumnType.CreatedDate || row.column_type == ColumnType.UpdatedDate || row.column_type == ColumnType.CurrentUser)
                             return;
 
                         let elements = [];

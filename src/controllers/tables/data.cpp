@@ -1481,6 +1481,28 @@ Tables::Data::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData
         ParameterConfiguration pc(ParameterConfiguration::Type::kAdd, columns, values, id_database);
         pc.Setup(self, table_columns->get_results(), table_identifier->get()->ToString_(), save_record);
 
+        // Auto-fill current-user columns with the authenticated user's ID
+        for(auto it : *table_columns->get_results())
+        {
+            auto col_type = it.get()->ExtractField_("column_type");
+            auto col_id = it.get()->ExtractField_("identifier");
+            if(col_type->IsNull_() || col_id->IsNull_())
+                continue;
+            if(col_type->ToString_() != ColumnType::CurrentUser)
+                continue;
+            if(columns == "")
+            {
+                columns = col_id->ToString_();
+                values = "?";
+            }
+            else
+            {
+                columns += ", " + col_id->ToString_();
+                values += ", ?";
+            }
+            save_record->AddParameter_(col_id->ToString_(), self.get_current_user().get_id(), false);
+        }
+
         // Verify that columns is not empty
         if(columns == "")
         {
@@ -2204,8 +2226,8 @@ void Tables::Data::ParameterConfiguration::Setup(StructBX::Functions::Function& 
             }
         }
 
-        // Skip auto-managed columns (handled by DB defaults/triggers)
-        if(column_type->ToString_() == ColumnType::CreatedDate || column_type->ToString_() == ColumnType::UpdatedDate)
+        // Skip auto-managed columns (handled by DB defaults/triggers or backend)
+        if(column_type->ToString_() == ColumnType::CreatedDate || column_type->ToString_() == ColumnType::UpdatedDate || column_type->ToString_() == ColumnType::CurrentUser)
             continue;
 
         // Partial update: for kModify, skip columns not present in the request
