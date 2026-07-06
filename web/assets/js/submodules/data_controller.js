@@ -220,6 +220,8 @@ export class DataController extends BaseController{
         });
         this.colorSelectAdd.hiddenInput.attr('name', '_structbx_column_colorHeader');
         this.colorSelectModify.hiddenInput.attr('name', '_structbx_column_colorHeader');
+
+        this._loadUsersInDatabase();
     }
 
     bindEvents(){
@@ -686,6 +688,18 @@ export class DataController extends BaseController{
         } catch(e) {
             // localStorage full or unavailable — silently ignore
         }
+    }
+
+    _loadUsersInDatabase(){
+        this.database_user.readForm(this.getTableIdentifier()).then((response_data) => {
+            if(response_data.body && response_data.body.data){
+                for(const user of response_data.body.data){
+                    this.users_in_database[user.identifier] = user.username;
+                }
+            }
+        }).catch(() => {
+            // Silently fail — user_row will fall back to showing the raw value
+        });
     }
 
     changeIntVerification(){
