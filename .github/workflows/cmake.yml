@@ -47,9 +47,9 @@ jobs:
         run: |
           conan install . --build=missing -s build_type=Release --output-folder=build-static
 
-      - name: Configure and build (static release)
+      - name: Configure and build (static release, build-static is a dir)
         run: |
-          cmake -S . -B build-static \ # build-static is a dir
+          cmake -S . -B build-static \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_STATIC=ON \
             -DCMAKE_INSTALL_PREFIX=/tmp/structbx-install \
