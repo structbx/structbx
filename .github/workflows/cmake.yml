@@ -1,0 +1,82 @@
+name: Build StructBX
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake g++ \
+            libssl-dev zlib1g-dev \
+            python3-pip
+          sudo npm install -g npm
+
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm install
+
+      - name: Install Conan and setup profile
+        run: |
+          pip3 install conan
+          conan profile detect --force
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+
+      - name: Install dependencies via Conan
+        run: |
+          conan install . --build=missing -s build_type=Release
+
+      - name: Configure and build (static release)
+        run: |
+          cmake -S . -B build-static \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_STATIC=ON \
+            -DCMAKE_INSTALL_PREFIX=/tmp/structbx-install
+          cmake --build build-static --parallel $(nproc)
+          cmake --install build-static --prefix /tmp/structbx-install
+
+      - name: Package binary
+        run: |
+          cp /tmp/structbx-install/bin/structbx-server /tmp/structbx-server-linux-amd64
+          strip /tmp/structbx-server-linux-amd64
+
+      - name: Package web files
+        run: |
+          tar czf /tmp/structbx-web.tar.gz -C web .
+
+      - name: Smoke test (manual trigger only)
+        if: github.event_name == 'workflow_dispatch'
+        run: /tmp/structbx-server-linux-amd64 --version
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: structbx-server
+          path: /tmp/structbx-server-linux-amd64
+
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: structbx-web
+          path: /tmp/structbx-web.tar.gz
