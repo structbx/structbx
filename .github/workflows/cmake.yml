@@ -45,14 +45,15 @@ jobs:
 
       - name: Install dependencies via Conan
         run: |
-          conan install . --build=missing -s build_type=Release
+          conan install . --build=missing -s build_type=Release --output-folder=build-static
 
       - name: Configure and build (static release)
         run: |
-          cmake -S . -B build-static \
+          cmake -S . -B build-static \ # build-static is a dir
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_STATIC=ON \
-            -DCMAKE_INSTALL_PREFIX=/tmp/structbx-install
+            -DCMAKE_INSTALL_PREFIX=/tmp/structbx-install \
+            -DCMAKE_TOOLCHAIN_FILE=build-static/conan_toolchain.cmake
           cmake --build build-static --parallel $(nproc)
           cmake --install build-static --prefix /tmp/structbx-install
 
