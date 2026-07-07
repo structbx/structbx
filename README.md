@@ -3,6 +3,9 @@
 [![License](docs/images/badge-license.svg)](LICENSE)
 [![Platform](docs/images/badge-platform.svg)]()
 [![Build](docs/images/badge-build.svg)]()
+[![Build StructBX](https://github.com/structbx/structbx/actions/workflows/cmake.yml/badge.svg)](https://github.com/structbx/structbx/actions/workflows/cmake.yml)
+[![Publish StructBX Docker image](https://github.com/structbx/structbx/actions/workflows/docker.yml/badge.svg)](https://github.com/structbx/structbx/actions/workflows/docker.yml)
+[![Upload StructBX Release Assets](https://github.com/structbx/structbx/actions/workflows/release.yml/badge.svg)](https://github.com/structbx/structbx/actions/workflows/release.yml)
 
 # StructBX
 
