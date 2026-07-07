@@ -13,5 +13,6 @@ fi
 
 # install dependencies with conan
 cd "$BASEDIR/build/Debug"
+conan profile detect --force
 conan install ../../ --output-folder=./ --build=missing
 cd "$BASEDIR"
