@@ -1,3 +1,11 @@
+# Changelog - StructBX v0.2.2
+
+## Bug Fixes (Fixed)
+
+* Fix Dockerfile and improve Github Actions (#143) (reopen).
+
+---
+
 # Changelog - StructBX v0.2.1
 
 ## Bug Fixes (Fixed)
