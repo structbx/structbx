@@ -200,6 +200,7 @@ if [ -f "$SERVICE_FILE" ]; then
 fi
 
 echo ""
+echo "  Start (DB): sudo structbx-server --db-init --config ${CONF_DIR}/properties.yaml"
 echo "  Start (manual): sudo structbx-server --config ${CONF_DIR}/properties.yaml"
 echo "  Edit config:    ${CONF_DIR}/properties.yaml"
 echo ""

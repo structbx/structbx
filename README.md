@@ -70,6 +70,7 @@ sudo nano /etc/structbx/properties.yaml
 Then start the server:
 
 ```sh
+sudo structbx-server --db-init --config /etc/structbx/properties.yaml # to init the database schema
 sudo structbx-server --config /etc/structbx/properties.yaml
 ```
 
