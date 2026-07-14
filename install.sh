@@ -21,6 +21,63 @@ UPLOAD_DIR="/var/www/structbx-web-uploaded"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+# ─── Service management ──────────────────────────────────────────────
+SERVICE_NAME="structbx"
+SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+
+was_running=false
+is_running() { pgrep -x "$SERVICE_NAME" >/dev/null 2>&1; }
+
+stop_server() {
+    if is_running; then
+        was_running=true
+        info "Stopping StructBX server..."
+        if command -v systemctl >/dev/null 2>&1 && [ -f "$SERVICE_FILE" ]; then
+            sudo systemctl stop "$SERVICE_NAME"
+        else
+            sudo pkill -x "$SERVICE_NAME" 2>/dev/null || true
+        fi
+        local i=0
+        while [ $i -lt 10 ]; do
+            if ! is_running; then break; fi
+            sleep 0.5
+            i=$((i + 1))
+        done
+    fi
+}
+
+start_server() {
+    if command -v systemctl >/dev/null 2>&1 && [ -f "$SERVICE_FILE" ]; then
+        sudo systemctl start "$SERVICE_NAME"
+    fi
+}
+
+setup_systemd_service() {
+    [ -n "$STRUCTBX_NO_SERVICE" ] && return
+    command -v systemctl >/dev/null 2>&1 || return
+    [ -f "$SERVICE_FILE" ] && return
+
+    info "Setting up systemd service..."
+    sudo tee "$SERVICE_FILE" >/dev/null <<SERVICE
+[Unit]
+Description=StructBX Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=${BIN_DIR}/structbx-server --config ${CONF_DIR}/properties.yaml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+    sudo systemctl daemon-reload
+    sudo systemctl enable "$SERVICE_NAME"
+    ok "systemd service created and enabled: ${SERVICE_FILE}"
+}
+
 # ─── Detect platform ────────────────────────────────────────────────
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
@@ -60,6 +117,12 @@ download() {
     [ -s "$out" ] || err "Download failed: $url"
 }
 
+# ─── Detect existing installation (update mode) ─────────────────────
+if [ -f "${BIN_DIR}/structbx-server" ]; then
+    info "Existing installation detected — updating..."
+    stop_server
+fi
+
 download "${BASE_URL}/${BINARY}" "${TMP_DIR}/structbx-server"
 download "${BASE_URL}/${WEB_TAR}" "${TMP_DIR}/${WEB_TAR}"
 
@@ -73,13 +136,20 @@ info "Installing web files to ${WEB_DIR}"
 sudo install -d "$WEB_DIR"
 sudo tar xzf "${TMP_DIR}/${WEB_TAR}" -C "$WEB_DIR"
 
+# ─── Service setup ──────────────────────────────────────────────────
+setup_systemd_service
+
+if [ "$was_running" = true ]; then
+    info "Existing server was stopped for update — start it manually when ready"
+fi
+
 # ─── Create config directories and default files ────────────────────
 info "Creating configuration directories"
 sudo install -d "$CONF_DIR" "$LOG_DIR" "$UPLOAD_DIR"
 
 if [ ! -f "${CONF_DIR}/properties.yaml" ]; then
     info "Generating default config at ${CONF_DIR}/properties.yaml"
-    cat > "${CONF_DIR}/properties.yaml" <<-YAML
+    sudo tee "${CONF_DIR}/properties.yaml" >/dev/null <<-YAML
 port: 3001
 max_queued: 4096
 max_threads: 4096
@@ -122,9 +192,25 @@ echo ""
 echo "  Binary:        ${BIN_DIR}/structbx-server"
 echo "  Web files:     ${WEB_DIR}"
 echo "  Config:        ${CONF_DIR}/properties.yaml"
+
+if [ -f "$SERVICE_FILE" ]; then
+    echo "  Service:       ${SERVICE_FILE} (enabled)"
+    echo ""
+    echo "  Manage:        sudo systemctl {start|stop|restart|status} ${SERVICE_NAME}"
+fi
+
 echo ""
-echo "  Start:         sudo structbx-server --config ${CONF_DIR}/properties.yaml"
-echo "  Edit config:   ${CONF_DIR}/properties.yaml"
+echo "  Start (manual): sudo structbx-server --config ${CONF_DIR}/properties.yaml"
+echo "  Edit config:    ${CONF_DIR}/properties.yaml"
 echo ""
 echo "  Make sure MySQL/MariaDB is running and accessible, then configure"
 echo "  the database settings in ${CONF_DIR}/properties.yaml."
+
+if [ "$was_running" = true ]; then
+    echo ""
+    info "Note: The server was stopped for the update."
+    info "      Restart it with: sudo structbx-server --config ${CONF_DIR}/properties.yaml"
+    if [ -f "$SERVICE_FILE" ]; then
+        info "      Or: sudo systemctl start ${SERVICE_NAME}"
+    fi
+fi
