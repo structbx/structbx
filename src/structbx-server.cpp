@@ -52,7 +52,7 @@ Parameters SetupParameters(std::vector<std::string>& parameters)
 int main(int argc, char** argv)
 {
     // Setup
-        Core::Core app(true);
+        Core::Core app;
 
     // Parameters
         auto& parameters = app.get_console_parameters();

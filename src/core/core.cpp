@@ -3,13 +3,10 @@
 
 using namespace StructBX::Core;
 
-StructBX::Core::Core::Core(bool use_ssl) :
-    use_ssl_(use_ssl)
+StructBX::Core::Core::Core() :
+    use_ssl_(false)
     ,handler_factory_(new HandlerFactory())
 {
-    if(use_ssl_)
-        Net::initializeSSL();
-
     AddBasicSettings_();
 }
 
@@ -102,6 +99,14 @@ void StructBX::Core::Core::SetupSettings_()
     SetupUploadedDir();
     Tools::OutputLogger::set_output_file_address(Tools::SettingsManager::GetSetting_("logger_output_file", "structbx.log"));
     Tools::OutputLogger::set_print_debug(Tools::SettingsManager::GetSetting_("debug", true));
+
+    auto cert = Tools::SettingsManager::GetSetting_("certificate", "");
+    auto key = Tools::SettingsManager::GetSetting_("key", "");
+    if (!cert.empty() && !key.empty())
+    {
+        use_ssl_ = true;
+        Net::initializeSSL();
+    }
 }
 
 bool StructBX::Core::Core::SetupOutputLog()

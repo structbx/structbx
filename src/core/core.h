@@ -54,7 +54,7 @@ using namespace Poco::Util;
 class StructBX::Core::Core
 {
     public:
-        Core(bool use_ssl = false);
+        Core();
         virtual ~Core();
 
         bool get_use_ssl() const { return use_ssl_; }
@@ -80,7 +80,7 @@ class StructBX::Core::Core
         bool SetupUploadedDir();
 
     private:
-        const bool use_ssl_;
+        bool use_ssl_;
         Server::Ptr server_;
         HandlerFactory* handler_factory_;
         std::vector<std::string> console_parameters_;
