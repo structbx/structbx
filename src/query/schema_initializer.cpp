@@ -119,7 +119,6 @@ ENGINE = InnoDB;)",
   `id_database` VARCHAR(20) NOT NULL,
   `id_column_display` VARCHAR(20) NULL DEFAULT NULL ,
    PRIMARY KEY (`id`),
-  CONSTRAINT `UQ_tables_id_column_display` UNIQUE (`id_column_display`),
   CONSTRAINT `UQ_tables_identifier` UNIQUE (`identifier`)
 )
 ENGINE = InnoDB;)",

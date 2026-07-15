@@ -831,6 +831,10 @@ export const uiTexts = {
         en: "Column deleted.",
         es: "Columna eliminada."
     },
+    "columns.type_change_data_loss_warning": {
+        en: "Changing the column type may cause data loss. Existing data could be truncated or lost. Do you want to continue?",
+        es: "Cambiar el tipo de columna puede causar pérdida de datos. Los datos existentes podrían truncarse o perderse. ¿Desea continuar?"
+    },
 
     // Sorts Controller
     "sorts.no_sorts": {

@@ -373,9 +373,48 @@ export class ColumnsController extends BaseController{
             return;
         }
 
+        // Helper to resend the modify request with confirm_data_loss=true
+        const resendWithConfirm = () => {
+            let data = new FormData();
+            data.append("identifier", identifier);
+            data.append("table-identifier", this.getTableIdentifier());
+            data.append("name", column_name);
+            data.append("column_type", column_type);
+            data.append("description", description);
+            data.append("required", required);
+            data.append("default_value", default_value);
+            data.append("link_to", link_to);
+            data.append("confirm_data_loss", "1");
+
+            let new_wait = new wtools.ElementState('#component_columns_modify form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+            new wtools.Request("/api/tables/columns/modify", "PUT", data, false).Exec_().then((response_data2) => {
+                new_wait.Off_();
+                const result = new ResponseManager(response_data2, '#component_columns_modify .notifications', 'target.columns_modify');
+                if(!result.Verify_())
+                    return;
+
+                new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_updated') : 'Column updated successfully.');
+                $('#component_columns_modify').modal('hide');
+                this.onChanged();
+                this.read();
+            });
+        };
+
         // Request
         this.tableColumn.modify(identifier, this.getTableIdentifier(), column_name, column_type, description, required, default_value, link_to).then((response_data) =>{
             wait.Off_();
+
+            // Issue #1: Handle data loss warning from backend
+            if(response_data.body && response_data.body.error_code && response_data.body.error_code.indexOf('data_loss_risk') !== -1)
+            {
+                let message = window.structbxI18n ? window.structbxI18n.t('columns.type_change_data_loss_warning') : 'Changing the column type may cause data loss. Existing data could be truncated or lost. Do you want to continue?';
+                if(confirm(message))
+                {
+                    resendWithConfirm();
+                }
+                return;
+            }
 
             // Manage response
             const result = new ResponseManager(response_data, '#component_columns_modify .notifications', 'target.columns_modify');

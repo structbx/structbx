@@ -175,6 +175,18 @@ export const errorCodes = {
         en: "Cannot delete the last column. A table must have at least one column.",
         es: "No se puede eliminar la última columna. Una tabla debe tener al menos una columna."
     },
+    "columns.cpp:modifyColumn:validate_type_change:data_loss_risk": {
+        en: "Changing the column type may cause data loss. Existing data may be truncated or lost. Send the request again with confirm_data_loss=true to proceed.",
+        es: "Cambiar el tipo de columna puede causar pérdida de datos. Los datos existentes pueden truncarse o perderse. Envíe la solicitud nuevamente con confirm_data_loss=true para continuar."
+    },
+    "columns.cpp:modifyColumn:validate_default:incompatible_with_type": {
+        en: "The default value is not compatible with the column type.",
+        es: "El valor por defecto no es compatible con el tipo de columna."
+    },
+    "columns.cpp:deleteColumn:validate_display:is_display_column": {
+        en: "Cannot delete this column because it is set as the display column for the table. Please set another column as the display column first.",
+        es: "No se puede eliminar esta columna porque está configurada como columna de visualización de la tabla. Configure otra columna como columna de visualización primero."
+    },
 
     // Views
     "views.cpp:deleteView:validate_last:cannot_delete_last": {

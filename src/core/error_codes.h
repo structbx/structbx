@@ -99,6 +99,9 @@
 #define ERR_COL_NOT_IN_TABLE ERR_CODE("columns.cpp", "deleteColumn", "validate_existence", "not_in_table")
 #define ERR_COL_POSITION_MOVE_FAIL ERR_CODE("columns.cpp", "modifyPosition", "execute", "position_move_failed")
 #define ERR_COL_VISIBLE_EMPTY ERR_CODE("columns.cpp", "modifyVisible", "validate_input", "visible_empty")
+#define ERR_COL_TYPE_CHANGE_DATA_LOSS ERR_CODE("columns.cpp", "modifyColumn", "validate_type_change", "data_loss_risk")
+#define ERR_COL_DEFAULT_INCOMPATIBLE ERR_CODE("columns.cpp", "modifyColumn", "validate_default", "incompatible_with_type")
+#define ERR_COL_IS_DISPLAY ERR_CODE("columns.cpp", "deleteColumn", "validate_display", "is_display_column")
 
 // Views controller
 #define ERR_VIEW_TABLE_ID_EMPTY ERR_CODE("views.cpp", "readViews", "validate_input", "table_id_empty")

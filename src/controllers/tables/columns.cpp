@@ -177,8 +177,8 @@ Columns::Add::Add(Tools::FunctionData& function_data) : Tools::FunctionData(func
 
         // Action 4: Add the column in the table
         action4->set_sql_code(
-            "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "ADD " + column_identifier + " " + variables.column_type + " " +
+            "ALTER TABLE `" + database_id + "`.`" + table_identifier->get()->ToString_() + "` " +
+            "ADD `" + column_identifier + "` " + variables.column_type + " " +
             + " NULL " + variables.default_value + " " + variables.on_update
         );
         if(!action4->Work_())
@@ -354,28 +354,87 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
         // if column type or default value changes, alter table
         if(column_type->ToString_() != new_column_type->get()->ToString_() || default_value->ToString_() != new_default_value->get()->ToString_())
         {
-            // Alter table column
             // Setup column variables
             auto column_setup = ColumnSetup();
             auto variables = ColumnVariables();
             if(!column_setup.Setup(self, variables))
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, "Error WW17KL82QJ");
+                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                    "The default value is not compatible with the column type.",
+                    ERR_COL_DEFAULT_INCOMPATIBLE);
                 return;
             }
             std::string column = column_identifier->get()->ToString_();
+            std::string table_id = table_identifier->get()->ToString_();
 
-            auto action_alter_table = self.AddAction_("action_alter_table");
-            action_alter_table->set_sql_code(
-                "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-                "CHANGE COLUMN `" + column + "` " + column + 
-                " " + variables.column_type + " " + variables.required +
-                " " + variables.default_value + " " + variables.on_update
-            );
-            if(!action_alter_table->Work_())
+            // Case 1: Only default value changed — use ALTER COLUMN SET DEFAULT
+            if(column_type->ToString_() == new_column_type->get()->ToString_())
             {
-                self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_alter_table->get_custom_error(), action_alter_table->get_custom_error_code());
-                return;
+                auto action_alter_default = self.AddAction_("action_alter_default");
+                std::string default_clause;
+                if(new_default_value->get()->ToString_() != "")
+                {
+                    default_clause = "SET DEFAULT " + new_default_value->get()->ToString_();
+                }
+                else
+                {
+                    default_clause = "DROP DEFAULT";
+                }
+                action_alter_default->set_sql_code(
+                    "ALTER TABLE `" + database_id + "`.`" + table_id + "` " +
+                    "ALTER COLUMN `" + column + "` " + default_clause
+                );
+                if(!action_alter_default->Work_())
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_alter_default->get_custom_error(), action_alter_default->get_custom_error_code());
+                    return;
+                }
+            }
+            else
+            {
+                // Case 2: Column type changed — check for data loss
+                auto action_count = self.AddAction_("count_records_for_type_change");
+                action_count->set_sql_code(
+                    "SELECT COUNT(1) AS cnt FROM `" + database_id + "`.`" + table_id + "`"
+                );
+                if(!action_count->Work_())
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_INTERNAL_SERVER_ERROR, "Failed to count records.", ERR_ACTION_FAILED);
+                    return;
+                }
+                auto count_result = action_count->get_results()->First_();
+                bool has_records = !count_result->IsNull_() && count_result->Int_() > 0;
+
+                // Check if user confirmed data loss
+                auto confirm_loss_param = self.GetParameter_("confirm_data_loss");
+                bool confirm_loss = false;
+                if(confirm_loss_param != self.get_parameters().end())
+                {
+                    auto val = confirm_loss_param->get()->ToString_();
+                    confirm_loss = (val == "1" || val == "true");
+                }
+
+                if(has_records && !confirm_loss)
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                        "Changing the column type may cause data loss. Existing data may be truncated or lost. Set confirm_data_loss=true to proceed.",
+                        ERR_COL_TYPE_CHANGE_DATA_LOSS);
+                    return;
+                }
+
+                // Proceed with CHANGE COLUMN (backtick quoting)
+                auto action_alter_table = self.AddAction_("action_alter_table");
+                action_alter_table->set_sql_code(
+                    "ALTER TABLE `" + database_id + "`.`" + table_id + "` " +
+                    "CHANGE COLUMN `" + column + "` `" + column + "` " +
+                    variables.column_type + " " + variables.required +
+                    " " + variables.default_value + " " + variables.on_update
+                );
+                if(!action_alter_table->Work_())
+                {
+                    self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_alter_table->get_custom_error(), action_alter_table->get_custom_error_code());
+                    return;
+                }
             }
         }
         if(!action2->Work_())
@@ -833,20 +892,36 @@ Columns::Delete::Delete(Tools::FunctionData& function_data) : Tools::FunctionDat
             return;
         }
 
-        // Delete column from table
-        auto delete_from_table = self.AddAction_("drop_mysql_column");
-
-        delete_from_table->set_sql_code(
-            "ALTER TABLE " + database_id + "." + table_identifier->get()->ToString_() + " " +
-            "DROP COLUMN IF EXISTS " + column_identifier->get()->ToString_());
-        if(!delete_from_table->Work_())
+        // Check if column is the display column
+        auto action_check_display = self.AddAction_("check_is_display_column");
+        action_check_display->set_sql_code(
+            "SELECT 1 FROM `tables` WHERE `identifier` = ? AND `id_column_display` = ?"
+        );
+        action_check_display->AddParameter_("table_identifier", table_identifier->get()->ToString_(), false);
+        action_check_display->AddParameter_("column_identifier", column_identifier->get()->ToString_(), false);
+        if(action_check_display->Work_() && action_check_display->get_results()->size() > 0)
         {
-            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, delete_from_table->get_custom_error(), delete_from_table->get_custom_error_code());
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST,
+                "Cannot delete this column because it is set as the display column for the table. Please set another column as the display column first.",
+                ERR_COL_IS_DISPLAY);
             return;
         }
+
+        // Delete metadata first (cascades to views_columns, etc.)
         if(!action2->Work_())
         {
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Drop column physically with backtick quoting
+        auto delete_from_table = self.AddAction_("drop_mysql_column");
+        delete_from_table->set_sql_code(
+            "ALTER TABLE `" + database_id + "`.`" + table_identifier->get()->ToString_() + "` " +
+            "DROP COLUMN IF EXISTS `" + column_identifier->get()->ToString_() + "`");
+        if(!delete_from_table->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, delete_from_table->get_custom_error(), delete_from_table->get_custom_error_code());
             return;
         }
 
@@ -985,6 +1060,37 @@ bool Columns::ColumnSetup::Setup(StructBX::Functions::Function& self, ColumnVari
     auto column_type_setup = ColumnTypeSetup();
     if(!column_type_setup.Setup(column_type_str, variables.column_type))
         return false;
+
+    // Default value validation against column type
+    auto dv = default_value->get()->ToString_();
+    if(!dv.empty())
+    {
+        if(column_type_str == ColumnType::IntNumber)
+        {
+            char* end = nullptr;
+            std::strtoll(dv.c_str(), &end, 10);
+            if(*end != '\0')
+            {
+                return false;
+            }
+        }
+        else if(column_type_str == ColumnType::DecimalNumber)
+        {
+            char* end = nullptr;
+            std::strtod(dv.c_str(), &end);
+            if(*end != '\0')
+            {
+                return false;
+            }
+        }
+        else if(column_type_str == ColumnType::Date && dv != "CURRENT_TIMESTAMP")
+        {
+            if(dv.size() != 10 || dv[4] != '-' || dv[7] != '-')
+            {
+                return false;
+            }
+        }
+    }
 
     // Required setup
     if(required->get()->ToString_() == "1")
