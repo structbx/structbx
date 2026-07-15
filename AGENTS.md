@@ -78,6 +78,37 @@ Every user-facing text MUST go through the i18n system — never hardcode string
 If a string is visible to the user (text, error, tooltip, placeholder, title, aria-label) it MUST
 use the i18n system. Hardcoded display strings in any language are forbidden.
 
+## Database schema patches
+
+Every structural change to the metadata database (new tables, columns, indexes,
+constraints, seed data) **MUST** be implemented as a patch instead of modifying
+`CREATE TABLE IF NOT EXISTS` statements alone, because existing installations
+already have the schema and `CREATE TABLE IF NOT EXISTS` is a no-op.
+
+### How to add a patch
+
+1. Open `src/query/schema_initializer.cpp` and locate the `kPatches` vector in
+   the anonymous namespace.
+2. Append a new `PatchDef` entry **at the end** with:
+   - `id`: zero-padded 3-digit sequential number + underscore + short name
+     (e.g. `002_add_user_avatar_column`)
+   - `description`: human-readable summary
+   - `sql`: the exact MySQL statement(s) to execute. For multiple statements,
+     wrap in a `BEGIN` / `END` block or use a single statement per patch.
+3. The patch is automatically applied by `--db-init` on next server start.
+   Already-applied patches are skipped (tracked in `schema_patches` table).
+
+### Rules
+
+- **Never** edit an already-released patch — write a new one.
+- **Never** put seed data changes (INSERT/UPDATE/DELETE of user-facing data) in
+  a patch. Seed data belongs in `InsertSeedData_()` (idempotent via `INSERT
+  IGNORE` or `SELECT COUNT(*)` check).
+- A patch may contain `ALTER TABLE`, `CREATE INDEX`, `DROP INDEX`, `CREATE
+  TABLE`, or any DDL that modifies the metadata schema.
+- If a patch fails, the error is logged but init continues (failures are
+  non-fatal for backwards compatibility).
+
 ## Git conventions
 
 - Branch: `iss[number]` (features/fixes), merge into `dev` via PR.
