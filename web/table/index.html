@@ -403,6 +403,32 @@
                         </div>
                         <!-- /Columns: Delete -->
 
+                        <!-- Generic Confirm Modal (reusable) -->
+                        <div class="modal right-side-modal fade" id="component_confirm_modal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title confirm-title">
+                                            <i class="fas fa-question-circle me-2"></i><span class="confirm-title-text"></span>
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="confirm-message"></p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="table.cancel">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                                        </button>
+                                        <button type="button" class="btn btn-danger confirm-yes">
+                                            <i class="fas fa-check me-2"></i><span class="confirm-yes-text"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Generic Confirm Modal -->
+
                         <!-- Data: Reload button -->
                          <button id="component_data_reload" class="d-none"></button>
                         <!-- Data: Reload button -->

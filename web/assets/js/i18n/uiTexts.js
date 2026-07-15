@@ -419,6 +419,14 @@ export const uiTexts = {
         en: "No data found when querying database users.",
         es: "No se encontraron datos al consultar los usuarios de la base de datos"
     },
+    "base.confirm_title": {
+        en: "Confirm",
+        es: "Confirmar"
+    },
+    "base.confirm_continue": {
+        en: "Continue",
+        es: "Continuar"
+    },
 
     // Start Controller
     "start.active": {

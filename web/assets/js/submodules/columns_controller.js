@@ -153,6 +153,18 @@ export class ColumnsController extends BaseController{
             e.preventDefault();
             this.delete();
         });
+
+        // Generic confirm modal
+        $(document).on('click', '#component_confirm_modal .confirm-yes', function() {
+            if(typeof window._confirmCallback === 'function') {
+                window._confirmCallback();
+                window._confirmCallback = null;
+            }
+            $('#component_confirm_modal').modal('hide');
+        });
+        $('#component_confirm_modal').on('hidden.bs.modal', function() {
+            window._confirmCallback = null;
+        });
     }
 
     read()
@@ -408,11 +420,14 @@ export class ColumnsController extends BaseController{
             // Issue #1: Handle data loss warning from backend
             if(response_data.body && response_data.body.error_code && response_data.body.error_code.indexOf('data_loss_risk') !== -1)
             {
+                let title = window.structbxI18n ? window.structbxI18n.t('base.confirm_title') : 'Confirm';
                 let message = window.structbxI18n ? window.structbxI18n.t('columns.type_change_data_loss_warning') : 'Changing the column type may cause data loss. Existing data could be truncated or lost. Do you want to continue?';
-                if(confirm(message))
-                {
-                    resendWithConfirm();
-                }
+                let yesText = window.structbxI18n ? window.structbxI18n.t('base.confirm_continue') : 'Continue';
+                window._confirmCallback = resendWithConfirm;
+                $('#component_confirm_modal .confirm-title-text').text(title);
+                $('#component_confirm_modal .confirm-message').text(message);
+                $('#component_confirm_modal .confirm-yes-text').text(yesText);
+                $('#component_confirm_modal').modal('show');
                 return;
             }
 
