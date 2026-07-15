@@ -1,6 +1,7 @@
 
 #include "query/schema_initializer.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -237,6 +238,15 @@ ENGINE = InnoDB;)",
    PRIMARY KEY (`id`),
   CONSTRAINT `UQ_tables_row_policies_identifier` UNIQUE (`identifier`)
 )
+ENGINE = InnoDB;)",
+        R"(CREATE TABLE IF NOT EXISTS `schema_patches` ( 
+  `id` INT AUTO_INCREMENT NOT NULL,
+  `patch_id` VARCHAR(100) NOT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `applied_at` DATETIME NOT NULL DEFAULT current_timestamp(),
+   PRIMARY KEY (`id`),
+  CONSTRAINT `UQ_schema_patches_patch_id` UNIQUE (`patch_id`)
+)
 ENGINE = InnoDB;)"
     };
 
@@ -346,6 +356,20 @@ ENGINE = InnoDB;)"
         R"(ALTER TABLE `users` ADD CONSTRAINT `FK_users_id_group` FOREIGN KEY (`id_group`) REFERENCES `groups` (`identifier`) ON DELETE SET NULL ON UPDATE CASCADE;)",
         R"(ALTER TABLE `tables_columns` ADD CONSTRAINT `FK_tables_columns_id_table` FOREIGN KEY (`id_table`) REFERENCES `tables` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE;)",
         R"(ALTER TABLE `tables_columns` ADD CONSTRAINT `FK_tables_columns_link_to` FOREIGN KEY (`link_to`) REFERENCES `tables` (`identifier`) ON DELETE SET NULL ON UPDATE CASCADE;)"
+    };
+
+    struct PatchDef
+    {
+        std::string id;
+        std::string description;
+        std::string sql;
+    };
+
+    const std::vector<PatchDef> kPatches =
+    {
+        {"001_remove_uq_tables_id_column_display",
+         "Remove UNIQUE constraint on tables.id_column_display to allow multiple tables to share the same display column identifier.",
+         "ALTER TABLE `tables` DROP INDEX `UQ_tables_id_column_display`"}
     };
 
     const std::string kSeedEndpoints = R"(INSERT IGNORE INTO `endpoints` (`endpoint`, `title`, `action`) VALUES
@@ -470,6 +494,47 @@ ENGINE = InnoDB;)"
         session << "INSERT INTO `settings` (`name`, `value`) VALUES ('instance_logo', NULL)", Poco::Data::Keywords::now;
         std::cout << "[SchemaInitializer] Seed: Setting 'instance_logo' inserted." << std::endl;
     }
+
+    void ApplyPatches_(Poco::Data::Session& session)
+    {
+        // Collect already-applied patches
+        std::vector<std::string> applied;
+        try
+        {
+            Poco::Data::Statement stmt(session);
+            stmt << "SELECT `patch_id` FROM `schema_patches` ORDER BY `id` ASC",
+                Poco::Data::Keywords::into(applied);
+            stmt.execute();
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (patches read): " << e.displayText() << std::endl;
+            return;
+        }
+
+        for (const auto& patch : kPatches)
+        {
+            auto it = std::find(applied.begin(), applied.end(), patch.id);
+            if (it != applied.end())
+                continue;
+
+            try
+            {
+                session << patch.sql, Poco::Data::Keywords::now;
+                std::string pid = patch.id;
+                std::string pdesc = patch.description;
+                session << "INSERT INTO `schema_patches` (`patch_id`, `description`) VALUES (?, ?)",
+                    Poco::Data::Keywords::use(pid),
+                    Poco::Data::Keywords::use(pdesc),
+                    Poco::Data::Keywords::now;
+                std::cout << "[SchemaInitializer] Patch applied: " << patch.id << " - " << patch.description << std::endl;
+            }
+            catch (Poco::Exception& e)
+            {
+                std::cerr << "[SchemaInitializer] Error applying patch '" << patch.id << "': " << e.displayText() << std::endl;
+            }
+        }
+    }
 }
 
 void StructBX::Query::SchemaInitializer::Initialize_()
@@ -537,6 +602,8 @@ void StructBX::Query::SchemaInitializer::Initialize_()
     std::cout << "[SchemaInitializer] Foreign keys created." << std::endl;
 
     InsertSeedData_(session);
+
+    ApplyPatches_(session);
 
     std::cout << "[SchemaInitializer] Database initialization completed successfully." << std::endl;
 }
