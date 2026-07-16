@@ -14,6 +14,7 @@ class StructBX::Query::SchemaInitializer
 {
     public:
         static void Initialize_();
+        static void Update_();
 };
 
 #endif

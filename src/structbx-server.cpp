@@ -22,6 +22,7 @@ struct Parameters
 {
     std::string properties_file = "";
     bool db_init = false;
+    bool db_update = false;
     bool version = false;
 };
 
@@ -36,6 +37,10 @@ Parameters SetupParameters(std::vector<std::string>& parameters)
     // Database initialization flag
     auto db_init = std::find(parameters.begin(), parameters.end(), "--db-init");
     params.db_init = db_init != parameters.end();
+
+    // Database update flag (patches only)
+    auto db_update = std::find(parameters.begin(), parameters.end(), "--db-update");
+    params.db_update = db_update != parameters.end();
 
     // Version flag
     auto version = std::find(parameters.begin(), parameters.end(), "--version");
@@ -74,10 +79,18 @@ int main(int argc, char** argv)
     // Setup
         StructBX::Query::DatabaseManager::StartMySQL_();
 
-    // Database initialization (--db-init flag)
+    // Database initialization (--db-init flag, full schema + patches)
         if(params.db_init)
         {
             StructBX::Query::SchemaInitializer::Initialize_();
+            StructBX::Query::DatabaseManager::StopMySQL_();
+            return 0;
+        }
+
+    // Database update (--db-update flag, patches only)
+        if(params.db_update)
+        {
+            StructBX::Query::SchemaInitializer::Update_();
             StructBX::Query::DatabaseManager::StopMySQL_();
             return 0;
         }

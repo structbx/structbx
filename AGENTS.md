@@ -85,6 +85,19 @@ constraints, seed data) **MUST** be implemented as a patch instead of modifying
 `CREATE TABLE IF NOT EXISTS` statements alone, because existing installations
 already have the schema and `CREATE TABLE IF NOT EXISTS` is a no-op.
 
+### CLI flags
+
+Two flags control schema operations:
+
+| Flag | What it does | When to use |
+|------|-------------|-------------|
+| `--db-init` | Full initialization: tables → indexes → foreign keys → seed data → patches | **New installations only** (empty database) |
+| `--db-update` | Lightweight: connects and applies only pending patches | **Existing installations** (adds incremental schema changes) |
+
+On an existing database **always use `--db-update`**. Using `--db-init` on an
+existing installation produces warnings for indexes and foreign keys that
+already exist, though it is not destructive.
+
 ### How to add a patch
 
 1. Open `src/query/schema_initializer.cpp` and locate the `kPatches` vector in

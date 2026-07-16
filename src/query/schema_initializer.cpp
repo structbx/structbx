@@ -121,6 +121,7 @@ ENGINE = InnoDB;)",
   `id_column_display` VARCHAR(20) NULL DEFAULT NULL ,
    PRIMARY KEY (`id`),
   CONSTRAINT `UQ_tables_identifier` UNIQUE (`identifier`)
+  CONSTRAINT `UQ_tables_id_column_display` UNIQUE (`id_column_display`)
 )
 ENGINE = InnoDB;)",
         R"(CREATE TABLE IF NOT EXISTS `databases_users` ( 
@@ -365,11 +366,16 @@ ENGINE = InnoDB;)"
         std::string sql;
     };
 
-    const std::vector<PatchDef> kPatches =
-    {
+    /*
+        Adding a patch:
+
         {"001_remove_uq_tables_id_column_display",
          "Remove UNIQUE constraint on tables.id_column_display to allow multiple tables to share the same display column identifier.",
          "ALTER TABLE `tables` DROP INDEX `UQ_tables_id_column_display`"}
+    */
+    const std::vector<PatchDef> kPatches =
+    {
+        
     };
 
     const std::string kSeedEndpoints = R"(INSERT IGNORE INTO `endpoints` (`endpoint`, `title`, `action`) VALUES
@@ -606,4 +612,43 @@ void StructBX::Query::SchemaInitializer::Initialize_()
     ApplyPatches_(session);
 
     std::cout << "[SchemaInitializer] Database initialization completed successfully." << std::endl;
+}
+
+void StructBX::Query::SchemaInitializer::Update_()
+{
+    auto db_host = Tools::SettingsManager::GetSetting_("db_host", "127.0.0.1");
+    auto db_port = Tools::SettingsManager::GetSetting_("db_port", "3306");
+    auto db_name = Tools::SettingsManager::GetSetting_("db_name", "");
+    auto db_user = Tools::SettingsManager::GetSetting_("db_user", "");
+    auto db_password = Tools::SettingsManager::GetSetting_("db_password", "");
+
+    if (db_name.empty())
+        throw Poco::Exception("[SchemaInitializer] 'db_name' is not configured in properties file.");
+
+    std::cout << "[SchemaInitializer] Updating database '" << db_name << "'..." << std::endl;
+
+    Poco::Data::Session session("MySQL",
+        "host=" + db_host + ";port=" + db_port + ";db=" + db_name + ";user=" + db_user + ";password=" + db_password + ";");
+
+    // Ensure schema_patches table exists before applying patches
+    try
+    {
+        session << R"(CREATE TABLE IF NOT EXISTS `schema_patches` ( 
+  `id` INT AUTO_INCREMENT NOT NULL,
+  `patch_id` VARCHAR(100) NOT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `applied_at` DATETIME NOT NULL DEFAULT current_timestamp(),
+   PRIMARY KEY (`id`),
+  CONSTRAINT `UQ_schema_patches_patch_id` UNIQUE (`patch_id`)
+)
+ENGINE = InnoDB;)", Poco::Data::Keywords::now;
+    }
+    catch (Poco::Exception& e)
+    {
+        std::cerr << "[SchemaInitializer] Warning (schema_patches table): " << e.displayText() << std::endl;
+    }
+
+    ApplyPatches_(session);
+
+    std::cout << "[SchemaInitializer] Database update completed." << std::endl;
 }
