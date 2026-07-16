@@ -466,7 +466,15 @@ ENGINE = InnoDB;)"
     void InsertSeedData_(Poco::Data::Session& session)
     {
         int count = 0;
-        session << "SELECT COUNT(*) FROM `users` WHERE `username` = 'admin'", Poco::Data::Keywords::into(count), Poco::Data::Keywords::now;
+        try
+        {
+            session << "SELECT COUNT(*) FROM `users` WHERE `username` = 'admin'", Poco::Data::Keywords::into(count), Poco::Data::Keywords::now;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed check): " << e.displayText() << std::endl;
+            return;
+        }
 
         if (count > 0)
         {
@@ -479,26 +487,75 @@ ENGINE = InnoDB;)"
         auto user_id = rng.GenerateAlphanumericID_(20);
         auto password_hash = StructBX::Tools::HMACTool().Encode_("admin");
 
-        session << "CREATE DATABASE IF NOT EXISTS `" + db_id + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Physical database created (id=" << db_id << ")." << std::endl;
+        try
+        {
+            session << "CREATE DATABASE IF NOT EXISTS `" + db_id + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Physical database created (id=" << db_id << ")." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed database): " << e.displayText() << std::endl;
+        }
 
-        session << "INSERT INTO `databases` (`identifier`, `name`, `state`) VALUES ('" + db_id + "', 'Default', 'active')", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Default database created (id=" << db_id << ")." << std::endl;
+        try
+        {
+            session << "INSERT IGNORE INTO `databases` (`identifier`, `name`, `state`) VALUES ('" + db_id + "', 'Default', 'active')", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Default database created (id=" << db_id << ")." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed databases insert): " << e.displayText() << std::endl;
+        }
 
-        session << "INSERT INTO `users` (`identifier`, `username`, `password`, `status`, `type`) VALUES ('" + user_id + "', 'admin@admin', '" + password_hash + "', 'active', 'admin')", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Admin user created (id=" << user_id << ")." << std::endl;
+        try
+        {
+            session << "INSERT IGNORE INTO `users` (`identifier`, `username`, `password`, `status`, `type`) VALUES ('" + user_id + "', 'admin@admin', '" + password_hash + "', 'active', 'admin')", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Admin user created (id=" << user_id << ")." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed user): " << e.displayText() << std::endl;
+        }
 
-        session << "INSERT INTO `databases_users` (`id_user`, `id_database`) VALUES ('" + user_id + "', '" + db_id + "')", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: User-database assignment created." << std::endl;
+        try
+        {
+            session << "INSERT IGNORE INTO `databases_users` (`id_user`, `id_database`) VALUES ('" + user_id + "', '" + db_id + "')", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: User-database assignment created." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed databases_users): " << e.displayText() << std::endl;
+        }
 
-        session << kSeedEndpoints, Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Endpoints inserted." << std::endl;
+        try
+        {
+            session << kSeedEndpoints, Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Endpoints inserted." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed endpoints): " << e.displayText() << std::endl;
+        }
 
-        session << "INSERT INTO `settings` (`name`, `value`) VALUES ('instance_name', 'StructBX')", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Setting 'instance_name' inserted." << std::endl;
+        try
+        {
+            session << "INSERT IGNORE INTO `settings` (`name`, `value`) VALUES ('instance_name', 'StructBX')", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Setting 'instance_name' inserted." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed setting instance_name): " << e.displayText() << std::endl;
+        }
 
-        session << "INSERT INTO `settings` (`name`, `value`) VALUES ('instance_logo', NULL)", Poco::Data::Keywords::now;
-        std::cout << "[SchemaInitializer] Seed: Setting 'instance_logo' inserted." << std::endl;
+        try
+        {
+            session << "INSERT IGNORE INTO `settings` (`name`, `value`) VALUES ('instance_logo', NULL)", Poco::Data::Keywords::now;
+            std::cout << "[SchemaInitializer] Seed: Setting 'instance_logo' inserted." << std::endl;
+        }
+        catch (Poco::Exception& e)
+        {
+            std::cerr << "[SchemaInitializer] Warning (seed setting instance_logo): " << e.displayText() << std::endl;
+        }
     }
 
     void ApplyPatches_(Poco::Data::Session& session)
@@ -607,7 +664,14 @@ void StructBX::Query::SchemaInitializer::Initialize_()
     }
     std::cout << "[SchemaInitializer] Foreign keys created." << std::endl;
 
-    InsertSeedData_(session);
+    try
+    {
+        InsertSeedData_(session);
+    }
+    catch (Poco::Exception& e)
+    {
+        std::cerr << "[SchemaInitializer] Warning (seed): " << e.displayText() << std::endl;
+    }
 
     ApplyPatches_(session);
 
