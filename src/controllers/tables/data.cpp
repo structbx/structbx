@@ -1723,7 +1723,15 @@ Tables::Data::Import::Import(Tools::FunctionData& function_data) : Tools::Functi
                 // Resolve selection display value to identifier
                 auto resolved = selection_resolver.ResolveValue(name, value.toString());
                 if(resolved != value.toString())
+                {
                     value = resolved;
+                }
+                else if(selection_resolver.IsSelectionColumn(name))
+                {
+                    resolved = selection_resolver.CreateSelectionValue(name, value.toString(), self, id_database);
+                    if(resolved != value.toString())
+                        value = resolved;
+                }
 
                 // Add parameter
                 auto new_parameter = std::make_shared<Query::Parameter>(name, Tools::DValue::Ptr(new Tools::DValue(value)), true);
@@ -2600,6 +2608,16 @@ Tables::Data::SelectionResolver::SelectionResolver(Query::Results::Ptr columns_r
             accumulated_joins, kMaxSelDepth, resolved_expr
         );
 
+        // Store metadata for potential auto-creation of new values during import
+        // Only if the display column is simple (no chained joins)
+        if(accumulated_joins.empty())
+        {
+            SelectionColMeta meta;
+            meta.link_to = link_to->ToString_();
+            meta.display_col = disp_col->ToString_();
+            selection_meta[col_id->ToString_()] = std::move(meta);
+        }
+
         // Load all records from linked table with resolved display expression
         auto load_action = Functions::Action("load_selection_options_" + col_id->ToString_());
         load_action.set_suppress_debug(true);
@@ -2647,4 +2665,40 @@ void Tables::Data::SelectionResolver::ResolveActionParams(Functions::Action::Ptr
             param->set_value(Tools::DValue::Ptr(new Tools::DValue(resolved)));
         }
     }
+}
+
+bool Tables::Data::SelectionResolver::IsSelectionColumn(const std::string& column_id) const
+{
+    return selection_meta.find(column_id) != selection_meta.end();
+}
+
+std::string Tables::Data::SelectionResolver::CreateSelectionValue(
+    const std::string& column_id,
+    const std::string& display_value,
+    Functions::Function& self,
+    const std::string& id_database)
+{
+    auto meta_it = selection_meta.find(column_id);
+    if(meta_it == selection_meta.end())
+        return display_value;
+
+    auto& meta = meta_it->second;
+    auto new_id = Tools::RandomGenerator().GenerateAlphanumericID_(20);
+
+    auto insert_action = self.AddAction_("create_sel_val_" + column_id);
+    insert_action->set_suppress_debug(true);
+    insert_action->set_sql_code(
+        "INSERT INTO " + id_database + "." + meta.link_to +
+        " (identifier, " + meta.display_col + ", _structbx_column_user_owner) VALUES (?, ?, ?)"
+    );
+    insert_action->AddParameter_("id", new_id, false);
+    insert_action->AddParameter_("display_val", display_value, false);
+    insert_action->AddParameter_("user_owner", self.get_current_user().get_id(), false);
+
+    if(!insert_action->Work_())
+        return display_value;
+
+    selection_maps[column_id][display_value] = new_id;
+
+    return new_id;
 }

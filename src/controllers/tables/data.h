@@ -86,12 +86,25 @@ class StructBX::Controllers::Tables::Data : public Tools::FunctionData
         };
         struct SelectionResolver
         {
+            struct SelectionColMeta
+            {
+                std::string link_to;
+                std::string display_col;
+            };
+
             SelectionResolver(Query::Results::Ptr columns_results, std::string id_database);
 
             std::string ResolveValue(std::string column_identifier, std::string value);
             void ResolveActionParams(Functions::Action::Ptr action);
+            bool IsSelectionColumn(const std::string& column_id) const;
+            std::string CreateSelectionValue(
+                const std::string& column_id,
+                const std::string& display_value,
+                Functions::Function& self,
+                const std::string& id_database);
 
             std::unordered_map<std::string, std::unordered_map<std::string, std::string>> selection_maps;
+            std::unordered_map<std::string, SelectionColMeta> selection_meta;
         };
 
         struct VerifyPermissionsRead : public Tools::FunctionData
