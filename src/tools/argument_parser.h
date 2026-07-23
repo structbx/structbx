@@ -32,6 +32,7 @@ class StructBX::Tools::ArgumentParser
             std::string default_value;
         };
 
+        static std::vector<std::string> get_console_parameters(){ return console_parameters_; }
         static void AddOption(const Option& option);
         static bool Parse(int argc, char** argv);
         static bool HasOption(const std::string& name);
@@ -41,6 +42,7 @@ class StructBX::Tools::ArgumentParser
         static std::vector<std::string> GetUnknownOptions();
 
     private:
+        static std::vector<std::string> console_parameters_;
         static std::vector<Option> options_;
         static std::map<std::string, std::string> parsed_values_;
         static std::vector<std::string> unknown_options_;

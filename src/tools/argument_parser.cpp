@@ -4,6 +4,7 @@
 using namespace StructBX;
 using namespace StructBX::Tools;
 
+std::vector<std::string> ArgumentParser::console_parameters_;
 std::vector<ArgumentParser::Option> ArgumentParser::options_;
 std::map<std::string, std::string> ArgumentParser::parsed_values_;
 std::vector<std::string> ArgumentParser::unknown_options_;
@@ -26,6 +27,8 @@ bool ArgumentParser::Parse(int argc, char** argv)
 
         if (arg.empty())
             continue;
+
+        console_parameters_.push_back(arg);
 
         std::string name;
 

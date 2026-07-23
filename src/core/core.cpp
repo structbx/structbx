@@ -1,5 +1,6 @@
 
 #include "core/core.h"
+#include "tools/argument_parser.h"
 
 using namespace StructBX::Core;
 
@@ -25,8 +26,7 @@ int StructBX::Core::Core::Init_()
 
         server_ = std::make_shared<Server>(handler_factory_);
         server_->set_use_ssl(use_ssl_);
-        std::vector<std::string> empty_args;
-        return server_->run(empty_args);
+        return server_->run(Tools::ArgumentParser::get_console_parameters());
     }
     catch(Net::SSLException& error)
     {
