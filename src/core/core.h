@@ -4,7 +4,6 @@
 
 
 #include <string>
-#include <vector>
 #include <iostream>
 #include <memory>
 #include <exception>
@@ -58,20 +57,16 @@ class StructBX::Core::Core
         virtual ~Core();
 
         bool get_use_ssl() const { return use_ssl_; }
+        bool get_no_ssl() const { return no_ssl_; }
         Server::Ptr get_server() const { return server_; }
         HandlerFactory* get_handler_factory()
         {
-            auto& var = handler_factory_;
-            return var;
-        }
-        std::vector<std::string>& get_console_parameters()
-        {
-            auto& var = console_parameters_;
-            return var;
+            return handler_factory_;
         }
 
+        void set_no_ssl(bool val) { no_ssl_ = val; }
+
         int Init_();
-        int Init_(int argc, char** argv);
         void SetupSettings_();
 
     protected:
@@ -81,9 +76,9 @@ class StructBX::Core::Core
 
     private:
         bool use_ssl_;
+        bool no_ssl_;
         Server::Ptr server_;
         HandlerFactory* handler_factory_;
-        std::vector<std::string> console_parameters_;
 };
 
 #endif // STRUCTBX_CORE_CORE

@@ -99,6 +99,7 @@ set(
     ${PROJECT_SOURCE_DIR}/src/tools/id_checker.cpp
     ${PROJECT_SOURCE_DIR}/src/tools/random_generator.cpp
     ${PROJECT_SOURCE_DIR}/src/tools/credentials.cpp
+    ${PROJECT_SOURCE_DIR}/src/tools/argument_parser.cpp
 )
 
 # Executable

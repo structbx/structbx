@@ -5,6 +5,7 @@ using namespace StructBX::Core;
 
 StructBX::Core::Core::Core() :
     use_ssl_(false)
+    ,no_ssl_(false)
     ,handler_factory_(new HandlerFactory())
 {
     AddBasicSettings_();
@@ -24,7 +25,8 @@ int StructBX::Core::Core::Init_()
 
         server_ = std::make_shared<Server>(handler_factory_);
         server_->set_use_ssl(use_ssl_);
-        return server_->run(console_parameters_);
+        std::vector<std::string> empty_args;
+        return server_->run(empty_args);
     }
     catch(Net::SSLException& error)
     {
@@ -63,13 +65,6 @@ int StructBX::Core::Core::Init_()
     }
 }
 
-int StructBX::Core::Core::Init_(int argc, char** argv)
-{
-    console_parameters_ = std::vector<std::string>(argv, argv + argc);
-
-    return Init_();
-}
-
 void StructBX::Core::Core::AddBasicSettings_()
 {
     Tools::SettingsManager::AddSetting_("port", Tools::DValue::Type::kInteger, Tools::DValue(8080));
@@ -99,6 +94,9 @@ void StructBX::Core::Core::SetupSettings_()
     SetupUploadedDir();
     Tools::OutputLogger::set_output_file_address(Tools::SettingsManager::GetSetting_("logger_output_file", "structbx.log"));
     Tools::OutputLogger::set_print_debug(Tools::SettingsManager::GetSetting_("debug", true));
+
+    if(no_ssl_)
+        return;
 
     auto cert = Tools::SettingsManager::GetSetting_("certificate", "");
     auto key = Tools::SettingsManager::GetSetting_("key", "");
