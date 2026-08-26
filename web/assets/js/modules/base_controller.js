@@ -11,6 +11,7 @@ import { User } from '../models/User.js';
 import { Session } from '../models/Session.js';
 import { TableData } from '../models/TableData.js';
 import { DatabaseUser } from '../models/DatabaseUser.js';
+import { Table } from '../models/Table.js';
 
 export class BaseController {
     constructor(){
@@ -30,6 +31,7 @@ export class BaseController {
         this.session = new Session;
         this.table_data = new TableData;
         this.database_user = new DatabaseUser;
+        this.table = new Table;
 
         this.notification = {
             warning: new wtools.Notification('WARNING')
@@ -52,12 +54,12 @@ export class BaseController {
     }
     
     bindEvents(){
-        $(document).on('click', '#logout-button', (e) => {
+        $(document).off('click', '#logout-button').on('click', '#logout-button', (e) => {
             e.preventDefault();
             this.logout();
         });
         
-        $(document).on('click', '.go-button', function(e){
+        $(document).off('click', '.go-button').on('click', '.go-button', function(e){
             e.preventDefault();
             let path = $(e.currentTarget).attr('go-path');
             let hash = $(e.currentTarget).attr('go-hash');
@@ -70,22 +72,29 @@ export class BaseController {
             }
         });
 
-        $(document).on('click', '.go-form-button', function(e){
+        $(document).off('click', '.go-form-button').on('click', '.go-form-button', function(e){
             e.preventDefault();
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             window.location.href = `/table?identifier=${wtools.GetUrlSearchParam('identifier')}`;
         });
 
         // Change current database
-        $(document).on("click", '#component_sidebar_databases .contents a', (e) => {
+        $(document).off('click', '#component_sidebar_databases .contents a').on("click", '#component_sidebar_databases .contents a', (e) => {
             e.preventDefault();
 
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
         });
-        $(document).on("click", '#component_databases_selector li a', (e) => {
+        $(document).off('click', '#component_databases_selector li a').on("click", '#component_databases_selector li a', (e) => {
             e.preventDefault();
 
             this.changeCurrentDatabase($(e.currentTarget).attr('database_id'));
+        });
+
+        // Click on Add Table button
+        $(document).off('click', '.table_add').on('click', '.table_add', (e) => {
+            e.preventDefault();
+            $('#component_tables_add .notifications').html('');
+            $('#component_tables_add').modal('show');
         });
     }
 
@@ -438,5 +447,37 @@ export class BaseController {
             return;
         }
         return view_identifier;
+    }
+
+    addTable(e, f = () => {}){
+        // Wait animation
+        let wait = new wtools.ElementState('#component_tables_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
+
+        // Form check
+        const check = new wtools.FormChecker(e.target).Check_();
+        if(!check)
+        {
+            $('#component_tables_add .notifications').html('');
+            wait.Off_();
+            new wtools.Notification('WARNING', 5000, '#component_tables_add .notifications').Show_(window.structbxI18n.t('login.invalid_fields'));
+            return;
+        }
+
+        // Request
+        const name = $('#component_tables_add form input[name=name]').val();
+        const description = $('#component_tables_add form textarea[name=description]').val();
+        this.table.add(name, description).then((response_data) => {
+            wait.Off_();
+
+            // Manage error
+            const result = new ResponseManager(response_data, '#component_tables_add .notifications', 'target.tables_add');
+            if(!result.Verify_())
+                return;
+            
+            new wtools.Notification('SUCCESS').Show_(window.structbxI18n.t('start.table_created'));
+            $('#component_tables_add').modal('hide');
+            tools.CleanForm('#component_tables_add form');
+            f();
+        });
     }
 }

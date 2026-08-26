@@ -45,7 +45,7 @@
 
                 <!--- Sidebar menu --->
                 <aside id="menu_main" class="sticky-md-top h-100 sidebar col-md-3 col-lg-2 d-md-block bg-light collapse px-4" style="top:5rem">
-                    <nav class="nav nav-pills flex-column justify-contents-between pt-4">
+                    <nav class="nav nav-pills flex-column justify-contents-between pt-4" style="height: calc(100vh - 5rem); overflow: hidden;">
                         <h5 class="small text-uppercase text-muted" data-i18n="sidebar.databases">TABLES</h5>
 
                         <!-- Sidebar search -->
@@ -57,9 +57,15 @@
                         </div>
                         <!-- /Sidebar search -->
 
-                        <div id="component_sidebar_tables">
+                        <div id="component_sidebar_tables" style="display:flex; flex-direction:column; min-height:0; flex:1;">
+                            <div class="p-2 pt-0">
+                                <button class="btn btn-dark-shadow w-100 table_add" permission-endpoint="/api/tables/add" data-i18n-title="index.add_table_title" title="Add new table">
+                                    <i class="fas fa-plus me-1"></i>
+                                    <span data-i18n="start.create_table">Create table</span>
+                                </button>
+                            </div>
                             <div class="notifications"></div>
-                            <div class="contents"></div>
+                            <div class="contents" style="flex:1 1 auto; overflow-y:auto; min-height:0;"></div>
                         </div>
                     </nav>
                 </aside>
@@ -1529,6 +1535,44 @@
 
             </div>
         </div>
+
+        <!-- Tables: Add -->
+        <div id="component_tables_add" class="modal right-side-modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" novalidate>
+                    <div class="modal-header">
+                        <h5 class="modal-title" data-i18n="index.modal_add_title">
+                            <i class="fas fa-plus-circle me-2"></i>Add new table
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="notifications"></div>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td data-i18n="index.modal_name">Name</td>
+                                    <td><input class="form-control" type="text" name="name" required></td>
+                                </tr>
+                                <tr>
+                                    <td data-i18n="index.modal_description">Description</td>
+                                    <td><textarea class="form-control" type="text" name="description"></textarea></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="index.cancel">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" data-i18n="index.create">
+                            <i class="fas fa-plus-circle me-2"></i>Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- /Tables: Add -->
 
         <!-- Wait animation -->
         <div id="wait_animation_page">

@@ -1,17 +1,14 @@
 import { BaseController } from './base_controller.js';
 import { I18n } from '../i18n/i18n.js';
-import * as Tools from '../classes/tools.js';
 import * as DOME from '../classes/dom_elements.js';
 import { ResponseManager } from '../classes/response_manager.js';
 
 import { Session } from '../models/Session.js';
-import { Table } from '../models/Table.js';
 
 export class StartController extends BaseController {
     constructor() {
         super();
         this.session = new Session;
-        this.table = new Table;
     }
 
     onDatabaseInfoLoaded(){
@@ -90,17 +87,9 @@ export class StartController extends BaseController {
         options_privacity.Build_('#component_tables_add select[name="privacity"]');
         options_privacity.Build_('#component_tables_modify select[name="privacity"]');
 
-        // Click on Add Button
-        const click_add_button = () =>
-        {
-            $('#component_tables_add .notifications').html('');
-            $('#component_tables_add').modal('show');
-        }
-        $(document).on('click', '.table_add', () => click_add_button());
-        $('#component_tables_add form').submit((e) =>
-        {
+        $(document).off('submit', '#component_tables_add form').on('submit', '#component_tables_add form', (e) => {
             e.preventDefault();
-            this.addTable(e);
+            this.addTable(e, () => this.readTables());
         });
 
         // Table search / filter
@@ -231,36 +220,4 @@ export class StartController extends BaseController {
             }
         });
     };
-
-    addTable(e){
-        // Wait animation
-        let wait = new wtools.ElementState('#component_tables_add form button[type=submit]', true, 'button', new wtools.WaitAnimation().for_button);
-
-        // Form check
-        const check = new wtools.FormChecker(e.target).Check_();
-        if(!check)
-        {
-            $('#component_tables_add .notifications').html('');
-            wait.Off_();
-            new wtools.Notification('WARNING', 5000, '#component_tables_add .notifications').Show_(window.structbxI18n.t('login.invalid_fields'));
-            return;
-        }
-
-        // Request
-        const name = $('#component_tables_add form input[name=name]').val();
-        const description = $('#component_tables_add form input[name=name]').val();
-        this.table.add(name, description).then((response_data) => {
-            wait.Off_();
-
-            // Manage error
-            const result = new ResponseManager(response_data, '#component_tables_add .notifications', 'target.tables_add');
-            if(!result.Verify_())
-                return;
-            
-            new wtools.Notification('SUCCESS').Show_(window.structbxI18n.t('start.table_created'));
-            $('#component_tables_add').modal('hide');
-            Tools.CleanForm('#component_tables_add form');
-            this.readTables();
-        });
-    }
 }

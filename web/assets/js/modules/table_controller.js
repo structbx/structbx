@@ -5,7 +5,6 @@ import { ResponseManager } from '../classes/response_manager.js';
 import { I18n } from '../i18n/i18n.js';
 
 import { Session } from '../models/Session.js';
-import { Table } from '../models/Table.js';
 
 import { ViewsController } from '../submodules/views_controller.js';
 import { TableSettingsController } from '../submodules/table_settings_controller.js';
@@ -15,7 +14,6 @@ export class TableController extends BaseController {
     constructor() {
         super();
         this.session = new Session;
-        this.table = new Table;
 
         this.views_controller = new ViewsController;
         this.table_settings_controller = new TableSettingsController;
@@ -64,6 +62,11 @@ export class TableController extends BaseController {
             const table_identifier = super.getTableIdentifier();
             new wtools.ElementState('#wait_animation_page', true, 'block', new wtools.WaitAnimation().for_page);
             document.location.href = `/table?t=${table_identifier}`;
+        });
+
+        $(document).off('submit', '#component_tables_add form').on('submit', '#component_tables_add form', (e) => {
+            e.preventDefault();
+            this.addTable(e, () => this.readSidebarTables());
         });
 
         // Sidebar table search / filter
