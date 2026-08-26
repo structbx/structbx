@@ -208,6 +208,8 @@ export class TableSettingsController extends BaseController{
             $('#component_settings_general .notifications').html('');
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('table_settings.table_updated') : 'Table updated successfully.');
             this.readSettings();
+            this.readCurrentTableInfo();
+            this.readSidebarTables();
         });
     }
 
