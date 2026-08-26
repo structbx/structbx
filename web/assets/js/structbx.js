@@ -7,6 +7,43 @@ import { I18n } from './i18n/i18n.js';
 const savedTheme = localStorage.getItem('structbx_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
+const FOCUSABLE_MODAL_SELECTOR = [
+    'input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=reset]):not([type=image]):not([type=checkbox]):not([type=radio]):not(:disabled)',
+    'select:not(:disabled)',
+    'textarea:not(:disabled)',
+    '.custom-select-display'
+].join(', ');
+
+$(document).on('shown.bs.modal', '.modal', function() {
+    const $modal = $(this);
+    const focusFirst = () => {
+        const $first = $modal.find('form')
+            .find(FOCUSABLE_MODAL_SELECTOR)
+            .not('.dropdown-menu .custom-select-display')
+            .not('.searchBox')
+            .first();
+        if ($first.length) {
+            $first.trigger('focus');
+            return true;
+        }
+        return false;
+    };
+
+    if (focusFirst())
+        return;
+
+    const body = $modal.find('.modal-body').get(0);
+    if (!body)
+        return;
+
+    const observer = new MutationObserver(() => {
+        if (focusFirst())
+            observer.disconnect();
+    });
+    observer.observe(body, { childList: true, subtree: true });
+    setTimeout(() => observer.disconnect(), 4000);
+});
+
 const Pages = {
     'Login': LoginController
     ,'Start': StartController
