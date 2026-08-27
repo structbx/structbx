@@ -247,11 +247,6 @@ void Columns::Add::InsertColumnMetadata(StructBX::Functions::Action::Ptr action)
             param->set_error("The name cannot be empty.");
             return false;
         }
-        if(param->get_value()->ToString_().size() < 3)
-        {
-            param->set_error("The name cannot be less than 3 characters.");
-            return false;
-        }
         return true;
     });
 
@@ -497,11 +492,6 @@ void Columns::Modify::UpdateColumnMetadata(StructBX::Functions::Action::Ptr acti
         if(param->get_value()->ToString_() == "")
         {
             param->set_error("The name cannot be empty.");
-            return false;
-        }
-        if(param->get_value()->ToString_().size() < 3)
-        {
-            param->set_error("The name cannot be less than 3 characters.");
             return false;
         }
         return true;
