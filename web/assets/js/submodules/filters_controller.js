@@ -124,6 +124,11 @@ export class FiltersController extends BaseController{
             changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_filters_read select[name=op]', e => {
+            const filterElement = $(e.currentTarget).closest('.input-group');
+            const $value = $(filterElement).find('[name=value]');
+            let savedValue = $value.is('select') && $value.attr('multiple') ? $value.val().join(',') : $value.val();
+            if($value.attr('data-null-op')) savedValue = undefined;
+            this.updateValueInput(filterElement, savedValue);
             changesNotSaved($(e.currentTarget).parent());
         });
         $(document).on('change', '#component_filters_read [name=value]', e => {
@@ -159,6 +164,7 @@ export class FiltersController extends BaseController{
     {
         let filter = this.getFilterElement(type)
         let savedValue = filter_row ? filter_row.value : undefined;
+        let savedOp = filter_row ? filter_row.op : undefined;
 
         this.tableColumn.read(this.getTableIdentifier(), this.getViewIdentifier()).then((response_data) => {
 
@@ -178,9 +184,6 @@ export class FiltersController extends BaseController{
                 if(filter_row.id_column != undefined){
                     $(filter).find('select[name=column]').val(filter_row.id_column);
                 }
-                if(filter_row.op != undefined){
-                    $(filter).find('select[name=op]').val(filter_row.op);
-                }
                 if(filter_row.is_active != undefined){
                     $(filter).find('input[name=is_active]')[0].checked = filter_row.is_active == 0 ? false : true;
                 }
@@ -189,22 +192,22 @@ export class FiltersController extends BaseController{
             $('#component_filters_read .contents').append(filter);
 
             if($(filter).find('select[name=column]').val()){
-                this.updateFilterInputs(filter, savedValue);
+                this.updateFilterInputs(filter, savedValue, savedOp);
             }
         });
     }
 
-    updateFilterInputs(filterElement, savedValue = undefined)
+    updateFilterInputs(filterElement, savedValue = undefined, savedOp = undefined)
     {
-        this.updateOperators(filterElement);
+        this.updateOperators(filterElement, savedOp);
         this.updateValueInput(filterElement, savedValue);
     }
 
-    updateOperators(filterElement)
+    updateOperators(filterElement, savedOp = undefined)
     {
         const $columnSelect = $(filterElement).find('select[name=column]');
         const $opSelect = $(filterElement).find('select[name=op]');
-        const selectedOp = $opSelect.val();
+        const selectedOp = savedOp !== undefined ? savedOp : $opSelect.val();
         const columnIdentifier = $columnSelect.val();
 
         if(!columnIdentifier){
@@ -243,12 +246,25 @@ export class FiltersController extends BaseController{
         const $selectedOption = $columnSelect.find('option:selected');
         const columnType = $selectedOption.attr('data-column-type');
         const linkTo = $selectedOption.attr('data-link-to');
+        const op = $(filterElement).find('select[name=op]').val();
+        const isMulti = (op === 'IN' || op === 'NOT IN');
+        const isNullOp = (op === 'IS NULL' || op === 'IS NOT NULL');
         const isRestore = savedValue !== undefined;
         const currentValue = isRestore ? savedValue : '';
 
         let $newInput;
 
-        if(columnType === ColumnType.Selection && linkTo){
+        if(isNullOp){
+            $newInput = $(`<input type="hidden" name="value" value="NULL" data-null-op="1"/>`);
+        }
+        else if(isMulti && columnType === ColumnType.Selection && linkTo){
+            $newInput = $(`<select multiple class="form-select" name="value"></select>`);
+            this.loadSelectionOptions(linkTo, $newInput, isRestore ? currentValue : undefined);
+        }
+        else if(isMulti){
+            $newInput = $(`<input type="text" class="form-control" name="value" placeholder="${window.structbxI18n ? window.structbxI18n.t('filters.value_placeholder_multi') : 'Values separated by commas'}" required/>`);
+        }
+        else if(columnType === ColumnType.Selection && linkTo){
             $newInput = $(`<select class="form-select" name="value" required><option value="">${window.structbxI18n ? window.structbxI18n.t('base.none_option') : '-- None --'}</option></select>`);
             this.loadSelectionOptions(linkTo, $newInput, isRestore ? currentValue : undefined);
         }
@@ -273,7 +289,7 @@ export class FiltersController extends BaseController{
 
         $(filterElement).find('[name=value]').replaceWith($newInput);
 
-        if(isRestore && currentValue && columnType !== 'selection'){
+        if(isRestore && currentValue && !isMulti && columnType !== 'selection'){
             $(filterElement).find('[name=value]').val(currentValue);
         }
     }
@@ -299,7 +315,12 @@ export class FiltersController extends BaseController{
                 }
             }
             if(selectedValue){
-                $select.val(selectedValue);
+                if($select.attr('multiple')){
+                    $select.val(String(selectedValue).split(',').map(s => s.trim()));
+                }
+                else{
+                    $select.val(selectedValue);
+                }
             }
         });
     }
@@ -353,7 +374,8 @@ export class FiltersController extends BaseController{
         const parent = $(e.currentTarget).parent();
         const column_identifier = parent.find('select[name=column]').val();
         const op = parent.find('select[name=op]').val();
-        const value = parent.find('[name=value]').val();
+        const $value = parent.find('[name=value]');
+        const value = $value.is('select') && $value.attr('multiple') ? $value.val().join(',') : $value.val();
         const is_active = parent.find('input[name=is_active]')[0].checked;
 
         // Validate inputs
@@ -398,7 +420,8 @@ export class FiltersController extends BaseController{
         // Get current values from the filter element
         const column_identifier = filter_element.find('select[name=column]').val();
         const op = filter_element.find('select[name=op]').val();
-        const value = filter_element.find('[name=value]').val();
+        const $value = filter_element.find('[name=value]');
+        const value = $value.is('select') && $value.attr('multiple') ? $value.val().join(',') : $value.val();
         const is_active = filter_element.find('input[name=is_active]')[0].checked;
 
         // Validate inputs

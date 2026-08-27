@@ -1,6 +1,7 @@
 
 #include "controllers/tables/columns.h"
 #include "controllers/tables/column_types.h"
+#include "controllers/tables/filters.h"
 #include "tools/dvalue.h"
 #include "core/error_codes.h"
 
@@ -429,6 +430,54 @@ Columns::Modify::Modify(Tools::FunctionData& function_data) : Tools::FunctionDat
                 {
                     self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action_alter_table->get_custom_error(), action_alter_table->get_custom_error_code());
                     return;
+                }
+
+                // Deactivate filters with operators invalid for the new column type
+                {
+                    auto new_type_str = new_column_type->get()->ToString_();
+                    auto valid_ops_it = filters_ops_by_column_type.find(new_type_str);
+                    if(valid_ops_it != filters_ops_by_column_type.end())
+                    {
+                        auto action_get_filters = self.AddAction_("get_filters_for_type_check");
+                        action_get_filters->set_suppress_debug(true);
+                        action_get_filters->set_sql_code(
+                            "SELECT identifier, op FROM views_filters WHERE id_column = ?"
+                        );
+                        action_get_filters->AddParameter_("column_id", column_identifier->get()->ToString_(), false);
+
+                        if(action_get_filters->Work_() && action_get_filters->get_results()->size() > 0)
+                        {
+                            std::vector<std::string> invalid_ids;
+                            for(auto& row : *action_get_filters->get_results())
+                            {
+                                auto filter_id = row->ExtractField_("identifier");
+                                auto filter_op = row->ExtractField_("op");
+                                if(filter_id->IsNull_() || filter_op->IsNull_())
+                                    continue;
+
+                                if(valid_ops_it->second.find(filter_op->ToString_()) == valid_ops_it->second.end())
+                                {
+                                    invalid_ids.push_back(filter_id->ToString_());
+                                }
+                            }
+
+                            if(!invalid_ids.empty())
+                            {
+                                std::string id_list;
+                                for(size_t i = 0; i < invalid_ids.size(); ++i)
+                                {
+                                    if(i > 0) id_list += ",";
+                                    id_list += "'" + invalid_ids[i] + "'";
+                                }
+                                auto action_deactivate = self.AddAction_("deactivate_invalid_filters");
+                                action_deactivate->set_suppress_debug(true);
+                                action_deactivate->set_sql_code(
+                                    "UPDATE views_filters SET is_active = 0 WHERE identifier IN (" + id_list + ")"
+                                );
+                                action_deactivate->Work_();
+                            }
+                        }
+                    }
                 }
             }
         }

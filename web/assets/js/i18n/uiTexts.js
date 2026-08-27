@@ -843,6 +843,10 @@ export const uiTexts = {
         en: "Changing the column type may cause data loss. Existing data could be truncated or lost. Do you want to continue?",
         es: "Cambiar el tipo de columna puede causar pérdida de datos. Los datos existentes podrían truncarse o perderse. ¿Desea continuar?"
     },
+    "columns.type_change_filters_warning": {
+        en: "Some filters on this column may have been deactivated due to the type change.",
+        es: "Algunos filtros en esta columna pueden haber sido desactivados debido al cambio de tipo."
+    },
 
     // Sorts Controller
     "sorts.no_sorts": {
@@ -877,6 +881,10 @@ export const uiTexts = {
     "filters.value_placeholder": {
         en: "Value",
         es: "Valor"
+    },
+    "filters.value_placeholder_multi": {
+        en: "Values separated by commas",
+        es: "Valores separados por coma"
     },
     "filters.no_filters": {
         en: "No filters.",

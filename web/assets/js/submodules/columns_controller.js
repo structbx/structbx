@@ -345,6 +345,7 @@ export class ColumnsController extends BaseController{
             $('#component_columns_modify input[name="default_value"]').val(response_data.body.data[0].default_value);
             $('#component_columns_modify textarea[name="description"]').val(response_data.body.data[0].description);
             $('#component_columns_modify select[name="column_type"]').val(response_data.body.data[0].column_type);
+            $('#component_columns_modify select[name="column_type"]').data('old-type', response_data.body.data[0].column_type);
             $('#component_columns_modify select[name="link_to"]').val(response_data.body.data[0].link_to);
             if(response_data.body.data[0].link_to == "")
                 $('#component_columns_modify form select[name="link_to"]').prop('disabled', true);
@@ -407,6 +408,12 @@ export class ColumnsController extends BaseController{
                     return;
 
                 new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_updated') : 'Column updated successfully.');
+                const oldType = $('#component_columns_modify select[name="column_type"]').data('old-type');
+                if(oldType && oldType !== column_type){
+                    new wtools.Notification('INFO', 8000, '#component_columns_modify .notifications').Show_(
+                        window.structbxI18n ? window.structbxI18n.t('columns.type_change_filters_warning') : 'Some filters on this column may have been deactivated due to the type change.'
+                    );
+                }
                 $('#component_columns_modify').modal('hide');
                 this.onChanged();
                 this.read();
@@ -437,6 +444,12 @@ export class ColumnsController extends BaseController{
                 return;
 
             new wtools.Notification('SUCCESS').Show_(window.structbxI18n ? window.structbxI18n.t('columns.column_updated') : 'Column updated successfully.');
+            const oldType = $('#component_columns_modify select[name="column_type"]').data('old-type');
+            if(oldType && oldType !== column_type){
+                new wtools.Notification('INFO', 8000, '#component_columns_modify .notifications').Show_(
+                    window.structbxI18n ? window.structbxI18n.t('columns.type_change_filters_warning') : 'Some filters on this column may have been deactivated due to the type change.'
+                );
+            }
             $('#component_columns_modify').modal('hide');
             this.onChanged();
             this.read();

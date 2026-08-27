@@ -2,6 +2,7 @@
 #ifndef STRUCTBX_CONTROLLERS_TABLES_FILTERS_H
 #define STRUCTBX_CONTROLLERS_TABLES_FILTERS_H
 
+#include <unordered_map>
 #include <unordered_set>
 
 #include "tools/base_action.h"
@@ -18,6 +19,22 @@ namespace StructBX
             static const std::unordered_set<std::string> valid_filters_ops = {
                 "=", "!=", "<", ">", "<=", ">=", "LIKE", "NOT LIKE", 
                 "IN", "NOT IN", "IS NULL", "IS NOT NULL"
+            };
+
+            static const std::unordered_map<std::string, std::unordered_set<std::string>> filters_ops_by_column_type = {
+                {"text",              {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"long-text",         {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"user",              {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"current-user",      {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"file",              {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"image",             {"LIKE", "=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"int-number",        {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"decimal-number",    {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"date",              {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"time",              {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"created-date",      {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"updated-date",      {"=", "!=", ">", "<", ">=", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}},
+                {"selection",         {"=", "!=", "IN", "NOT IN", "IS NULL", "IS NOT NULL"}}
             };
         }
     }

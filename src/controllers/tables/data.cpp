@@ -11,6 +11,38 @@
 using namespace StructBX::Controllers;
 using namespace StructBX::Controllers::Tables;
 
+namespace
+{
+std::string BuildInClauseValues(const std::string& value)
+{
+    std::string result;
+    std::istringstream stream(value);
+    std::string token;
+    while(std::getline(stream, token, ','))
+    {
+        size_t start = token.find_first_not_of(" \t");
+        if(start == std::string::npos)
+            continue;
+        size_t end = token.find_last_not_of(" \t");
+        token = token.substr(start, end - start + 1);
+
+        std::string escaped;
+        escaped.reserve(token.size());
+        for(char ch : token)
+        {
+            if(ch == '\'')
+                escaped += "''";
+            else
+                escaped += ch;
+        }
+        if(!result.empty())
+            result += ", ";
+        result += "'" + escaped + "'";
+    }
+    return result;
+}
+}
+
 Tables::Data::Data(Tools::FunctionData& function_data) :
     FunctionData(function_data)
     ,struct_read_(function_data)
@@ -444,7 +476,7 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
             else if(op == "LIKE" || op == "NOT LIKE")
                 subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " '%" + escaped_val + "%'";
             else if(op == "IN" || op == "NOT IN")
-                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " (" + escaped_val + ")";
+                subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " (" + BuildInClauseValues(escaped_val) + ")";
             else
                 subquery = "SELECT identifier FROM " + id_database + "." + last_table + " WHERE " + last_segment + " " + op + " '" + escaped_val + "'";
 
@@ -559,7 +591,7 @@ std::string Tables::Data::RowPolicyEvaluator::BuildCondition(
             }
             else if(op == "IN" || op == "NOT IN")
             {
-                part = col + " " + op + " (" + val + ")";
+                part = col + " " + op + " (" + BuildInClauseValues(val) + ")";
             }
             else if(op == "LIKE" || op == "NOT LIKE")
             {
@@ -661,8 +693,7 @@ std::string Tables::Data::Read::GetFilters::Get(Functions::Function& self, std::
         }
         else if (op == "IN" || op == "NOT IN")
         {
-            // Assuming value contains comma-separated list
-            conditions += id_column + " " + op + " (" + value + ")";
+            conditions += id_column + " " + op + " (" + BuildInClauseValues(value) + ")";
         }
         else if (op == "LIKE" || op == "NOT LIKE")
         {
