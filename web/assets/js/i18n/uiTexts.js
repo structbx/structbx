@@ -922,6 +922,10 @@ export const uiTexts = {
         en: "-- SKIP --",
         es: "-- SKIP --"
     },
+    "import.preview_header": {
+        en: "${source} → ${target}",
+        es: "${source} → ${target}"
+    },
     "import.message": {
         en: "Message: ${message}",
         es: "Mensaje: ${message}"

@@ -16,6 +16,7 @@ export class DataImportController extends BaseController{
 
         this.file_data = [];
         this.map_columns = {sources: [], targets: [], map: {}};
+        this.column_names = {};
     }
 
     build(){
@@ -58,6 +59,7 @@ export class DataImportController extends BaseController{
             const columns = response.body.data || [];
             let options = '';
             for(const column of columns){
+                this.column_names[column.identifier] = column.name;
                 options += `<option value="${column.identifier}">${column.name}</option>`;
             }
             options += `<option value="">${window.structbxI18n ? window.structbxI18n.t('import.skip') : '-- SKIP --'}</option>`;
@@ -102,8 +104,11 @@ export class DataImportController extends BaseController{
             if(cont == 0){
                 let headers = '';
                 for(const header of Object.keys(row)){
-                    if(this.map_columns.sources.includes(header))
-                        headers += `<th>${header}</th>`;
+                    if(this.map_columns.sources.includes(header)){
+                        const target = this.map_columns.map[header];
+                        const target_name = this.column_names[target] || target;
+                        headers += `<th>${window.structbxI18n ? window.structbxI18n.t('import.preview_header', {source: header, target: target_name}) : `${header} -> ${target_name}`}</th>`;
+                    }
                 }
                 $('#component_data_import table.previsualization thead tr').append(headers);
             }
