@@ -919,7 +919,6 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
         // Get columns
         std::string columns = "";
         std::string joins = "";
-        bool has_users_join = false;
 
         // Resolve display column for from_link requests
         std::string display_column_id = "";
@@ -969,7 +968,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
                 const int kMaxDisplayDepth = 5;
 
                 std::string current_table = link_to->ToString_();
-                std::string current_alias = "_" + current_table;
+                std::string current_alias = "_" + current_table + "_" + identifier->ToString_();
                 std::string prev_alias = "_" + table_identifier->get()->ToString_();
 
                 // Build first level join
@@ -1019,15 +1018,15 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             else if(!column_type->IsNull_() && (column_type->ToString_() == ColumnType::User || column_type->ToString_() == ColumnType::CurrentUser))
             {
                 if(has_record_identifier)
-                    column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
-                else
-                    column = "_users.username AS '" + name->ToString_() + "'";
-
-                if(!has_record_identifier && !has_users_join)
                 {
-                    has_users_join = true;
-                    joins += " LEFT JOIN users AS _users ON _users.identifier = _" +
-                    table_identifier->get()->ToString_() + "." + identifier->ToString_();
+                    column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
+                }
+                else
+                {
+                    std::string user_alias = "_users_" + identifier->ToString_();
+                    column = user_alias + ".username AS '" + name->ToString_() + "'";
+                    joins += " LEFT JOIN users AS " + user_alias + " ON " + user_alias + ".identifier = _" +
+                        table_identifier->get()->ToString_() + "." + identifier->ToString_();
                 }
             }
 
