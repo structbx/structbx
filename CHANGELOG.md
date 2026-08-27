@@ -1,3 +1,11 @@
+# Changelog - StructBX v0.3.1
+
+## Bug Fixes (Fixed)
+
+* Fixed **ambiguous column errors** on self-referencing selection joins by prefixing main-table columns with the table alias (#168).
+
+---
+
 # Changelog - StructBX v0.3.0
 
 ## New Features & Enhancements (Added)
