@@ -2,6 +2,7 @@
 #include "controllers/general/users.h"
 #include "tools/random_generator.h"
 #include "core/error_codes.h"
+#include "security/permissions_manager.h"
 
 using namespace StructBX::Controllers::General;
 
@@ -90,6 +91,8 @@ Users::ModifyCurrentUsername::ModifyCurrentUsername(Tools::FunctionData& functio
     StructBX::Functions::Function::Ptr function = 
         std::make_shared<StructBX::Functions::Function>("/api/general/users/current/username/modify", HTTP::EnumMethods::kHTTP_PUT);
     
+    function->set_response_type(StructBX::Functions::Function::ResponseType::kCustom);
+
     // Action1: Verify if username don't exists
     auto action1 = function->AddAction_("verify_username_not_taken");
     VerifyUsernameNotTaken(action1);
@@ -97,6 +100,28 @@ Users::ModifyCurrentUsername::ModifyCurrentUsername(Tools::FunctionData& functio
     // Action2: Modify username
     auto action2 = function->AddAction_("update_current_username");
     UpdateCurrentUsername(action2);
+
+    // Setup Custom Process
+    function->SetupCustomProcess_([action1, action2](StructBX::Functions::Function& self)
+    {
+        // Execute actions
+        if(!action1->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action1->get_custom_error(), action1->get_custom_error_code());
+            return;
+        }
+        if(!action2->Work_())
+        {
+            self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
+            return;
+        }
+
+        // Reload permissions in memory
+        StructBX::Security::PermissionsManager::LoadPermissions_();
+
+        // Send results
+        self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
+    });
 
     get_functions()->push_back(function);
 }
@@ -214,6 +239,9 @@ Users::ModifyCurrentPassword::ModifyCurrentPassword(Tools::FunctionData& functio
             return;
         }
 
+        // Reload permissions in memory
+        StructBX::Security::PermissionsManager::LoadPermissions_();
+
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
     });
@@ -325,6 +353,9 @@ Users::Add::Add(Tools::FunctionData& function_data) :
             return;
         }
         
+        // Reload permissions in memory
+        StructBX::Security::PermissionsManager::LoadPermissions_();
+
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
     });
@@ -482,6 +513,9 @@ Users::Modify::Modify(Tools::FunctionData& function_data) :
                 return;
             }
         }
+
+        // Reload permissions in memory
+        StructBX::Security::PermissionsManager::LoadPermissions_();
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
@@ -723,6 +757,9 @@ Users::Delete::Delete(Tools::FunctionData& function_data) :
             self.JSONResponse_(HTTP::Status::kHTTP_BAD_REQUEST, action2->get_custom_error(), action2->get_custom_error_code());
             return;
         }
+
+        // Reload permissions in memory
+        StructBX::Security::PermissionsManager::LoadPermissions_();
 
         // Send results
         self.JSONResponse_(HTTP::Status::kHTTP_OK, "Ok");
