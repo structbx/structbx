@@ -960,7 +960,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             if(from_link && !display_column_id.empty() && identifier->ToString_() != display_column_id)
                 continue;
 
-            std::string column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
+            std::string column = "_" + table_identifier->get()->ToString_() + "." + identifier->ToString_() + " AS '" + name->ToString_() + "'";
 
             // Get LINK TO column (recursive display column resolution)
             if(!link_to->IsNull_())
@@ -1019,7 +1019,7 @@ Tables::Data::Read::Read(Tools::FunctionData& function_data) : Tools::FunctionDa
             {
                 if(has_record_identifier)
                 {
-                    column = identifier->ToString_() + " AS '" + name->ToString_() + "'";
+                    column = "_" + table_identifier->get()->ToString_() + "." + identifier->ToString_() + " AS '" + name->ToString_() + "'";
                 }
                 else
                 {
