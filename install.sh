@@ -61,7 +61,8 @@ setup_systemd_service() {
     sudo tee "$SERVICE_FILE" >/dev/null <<SERVICE
 [Unit]
 Description=StructBX Server
-After=network.target
+After=network.target mariadb.service
+Wants=mariadb.service
 
 [Service]
 Type=simple
