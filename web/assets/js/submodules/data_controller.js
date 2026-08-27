@@ -35,6 +35,11 @@ export class DataController extends BaseController{
         this.selectedRecords = new Set();
         this.batchEditIdentifiers = [];
         this.columnWidths = {};
+        this.isDraggingCells = false;
+        this.$dragStartCell = null;
+        this.cellSelectionRows = [];
+        this.cellSelectionCols = [];
+        this._justDraggedCells = false;
         this.colorsSelect = 
         [
             {color: '#4361ee', html: `<span class='small' style='background-color:#4361ee;color:#fff;padding:2px 8px;border-radius:4px;'>${window.structbxI18n ? window.structbxI18n.t('color.primary_blue') : 'Primary Blue'}</span>`},
@@ -248,10 +253,11 @@ export class DataController extends BaseController{
             this.add(e);
         });
         
-        // Read columns and data to modify (ignore checkbox clicks)
+        // Read columns and data to modify (ignore checkbox clicks and cell drag selection)
         $(document).on("click", '#component_data_read .data-row', (e) => {
             if($(e.target).is('.row-selector, .row-selector *, .checkbox-cell, .checkbox-cell *'))
                 return;
+            if(this._justDraggedCells) return;
             e.preventDefault();
             this.preModify(e);
         });
@@ -326,6 +332,102 @@ export class DataController extends BaseController{
         $('#batchActionsBar .batch-clear').click((e) => {
             e.preventDefault();
             this.deselectAll();
+        });
+
+        // Batch Copy button
+        $('#batchActionsBar .batch-copy').click((e) => {
+            e.preventDefault();
+            this.copySelectedCells();
+        });
+
+        // ── Cell drag-selection events ──────────────────────────────────────
+
+        let dragStartPos = null;
+        let hasDraggedCells = false;
+
+        $(document).on('mousedown', '#tableBody .data-cell:not(.checkbox-cell)', (e) => {
+            if($(e.target).is('.row-selector, .row-selector *, .editable *')) return;
+            const $cell = $(e.currentTarget);
+            const $row = $cell.closest('.data-row');
+            const rowIndex = $('#tableBody .data-row').index($row);
+            const colIndex = $row.find('.data-cell:not(.checkbox-cell)').index($cell);
+
+            dragStartPos = { x: e.clientX, y: e.clientY };
+            hasDraggedCells = false;
+            this.isDraggingCells = true;
+            this.$dragStartCell = { row: rowIndex, col: colIndex };
+            this.cellSelectionRows = [rowIndex];
+            this.cellSelectionCols = [colIndex];
+            e.preventDefault();
+        });
+
+        $(document).on('mousemove', (e) => {
+            if(!this.isDraggingCells) return;
+            if(!hasDraggedCells && dragStartPos) {
+                const dx = Math.abs(e.clientX - dragStartPos.x);
+                const dy = Math.abs(e.clientY - dragStartPos.y);
+                if(dx < 3 && dy < 3) return;
+                hasDraggedCells = true;
+                this._applyCellSelection();
+            }
+            if(!hasDraggedCells) return;
+            const $target = $(e.target).closest('.data-cell:not(.checkbox-cell)');
+            if(!$target.length) return;
+            const $row = $target.closest('.data-row');
+            const rowIndex = $('#tableBody .data-row').index($row);
+            const colIndex = $row.find('.data-cell:not(.checkbox-cell)').index($target);
+            const start = this.$dragStartCell;
+
+            const minRow = Math.min(start.row, rowIndex);
+            const maxRow = Math.max(start.row, rowIndex);
+            const minCol = Math.min(start.col, colIndex);
+            const maxCol = Math.max(start.col, colIndex);
+
+            this.cellSelectionRows = [];
+            this.cellSelectionCols = [];
+            for(let r = minRow; r <= maxRow; r++) this.cellSelectionRows.push(r);
+            for(let c = minCol; c <= maxCol; c++) this.cellSelectionCols.push(c);
+            this._applyCellSelection();
+        });
+
+        $(document).on('mouseup', () => {
+            if(!this.isDraggingCells) return;
+            this.isDraggingCells = false;
+            if(!hasDraggedCells) {
+                this._clearCellSelection();
+                this.updateBatchActions();
+            } else {
+                $('#dynamicTable').removeClass('is-cell-selecting');
+                this._syncRowCheckboxesFromCellSelection();
+                this._justDraggedCells = true;
+                setTimeout(() => { this._justDraggedCells = false; }, 0);
+            }
+            dragStartPos = null;
+            hasDraggedCells = false;
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                if($('#tableBody .data-cell.cell-selected').length > 0) {
+                    e.preventDefault();
+                    this.copySelectedCells();
+                }
+            }
+            if(e.key === 'Escape') {
+                this.deselectAll();
+            }
+        }, true);
+
+        $(document).on('mouseleave', '#dynamicTable', () => {
+            if(this.isDraggingCells && hasDraggedCells) {
+                this.isDraggingCells = false;
+                $('#dynamicTable').removeClass('is-cell-selecting');
+                this._syncRowCheckboxesFromCellSelection();
+                this._justDraggedCells = true;
+                setTimeout(() => { this._justDraggedCells = false; }, 0);
+                dragStartPos = null;
+                hasDraggedCells = false;
+            }
         });
 
         // ── Column resize events ────────────────────────────────────────────
@@ -407,6 +509,7 @@ export class DataController extends BaseController{
         // Clear previous data
         $('#component_data_read #headerRow').html("");
         $('#component_data_read #tableBody').html("");
+        this._clearCellSelection();
     }
 
     setupPlaceholders(){
@@ -785,26 +888,106 @@ export class DataController extends BaseController{
         this.selectedRecords.clear();
         $('#selectAll').prop('checked', false);
         $('#tableBody .data-row').removeClass('selected');
+        this._clearCellSelection();
         this.updateBatchActions();
     }
 
     updateBatchActions(){
-        const count = this.selectedRecords.size;
+        const rowCount = this.selectedRecords.size;
+        const cellCount = $('#tableBody .data-cell.cell-selected').length;
+        const displayCount = rowCount || cellCount;
         const bar = $('#batchActionsBar');
         const editBtn = bar.find('.batch-edit-mass');
         const deleteBtn = bar.find('.batch-delete-mass');
+        const copyBtn = bar.find('.batch-copy');
         const countEl = bar.find('.batch-count-num');
 
-        countEl.text(count);
-        if(count > 0){
+        countEl.text(displayCount);
+        if(displayCount > 0){
             bar.removeClass('d-none');
-            editBtn.prop('disabled', false);
-            deleteBtn.prop('disabled', false);
+            editBtn.prop('disabled', rowCount === 0);
+            deleteBtn.prop('disabled', rowCount === 0);
+            copyBtn.prop('disabled', cellCount === 0);
         } else {
             bar.addClass('d-none');
             editBtn.prop('disabled', true);
             deleteBtn.prop('disabled', true);
+            copyBtn.prop('disabled', true);
         }
+    }
+
+    // ── Cell selection helpers ────────────────────────────────────────────
+
+    _applyCellSelection(){
+        $('#dynamicTable').addClass('is-cell-selecting');
+        $('#tableBody .data-cell').removeClass('cell-selected');
+        const rows = this.cellSelectionRows;
+        const cols = this.cellSelectionCols;
+        const $rows = $('#tableBody .data-row');
+        for(const r of rows){
+            const $cells = $rows.eq(r).find('.data-cell:not(.checkbox-cell)');
+            for(const c of cols){
+                $cells.eq(c).addClass('cell-selected');
+            }
+        }
+        this.updateBatchActions();
+    }
+
+    _clearCellSelection(){
+        $('#tableBody .data-cell').removeClass('cell-selected');
+        this.isDraggingCells = false;
+        this.$dragStartCell = null;
+        this.cellSelectionRows = [];
+        this.cellSelectionCols = [];
+    }
+
+    _syncRowCheckboxesFromCellSelection(){
+        const rows = this.cellSelectionRows;
+        const $rows = $('#tableBody .data-row');
+        for(const r of rows){
+            const $row = $rows.eq(r);
+            const id = $row.attr('identifier');
+            if(id && !this.selectedRecords.has(id)){
+                $row.find('.row-selector').prop('checked', true);
+                this.toggleSelection(id, true);
+            }
+        }
+    }
+
+    copySelectedCells(){
+        const $rows = $('#tableBody .data-row');
+        const selectedRows = this.cellSelectionRows;
+        const selectedCols = this.cellSelectionCols;
+        if(!selectedRows.length || !selectedCols.length) return;
+
+        const lines = [];
+        for(const r of selectedRows){
+            const $cells = $rows.eq(r).find('.data-cell:not(.checkbox-cell)');
+            const cells = [];
+            for(const c of selectedCols){
+                cells.push($cells.eq(c).text());
+            }
+            lines.push(cells.join('\t'));
+        }
+        const text = lines.join('\n');
+
+        navigator.clipboard.writeText(text).then(() => {
+            new wtools.Notification('SUCCESS').Show_(
+                window.structbxI18n ? window.structbxI18n.t('data.copied') : 'Copied to clipboard.'
+            );
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            new wtools.Notification('SUCCESS').Show_(
+                window.structbxI18n ? window.structbxI18n.t('data.copied') : 'Copied to clipboard.'
+            );
+        });
     }
 
     // ── Batch Edit ──────────────────────────────────────────────────────────

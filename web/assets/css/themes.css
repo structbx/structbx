@@ -123,6 +123,8 @@
     /* Selection & batch */
     --td-selected-row-bg: rgba(59, 130, 246, 0.15);
     --td-selected-row-border: #3b82f6;
+    --td-selected-cell-bg: rgba(16, 185, 129, 0.18);
+    --td-selected-cell-border: #10b981;
     --batch-bar-bg: #1a1a1a;
     --batch-bar-border: #333333;
 }
@@ -245,6 +247,8 @@
     /* Selection & batch */
     --td-selected-row-bg: rgba(59, 130, 246, 0.08);
     --td-selected-row-border: #3b82f6;
+    --td-selected-cell-bg: rgba(16, 185, 129, 0.12);
+    --td-selected-cell-border: #10b981;
     --batch-bar-bg: #f4f4f5;
     --batch-bar-border: #e2e8f0;
 }

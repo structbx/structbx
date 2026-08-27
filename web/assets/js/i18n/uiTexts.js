@@ -733,6 +733,10 @@ export const uiTexts = {
         en: "Export successful.",
         es: "Exportación exitosa."
     },
+    "data.copied": {
+        en: "Copied to clipboard.",
+        es: "Copiado al portapapeles."
+    },
     "data.download_error": {
         en: "Error downloading file: ${error}.",
         es: "Error al descargar el archivo: ${error}."
@@ -1249,6 +1253,7 @@ export const uiTexts = {
     "table.selected": { en: "selected", es: "seleccionados" },
     "table.edit_selected": { en: "Edit Selected", es: "Editar seleccionados" },
     "table.delete_selected": { en: "Delete Selected", es: "Eliminar seleccionados" },
+    "table.copy_selected": { en: "Copy", es: "Copiar" },
     "table.clear_selection": { en: "Clear", es: "Limpiar" },
     "table.modal_batch_edit_title": { en: "Edit <span class=\"batch-count-target\"></span> records", es: "Editar <span class=\"batch-count-target\"></span> registros" },
     "table.modal_batch_edit_desc": { en: "Select the columns you want to modify and set their new values.", es: "Selecciona las columnas que deseas modificar y establece sus nuevos valores." },

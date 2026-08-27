@@ -212,6 +212,19 @@
     background-color: var(--td-row-hover);
 }
 
+/* Cell-level drag selection highlight */
+#component_data_read .data-cell.cell-selected {
+    background: var(--td-selected-cell-bg);
+    outline: 2px solid var(--td-selected-cell-border);
+    outline-offset: -2px;
+}
+
+/* Prevent text selection while dragging */
+#component_data_read.is-cell-selecting {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 /* Responsive adjustments for container */
 @media (max-width: 768px) {
     #component_data_read .dynamic-table-wrapper {
