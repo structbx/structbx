@@ -1,3 +1,32 @@
+# Changelog - StructBX v0.3.0
+
+## New Features & Enhancements (Added)
+
+* Added **git describe** to automatically derive version from tags (#144).
+* Implemented **user delegation and system user support** for flexible access control (#146).
+* Added **i18n system for backend error codes** to support multilingual error messaging (#153).
+
+---
+
+## Bug Fixes (Fixed)
+
+* Fixed **timestamp handling** for Row-Level Security conditions (#145).
+* Fixed **user type column** issues in display column resolution (#147).
+* Fixed **user session methods** and RLS condition evaluation (#148).
+* Fixed **session by id** retrieval (#151).
+* Added **password validation** to prevent same password reuse (#152).
+* Fixed **error codes synchronization** between backend and frontend (#154).
+
+---
+
+## Internal Build System (Under the Hood)
+
+* Improved **RLS getter** logic and fixed RLS condition handling (#149).
+* Updated **Conan dependencies** to latest versions (#150).
+* Improved **database schema and queries** for better performance (#155).
+
+---
+
 # Changelog - StructBX v0.2.2
 
 ## Bug Fixes (Fixed)
