@@ -1,3 +1,11 @@
+# Changelog - StructBX v0.3.2
+
+## Architectural & Interface Refactoring (Changed)
+
+* Replaced configurable `database_id_cookie_name` setting with a hardcoded `structbx-database` cookie, removing Base64 encoding/decoding of the cookie value (#181).
+
+---
+
 # Changelog - StructBX v0.3.1
 
 ## Bug Fixes (Fixed)
