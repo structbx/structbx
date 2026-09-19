@@ -8,7 +8,7 @@ using namespace StructBX::Controllers;
 
 BackendHandler::BackendHandler() :
     RootHandler::RootHandler()
-    ,database_id_cookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), "")
+    ,database_id_cookie_("structbx-database", "")
     ,add_database_id_cookie_(false)
 {
 
@@ -122,17 +122,16 @@ void BackendHandler::SetupFunctionData_()
     // Get Cookie Database ID
     Poco::Net::NameValueCollection cookies;
     get_http_server_request().value()->getCookies(cookies);
-    auto cookie_database_id = cookies.find(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"));
+    auto cookie_database_id = cookies.find("structbx-database");
 
     // Set Database ID if exists in Cookies
     add_database_id_cookie_ = false;
     if(cookie_database_id != cookies.end())
     {
-        auto database_id_decoded = StructBX::Tools::Base64Tool().Decode_(cookie_database_id->second);
-        if(database_id_decoded.empty())
+        if(cookie_database_id->second.empty())
             add_database_id_cookie_ = true;
         else
-            function_data_.set_database_id(database_id_decoded);
+            function_data_.set_database_id(cookie_database_id->second);
     }
     else
         add_database_id_cookie_ = true;
@@ -164,9 +163,7 @@ void BackendHandler::SetupFunctionData_()
                 function_data_.set_database_id(database_id->ToString_());
 
                 // Save Database ID to Cookie
-                auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-
-                Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+                Net::HTTPCookie cookie("structbx-database", database_id->ToString_());
                 cookie.setPath("/");
                 cookie.setSecure(true);
                 database_id_cookie_ = HTTP::Cookie(cookie);

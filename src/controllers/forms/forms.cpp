@@ -201,8 +201,7 @@ Forms::ReadTableSpecific::ReadTableSpecific(Tools::FunctionData& function_data) 
         
         // Add Cookies
         client.AddCookie_("structbx-sid", system_user.session_id);
-        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+        client.AddCookie_("structbx-database", database_id->ToString_());
 
         // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
@@ -285,8 +284,7 @@ Forms::ReadTableData::ReadTableData(Tools::FunctionData& function_data) : Tools:
         
         // Add Cookies
         client.AddCookie_("structbx-sid", system_user.session_id);
-        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+        client.AddCookie_("structbx-database", database_id->ToString_());
 
         // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
@@ -369,8 +367,7 @@ Forms::ReadColumns::ReadColumns(Tools::FunctionData& function_data) : Tools::Fun
 
         // Add Cookies
         client.AddCookie_("structbx-sid", system_user.session_id);
-        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+        client.AddCookie_("structbx-database", database_id->ToString_());
 
         // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
@@ -455,8 +452,7 @@ Forms::ReadDatabaseUsers::ReadDatabaseUsers(Tools::FunctionData& function_data) 
         
         // Add Cookies
         client.AddCookie_("structbx-sid", system_user.session_id);
-        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+        client.AddCookie_("structbx-database", database_id->ToString_());
 
         // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)
@@ -539,8 +535,7 @@ Forms::AddData::AddData(Tools::FunctionData& function_data) : Tools::FunctionDat
 
         // Add Cookies
         client.AddCookie_("structbx-sid", system_user.session_id);
-        auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_id->ToString_());
-        client.AddCookie_(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+        client.AddCookie_("structbx-database", database_id->ToString_());
 
         // Response handler
         client.set_response_handler([&](std::stringstream& response, Net::HTTPRequest&, Net::HTTPResponse&)

@@ -169,7 +169,7 @@ rootcert: ""
 logger_output_file: "${LOG_DIR}/structbx.log"
 debug: false
 directory_for_uploaded_files: "${UPLOAD_DIR}"
-database_id_cookie_name: "1f3efd18688d2b844f4fa1e800712c9b5750c0312"
+
 YAML
 fi
 

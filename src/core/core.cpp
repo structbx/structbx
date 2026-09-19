@@ -85,7 +85,6 @@ void StructBX::Core::Core::AddBasicSettings_()
     Tools::SettingsManager::AddSetting_("rootcert", Tools::DValue::Type::kString, Tools::DValue(""));
     Tools::SettingsManager::AddSetting_("logger_output_file", Tools::DValue::Type::kString, Tools::DValue("structbx.log"));
     Tools::SettingsManager::AddSetting_("debug", Tools::DValue::Type::kBoolean, Tools::DValue(false));
-    Tools::SettingsManager::AddSetting_("database_id_cookie_name", Tools::DValue::Type::kString, Tools::DValue("1f3efd18688d2"));
 }
 
 void StructBX::Core::Core::SetupSettings_()

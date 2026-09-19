@@ -370,8 +370,7 @@ Databases::Change::Change(Tools::FunctionData& function_data) :
             auto database_identifier = first->get()->ExtractField_("identifier");
 
             // Set Cookie Database ID
-            auto database_id_encoded = StructBX::Tools::Base64Tool().Encode_(database_identifier->ToString_());
-            Net::HTTPCookie cookie(StructBX::Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), database_id_encoded);
+            Net::HTTPCookie cookie("structbx-database", database_identifier->ToString_());
             cookie.setPath("/");
             cookie.setSecure(true);
 

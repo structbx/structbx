@@ -117,7 +117,7 @@ void LoginHandler::EndSession_()
         cookie.setPath("/");
         cookie.setMaxAge(-1);
 
-        Poco::Net::HTTPCookie cookie2(Tools::SettingsManager::GetSetting_("database_id_cookie_name", "1f3efd18688d2"), "");
+        Poco::Net::HTTPCookie cookie2("structbx-database", "");
         cookie2.setPath("/");
         cookie2.setMaxAge(-1);
 
